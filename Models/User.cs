@@ -8,4 +8,4 @@ public class User
     public string? Name { get; set; }
     [DataType(DataType.Date)]
     public DateTime BirthDate { get; set; }
-}
+}   

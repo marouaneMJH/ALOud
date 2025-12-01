@@ -8,7 +8,7 @@ using RazorPagesUser.Models;
 namespace RazorPagesUser.Data
 {
     public class RazorPagesUserContext : DbContext
-    {
+    { 
         public RazorPagesUserContext (DbContextOptions<RazorPagesUserContext> options)
             : base(options)
         {
