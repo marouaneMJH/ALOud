@@ -4,12 +4,15 @@
     ViewData["Title"] = "Accueil";
 }
 
-<h2 class="mb-4">
-    Bienvenue sur <span class="text-warning">VeloStore</span>
-</h2>
+<div class="text-center mb-5">
+    <h1 class="display-4 mb-3" style="font-family: 'Playfair Display', serif; color: var(--aloud-primary); font-weight: 700;">
+        Bienvenue chez <span style="color: var(--aloud-accent);">ALOud</span>
+    </h1>
+    <p class="lead" style="color: var(--aloud-dark); font-style: italic;">L'authenticité, la grandeur et le classique réunis</p>
+</div>
 
 <!-- 🔍 RECHERCHE & FILTRES -->
-<form method="get" class="row g-2 mb-4 bg-white p-3 rounded shadow-sm">
+<form method="get" class="row g-2 mb-4 p-3 rounded shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #F5F5DC 100%); border: 1px solid var(--aloud-accent);">
 
     <!-- Recherche -->
     <div class="col-md-4">
@@ -17,7 +20,8 @@
                name="query"
                value="@Model.Search.Query"
                class="form-control"
-               placeholder="Rechercher un produit..." />
+               placeholder="Rechercher un produit..."
+               style="border-color: var(--aloud-secondary);" />
     </div>
 
     <!-- Prix min -->
@@ -26,7 +30,8 @@
                name="minPrice"
                value="@Model.Search.MinPrice"
                class="form-control"
-               placeholder="Prix min" />
+               placeholder="Prix min"
+               style="border-color: var(--aloud-secondary);" />
     </div>
 
     <!-- Prix max -->
@@ -35,12 +40,13 @@
                name="maxPrice"
                value="@Model.Search.MaxPrice"
                class="form-control"
-               placeholder="Prix max" />
+               placeholder="Prix max"
+               style="border-color: var(--aloud-secondary);" />
     </div>
 
     <!-- Tri -->
     <div class="col-md-2">
-        <select name="sort" class="form-select">
+        <select name="sort" class="form-select" style="border-color: var(--aloud-secondary);">
             <option value="">Trier par</option>
             <option value="price_asc"
                     selected="@(Model.Search.Sort == "price_asc")">
@@ -55,7 +61,7 @@
 
     <!-- Bouton -->
     <div class="col-md-2">
-        <button class="btn btn-dark w-100">
+        <button class="btn btn-primary w-100" style="font-weight: 600;">
             Filtrer
         </button>
     </div>
@@ -87,7 +93,7 @@
                     </a>
 
                     <!-- Prix -->
-                    <p class="text-danger fw-bold mb-2">
+                    <p class="fw-bold mb-2" style="color: var(--aloud-secondary); font-size: 1.1rem;">
                         @product.Price MAD
                     </p>
 
@@ -99,7 +105,8 @@
                                name="productId"
                                value="@product.Id" />
                         <button type="submit"
-                                class="btn btn-warning w-100">
+                                class="btn btn-primary w-100"
+                                style="background-color: var(--aloud-accent); border-color: var(--aloud-accent); color: var(--aloud-dark); font-weight: 600;">
                             Ajouter au panier
                         </button>
                     </form>
@@ -111,7 +118,7 @@
 
 @if (!Model.Products.Any())
 {
-    <div class="alert alert-warning mt-4">
-        Aucun produit trouvé.
+    <div class="alert mt-4" style="background-color: var(--aloud-light); border-color: var(--aloud-accent); color: var(--aloud-dark);">
+        <i class="fas fa-search" style="color: var(--aloud-secondary);"></i> Aucun produit trouvé dans notre collection authentique.
     </div>
 }

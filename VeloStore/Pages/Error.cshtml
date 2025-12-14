@@ -1,23 +1,36 @@
 ﻿@page
 @model ErrorModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Erreur";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-</p>
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="p-5 rounded shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #F5F5DC 100%); border: 2px solid var(--aloud-accent);">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--aloud-secondary); margin-bottom: 1.5rem;"></i>
+                
+                <h1 style="font-family: 'Playfair Display', serif; color: var(--aloud-primary); font-weight: 700; margin-bottom: 1rem;">Oops !</h1>
+                <h2 style="color: var(--aloud-dark); font-weight: 500; font-size: 1.3rem; margin-bottom: 1.5rem;">Une erreur s'est produite lors du traitement de votre demande.</h2>
+                
+                @if (Model.ShowRequestId)
+                {
+                    <div class="p-3 rounded mt-3" style="background-color: var(--aloud-light); border: 1px solid var(--aloud-secondary);">
+                        <p style="color: var(--aloud-dark); margin: 0;">
+                            <strong>ID de la requête :</strong> <code style="color: var(--aloud-secondary);">@Model.RequestId</code>
+                        </p>
+                    </div>
+                }
+                
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary" style="background-color: var(--aloud-accent); border-color: var(--aloud-accent); color: var(--aloud-dark); font-weight: 600; padding: 12px 30px;">
+                        Retour à l'accueil ALOud
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <p>
     <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
     It can result in displaying sensitive information from exceptions to end users.
