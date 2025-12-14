@@ -65,5 +65,11 @@ namespace VeloStore.Services
             }
             SaveCart(cart);
         }
+
+        public int GetCartItemCount()
+        {
+            var cart = GetCart();
+            return cart.Sum(item => item.Quantity);
+        }
     }
 }
