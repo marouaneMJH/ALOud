@@ -2,127 +2,76 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - ALOud</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Bootstrap -->
+    <title>@ViewData["Title"] - ALOud</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --aloud-primary: #8B4513; /* Saddle Brown - Authenticity */
-            --aloud-secondary: #D2691E; /* Chocolate - Warmth */
-            --aloud-accent: #DAA520; /* Goldenrod - Classic luxury */
-            --aloud-dark: #654321; /* Dark Brown - Heritage */
-            --aloud-light: #F5F5DC; /* Beige - Classic elegance */
-            --aloud-green: #556B2F; /* Dark Olive Green - Natural authenticity */
-        }
-        
-        body {
-            background-color: var(--aloud-light);
-            font-family: 'Lora', serif;
-            color: var(--aloud-dark);
-        }
-
-        .navbar-brand {
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-        }
-
-        .product-card {
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            border: 2px solid var(--aloud-accent);
-            background: #fff;
-        }
-
-            .product-card:hover {
-                transform: translateY(-6px);
-                box-shadow: 0 15px 35px rgba(139, 69, 19, 0.2);
-                border-color: var(--aloud-primary);
-            }
-
-        .product-title {
-            min-height: 40px;
-            color: var(--aloud-dark);
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background-color: var(--aloud-primary);
-            border-color: var(--aloud-primary);
-            font-weight: 500;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--aloud-dark);
-            border-color: var(--aloud-dark);
-        }
-        
-        .text-warning {
-            color: var(--aloud-accent) !important;
-        }
-        
-        .bg-dark {
-            background-color: var(--aloud-dark) !important;
-        }
-        
-        .navbar-dark .navbar-brand {
-            color: var(--aloud-accent) !important;
-        }
-        
-        .navbar-dark .navbar-nav .nav-link {
-            color: var(--aloud-light) !important;
-        }
-        
-        .navbar-dark .navbar-nav .nav-link:hover {
-            color: var(--aloud-accent) !important;
-        }
-    </style>
-
-
-
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" asp-page="/Index">ALOud</a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/Index">Accueil</a>
-                    </li>
-                </ul>
-
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/Cart/Index">
-                            🛒 Panier
-                        </a>
-                    </li>
-                </ul>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <!-- Brand -->
+                <a class="navbar-brand" asp-page="/Index">ALOud</a>
+                
+                <!-- Navigation Links -->
+                <div class="navbar-nav">
+                    <a class="nav-link" asp-page="/Index">Collection</a>
+                    <a class="nav-link" asp-page="/Cart/Index">
+                        <span class="me-1">Panier</span>
+                        <span class="position-relative">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.1 16.4H17M17 13V17A2 2 0 0 1 15 19H9A2 2 0 0 1 7 17V13M17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- CONTENU -->
-    <div class="container mt-4">
+    <!-- Main Content -->
+    <main>
         @RenderBody()
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-5 mt-6" style="background-color: var(--color-primary); color: var(--color-white);">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3 class="h5 mb-3" style="color: var(--color-white);">ALOud</h3>
+                    <p class="small" style="color: rgba(255,255,255,0.8);">L'art de la parfumerie authentique</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-6">
+                            <h4 class="h6 mb-3" style="color: var(--color-white);">Liens</h4>
+                            <ul class="list-unstyled small">
+                                <li><a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.8);">À propos</a></li>
+                                <li><a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.8);">Contact</a></li>
+                                <li><a asp-page="/Privacy" class="text-decoration-none" style="color: rgba(255,255,255,0.8);">Confidentialité</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+            <div class="text-center">
+                <p class="small mb-0" style="color: rgba(255,255,255,0.6);">&copy; @DateTime.Now.Year ALOud. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

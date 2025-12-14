@@ -1,124 +1,132 @@
 ﻿@page
 @model VeloStore.Pages.IndexModel
 @{
-    ViewData["Title"] = "Accueil";
+    ViewData["Title"] = "Collection";
 }
 
-<div class="text-center mb-5">
-    <h1 class="display-4 mb-3" style="font-family: 'Playfair Display', serif; color: var(--aloud-primary); font-weight: 700;">
-        Bienvenue chez <span style="color: var(--aloud-accent);">ALOud</span>
-    </h1>
-    <p class="lead" style="color: var(--aloud-dark); font-style: italic;">L'authenticité, la grandeur et le classique réunis</p>
-</div>
-
-<!-- 🔍 RECHERCHE & FILTRES -->
-<form method="get" class="row g-2 mb-4 p-3 rounded shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #F5F5DC 100%); border: 1px solid var(--aloud-accent);">
-
-    <!-- Recherche -->
-    <div class="col-md-4">
-        <input type="text"
-               name="query"
-               value="@Model.Search.Query"
-               class="form-control"
-               placeholder="Rechercher un produit..."
-               style="border-color: var(--aloud-secondary);" />
+<!-- Hero Section -->
+<section class="py-6 text-center">
+    <div class="container">
+        <h1 class="display-1 mb-4">ALOud</h1>
+        <p class="lead mb-0" style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
+            Découvrez notre collection exclusive de parfums authentiques, 
+            où chaque fragrance raconte une histoire d'élégance intemporelle.
+        </p>
     </div>
+</section>
 
-    <!-- Prix min -->
-    <div class="col-md-2">
-        <input type="number"
-               name="minPrice"
-               value="@Model.Search.MinPrice"
-               class="form-control"
-               placeholder="Prix min"
-               style="border-color: var(--aloud-secondary);" />
-    </div>
+<!-- Search & Filters -->
+<section>
+    <div class="container">
+        <form method="get" class="search-form">
+            <div class="row g-3 align-items-end">
+                <!-- Search -->
+                <div class="col-md-4">
+                    <label for="query" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Rechercher</label>
+                    <input type="text"
+                           id="query"
+                           name="query"
+                           value="@Model.Search.Query"
+                           class="form-control"
+                           placeholder="Nom du parfum..." />
+                </div>
 
-    <!-- Prix max -->
-    <div class="col-md-2">
-        <input type="number"
-               name="maxPrice"
-               value="@Model.Search.MaxPrice"
-               class="form-control"
-               placeholder="Prix max"
-               style="border-color: var(--aloud-secondary);" />
-    </div>
+                <!-- Price Min -->
+                <div class="col-md-2">
+                    <label for="minPrice" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prix Min</label>
+                    <input type="number"
+                           id="minPrice"
+                           name="minPrice"
+                           value="@Model.Search.MinPrice"
+                           class="form-control"
+                           placeholder="0" />
+                </div>
 
-    <!-- Tri -->
-    <div class="col-md-2">
-        <select name="sort" class="form-select" style="border-color: var(--aloud-secondary);">
-            <option value="">Trier par</option>
-            <option value="price_asc"
-                    selected="@(Model.Search.Sort == "price_asc")">
-                Prix ↑
-            </option>
-            <option value="price_desc"
-                    selected="@(Model.Search.Sort == "price_desc")">
-                Prix ↓
-            </option>
-        </select>
-    </div>
+                <!-- Price Max -->
+                <div class="col-md-2">
+                    <label for="maxPrice" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prix Max</label>
+                    <input type="number"
+                           id="maxPrice"
+                           name="maxPrice"
+                           value="@Model.Search.MaxPrice"
+                           class="form-control"
+                           placeholder="1000" />
+                </div>
 
-    <!-- Bouton -->
-    <div class="col-md-2">
-        <button class="btn btn-primary w-100" style="font-weight: 600;">
-            Filtrer
-        </button>
-    </div>
-</form>
+                <!-- Sort -->
+                <div class="col-md-2">
+                    <label for="sort" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Trier par</label>
+                    <select name="sort" id="sort" class="form-control">
+                        <option value="">Sélectionner</option>
+                        <option value="price_asc" selected="@(Model.Search.Sort == "price_asc")">
+                            Prix croissant
+                        </option>
+                        <option value="price_desc" selected="@(Model.Search.Sort == "price_desc")">
+                            Prix décroissant
+                        </option>
+                    </select>
+                </div>
 
-<!-- 🧾 PRODUITS -->
-<div class="row">
-    @foreach (var product in Model.Products)
-    {
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-sm product-card">
-
-                <!-- Image + lien détails -->
-                <a asp-page="/Product/Details" asp-route-id="@product.Id">
-                    <img src="@product.ImageUrl"
-                         class="card-img-top p-3"
-                         style="height:200px; object-fit:contain;" />
-                </a>
-
-                <div class="card-body d-flex flex-column">
-
-                    <!-- Nom -->
-                    <a asp-page="/Product/Details"
-                       asp-route-id="@product.Id"
-                       class="text-decoration-none text-dark">
-                        <h6 class="card-title product-title">
-                            @product.Name
-                        </h6>
-                    </a>
-
-                    <!-- Prix -->
-                    <p class="fw-bold mb-2" style="color: var(--aloud-secondary); font-size: 1.1rem;">
-                        @product.Price MAD
-                    </p>
-
-                    <!-- Panier -->
-                    <form method="post"
-                          asp-page-handler="AddToCart"
-                          class="mt-auto">
-                        <input type="hidden"
-                               name="productId"
-                               value="@product.Id" />
-                        <button type="submit"
-                                class="btn btn-primary w-100"
-                                style="background-color: var(--aloud-accent); border-color: var(--aloud-accent); color: var(--aloud-dark); font-weight: 600;">
-                            Ajouter au panier
-                        </button>
-                    </form>
+                <!-- Button -->
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100">
+                        Filtrer
+                    </button>
                 </div>
             </div>
-        </div>
-    }
-</div>
-
-@if (!Model.Products.Any())
-{
-    <div class="alert mt-4" style="background-color: var(--aloud-light); border-color: var(--aloud-accent); color: var(--aloud-dark);">
-        <i class="fas fa-search" style="color: var(--aloud-secondary);"></i> Aucun produit trouvé dans notre collection authentique.
+        </form>
     </div>
-}
+</section>
+
+<!-- Products Grid -->
+<section>
+    <div class="container">
+        @if (Model.Products.Any())
+        {
+            <div class="product-grid">
+                @foreach (var product in Model.Products)
+                {
+                    <article class="product-card">
+                        <!-- Product Image -->
+                        <a asp-page="/Product/Details" asp-route-id="@product.Id" class="text-decoration-none">
+                            <div class="product-image-container">
+                                <img src="@product.ImageUrl" 
+                                     alt="@product.Name"
+                                     class="product-image" />
+                            </div>
+                        </a>
+
+                        <!-- Product Info -->
+                        <div class="product-info">
+                            <a asp-page="/Product/Details" asp-route-id="@product.Id" class="text-decoration-none">
+                                <h3 class="product-name">@product.Name</h3>
+                            </a>
+                            
+                            <p class="product-price">@product.Price,00 MAD</p>
+
+                            <!-- Add to Cart -->
+                            <form method="post" asp-page-handler="AddToCart" class="mb-4">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    Ajouter au panier
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-6">
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">Aucun parfum trouvé</h3>
+                <p style="color: var(--color-text-secondary);">
+                    Essayez de modifier vos critères de recherche ou explorez toute notre collection.
+                </p>
+                <a asp-page="/Index" class="btn btn-primary mt-3">
+                    Voir toute la collection
+                </a>
+            </div>
+        }
+    </div>
+</section>
