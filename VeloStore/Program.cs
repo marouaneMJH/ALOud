@@ -54,7 +54,7 @@ var app = builder.Build();
 app.UseStaticFiles();
 app.UseRouting();
 
-//  OBLIGATOIRE POUR LE PANIER
+// OBLIGATOIRE POUR LE PANIER
 app.UseSession();
 
 app.MapRazorPages();
