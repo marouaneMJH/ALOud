@@ -18,6 +18,8 @@ builder.Services.AddDbContext<VeloStoreDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+
+
 // 🔹 SESSION (PANIER)
 builder.Services.AddSession(options =>
 {
