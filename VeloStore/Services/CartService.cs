@@ -6,6 +6,7 @@ namespace VeloStore.Services
     public class CartService
     {
         private readonly ISession _session;
+        // private readonly 
         private const string CartKey = "CART";
 
         public CartService(IHttpContextAccessor accessor)

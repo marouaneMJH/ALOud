@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using VeloStore.Data;
 using VeloStore.Services;
 
@@ -18,9 +19,16 @@ builder.Services.AddDbContext<VeloStoreDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration.GetSection("Redis")["ConnectionString"];
+    return ConnectionMultiplexer.Connect(configuration);
+});
 
 
-// 🔹 SESSION (PANIER)
+
+
+// SESSION (PANIER)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -28,10 +36,13 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// 🔹 HttpContextAccessor (OBLIGATOIRE pour Session)
+// Service Redis
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
+
+//  HttpContextAccessor (OBLIGATOIRE pour Session)
 builder.Services.AddHttpContextAccessor();
 
-// 🔹 Service Panier
+//  Service Panier
 builder.Services.AddScoped<CartService>();
 
 var app = builder.Build();
@@ -43,7 +54,7 @@ var app = builder.Build();
 app.UseStaticFiles();
 app.UseRouting();
 
-// ⚠️ OBLIGATOIRE POUR LE PANIER
+//  OBLIGATOIRE POUR LE PANIER
 app.UseSession();
 
 app.MapRazorPages();
