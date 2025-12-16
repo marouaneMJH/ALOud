@@ -17,12 +17,12 @@ namespace VeloStore.Services
 
         private string GetCartKey()
         {
-            // Try to get user session ID, or create a temporary cart ID
-            var sessionId = _accessor.HttpContext?.Session?.Id
-                ?? _accessor.HttpContext?.TraceIdentifier
-                ?? Guid.NewGuid().ToString();
+            // Use TraceIdentifier as the cart key since sessions are not configured
+            // This provides a unique identifier per request context
+            // var cartId = _accessor.HttpContext?.TraceIdentifier 
+            //     ?? Guid.NewGuid().ToString();
             
-            return CartKeyPrefix + sessionId;
+            return CartKeyPrefix;
         }
 
         public async Task<List<CartItemVM>> GetCartAsync()
@@ -39,10 +39,8 @@ namespace VeloStore.Services
 
         public async Task SaveCartAsync(List<CartItemVM> cart)
         {
-            var cartKey = GetCartKey();
-
-            Console.WriteLine(cartKey);
-            Console.WriteLine(cart);
+            var cartKey = GetCartKey(); 
+            Console.WriteLine("cartKey" + cartKey);
 
             // Set expiry to 7 days
             await _cache.SetAsync(cartKey, cart, TimeSpan.FromDays(7));
