@@ -3,7 +3,7 @@
 /workspace.xml
 # Rider ignored files
 /modules.xml
-/.idea.VeloStore.iml
+/.idea.iml
 /contentModel.xml
 /projectSettingsUpdater.xml
 # Ignored default folder with query files
