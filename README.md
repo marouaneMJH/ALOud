@@ -1,4 +1,4 @@
-# VeloStore 🛒
+﻿# VeloStore 🛒
 
 VeloStore is an Amazon-like e-commerce platform built with **ASP.NET Core Razor Pages**, following **MVVM architecture**, using **Entity Framework Core** and **SQL Server**.
 
