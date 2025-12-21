@@ -1,8 +1,16 @@
-﻿# ALOud 🌸
+﻿# ALOud
 
 ALOud is a sophisticated perfume and fragrance e-commerce platform built with **ASP.NET Core Razor Pages**, following **MVVM architecture**, using **Entity Framework Core** and **SQL Server**.
 
-## ✨ Features
+## Screenshots
+
+![Main Page 1](docs/main-1.png)
+
+![Main Page 2](docs/main-2.png)
+
+![Main Page 3](docs/main-3.png)
+
+## Features
 
 -   Perfume and fragrance catalog
 -   Product details page with fragrance notes
@@ -12,7 +20,7 @@ ALOud is a sophisticated perfume and fragrance e-commerce platform built with **
 -   SQL Server database with Entity Framework Core
 -   Redis caching for improved performance
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 -   ASP.NET Core (.NET 8)
 -   Razor Pages (MVVM)
@@ -21,7 +29,7 @@ ALOud is a sophisticated perfume and fragrance e-commerce platform built with **
 -   Redis Cache
 -   Bootstrap 5
 
-## 🚀 How to run
+## How to run
 
 1. Clone the repository
 2. Configure connection strings in `appsettings.json`:
@@ -30,7 +38,7 @@ ALOud is a sophisticated perfume and fragrance e-commerce platform built with **
 3. Run database migrations: `dotnet ef database update`
 4. Start the project: `dotnet run`
 
-## 🗃️ Database Structure
+## Database Structure
 
 -   **Products**: Perfume products with categories, prices, and images
 -   **Categories**: Men's Fragrances, Women's Fragrances, Unisex Fragrances
@@ -38,4 +46,4 @@ ALOud is a sophisticated perfume and fragrance e-commerce platform built with **
 
 ---
 
-📌 ALOud - Where every scent tells a story. A modern perfume e-commerce platform built for fragrance enthusiasts.
+ALOud - Where every scent tells a story. A modern perfume e-commerce platform built for fragrance enthusiasts.
