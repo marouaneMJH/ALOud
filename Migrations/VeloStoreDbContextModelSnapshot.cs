@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VeloStore.Data;
+using ALOud.Data;
 
 #nullable disable
 
-namespace VeloStore.Migrations
+namespace ALOud.Migrations
 {
-    [DbContext(typeof(VeloStoreDbContext))]
-    partial class VeloStoreDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ALOudDbContext))]
+    partial class ALOudDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -57,7 +57,7 @@ namespace VeloStore.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("VeloStore.Models.Category", b =>
+            modelBuilder.Entity("Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace VeloStore.Migrations
 
             modelBuilder.Entity("Product", b =>
                 {
-                    b.HasOne("VeloStore.Models.Category", "Category")
+                    b.HasOne("Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)

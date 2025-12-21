@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using VeloStore.Data;
-using VeloStore.Services;
+using ALOud.Data;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +15,7 @@ builder.Services.AddRazorPages();
 // -----------------------------------------------------
 // SQL SERVER - EF CORE
 // -----------------------------------------------------
-builder.Services.AddDbContext<VeloStoreDbContext>(options =>
+builder.Services.AddDbContext<ALOudDbContext>(options =>
 {
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -84,7 +84,7 @@ using (var scope = app.Services.CreateScope())
     // ---- SQL Server check
     try
     {
-        var db = services.GetRequiredService<VeloStoreDbContext>();
+        var db = services.GetRequiredService<ALOudDbContext>();
 
         if (db.Database.CanConnect())
         {

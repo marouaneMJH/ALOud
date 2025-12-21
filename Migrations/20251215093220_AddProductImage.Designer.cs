@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VeloStore.Data;
+using ALOud.Data;
 
 #nullable disable
 
-namespace VeloStore.Migrations
+namespace ALOud.Migrations
 {
-    [DbContext(typeof(VeloStoreDbContext))]
+    [DbContext(typeof(ALOudDbContext))]
     [Migration("20251215093220_AddProductImage")]
     partial class AddProductImage
     {
@@ -60,7 +60,7 @@ namespace VeloStore.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("VeloStore.Models.Category", b =>
+            modelBuilder.Entity("Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -79,7 +79,7 @@ namespace VeloStore.Migrations
 
             modelBuilder.Entity("Product", b =>
                 {
-                    b.HasOne("VeloStore.Models.Category", "Category")
+                    b.HasOne("Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)

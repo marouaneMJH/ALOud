@@ -1,28 +1,41 @@
-﻿# VeloStore 🛒
+﻿# ALOud 🌸
 
-VeloStore is an Amazon-like e-commerce platform built with **ASP.NET Core Razor Pages**, following **MVVM architecture**, using **Entity Framework Core** and **SQL Server**.
+ALOud is a sophisticated perfume and fragrance e-commerce platform built with **ASP.NET Core Razor Pages**, following **MVVM architecture**, using **Entity Framework Core** and **SQL Server**.
 
 ## ✨ Features
-- Product catalog
-- Product details page
-- Shopping cart (session-based)
-- Search & filters
-- Modern UI (Bootstrap)
-- SQL Server database
+
+-   Perfume and fragrance catalog
+-   Product details page with fragrance notes
+-   Shopping cart with Redis caching
+-   Search & filters by categories (Men's, Women's, Unisex)
+-   Modern UI (Bootstrap 5)
+-   SQL Server database with Entity Framework Core
+-   Redis caching for improved performance
 
 ## 🛠️ Tech Stack
-- ASP.NET Core (.NET 8)
-- Razor Pages
-- Entity Framework Core
-- SQL Server
-- Bootstrap 5
+
+-   ASP.NET Core (.NET 8)
+-   Razor Pages (MVVM)
+-   Entity Framework Core
+-   SQL Server
+-   Redis Cache
+-   Bootstrap 5
 
 ## 🚀 How to run
+
 1. Clone the repository
-2. Configure connection string
-3. Run database migrations
-4. Start the project
+2. Configure connection strings in `appsettings.json`:
+    - SQL Server connection string
+    - Redis connection string
+3. Run database migrations: `dotnet ef database update`
+4. Start the project: `dotnet run`
+
+## 🗃️ Database Structure
+
+-   **Products**: Perfume products with categories, prices, and images
+-   **Categories**: Men's Fragrances, Women's Fragrances, Unisex Fragrances
+-   **Cart**: Redis-based shopping cart system
 
 ---
 
-📌 This project is part of a learning journey to build a professional e-commerce platform.
+📌 ALOud - Where every scent tells a story. A modern perfume e-commerce platform built for fragrance enthusiasts.

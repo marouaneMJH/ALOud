@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VeloStore.Data;
+using ALOud.Data;
 
 #nullable disable
 
-namespace VeloStore.Migrations
+namespace ALOud.Migrations
 {
-    [DbContext(typeof(VeloStoreDbContext))]
+    [DbContext(typeof(ALOudDbContext))]
     [Migration("20251215091939_InitialCreate")]
     partial class InitialCreate
     {
@@ -24,7 +24,7 @@ namespace VeloStore.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VeloStore.Models.Category", b =>
+            modelBuilder.Entity("Models.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,7 +41,7 @@ namespace VeloStore.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("VeloStore.Models.Product", b =>
+            modelBuilder.Entity("Models.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

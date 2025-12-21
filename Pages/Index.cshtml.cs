@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using VeloStore.Data;
-using VeloStore.Services;
-using VeloStore.ViewModels;
+using ALOud.Data;
+using Services;
+using ViewModels;
 
-namespace VeloStore.Pages
+namespace Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly VeloStoreDbContext _context;
+        private readonly ALOudDbContext _context;
         private readonly CartService _cartService;
 
-        public IndexModel(VeloStoreDbContext context, CartService cartService)
+        public IndexModel(ALOudDbContext context, CartService cartService)
         {
             _context = context;
             _cartService = cartService;

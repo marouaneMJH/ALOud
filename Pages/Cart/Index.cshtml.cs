@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using VeloStore.Services;
-using VeloStore.ViewModels;
+using Services;
+using ViewModels;
 
-namespace VeloStore.Pages.Cart
+namespace Pages.Cart
 {
     public class IndexModel : PageModel
     {

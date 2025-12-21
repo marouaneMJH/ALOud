@@ -1,4 +1,4 @@
-﻿namespace VeloStore.ViewModels
+﻿namespace ViewModels
 {
     public class HomeProductVM
     {

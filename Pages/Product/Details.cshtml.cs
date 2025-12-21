@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using VeloStore.Data;
-using VeloStore.Services;
-using VeloStore.ViewModels;
+using ALOud.Data;
+using Services;
+using ViewModels;
 
-namespace VeloStore.Pages.Product
+namespace Pages.Product
 {
     public class DetailsModel : PageModel
     {
-        private readonly VeloStoreDbContext _context;
+        private readonly ALOudDbContext _context;
         private readonly CartService _cartService;
 
         public ProductDetailsVM Product { get; set; }
 
-        public DetailsModel(VeloStoreDbContext context, CartService cartService)
+        public DetailsModel(ALOudDbContext context, CartService cartService)
         {
             _context = context;
             _cartService = cartService;

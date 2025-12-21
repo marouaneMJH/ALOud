@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using VeloStore.ViewModels;
+using ViewModels;
 
-namespace VeloStore.Services
+namespace Services
 {
     public class CartService
     {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace VeloStore.Migrations
+namespace ALOud.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VeloStore.Services;
+using Services;
 
-namespace VeloStore.ViewComponents
+namespace ViewComponents
 {
     public class CartCountViewComponent : ViewComponent
     {
