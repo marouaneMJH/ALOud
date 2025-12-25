@@ -27,4 +27,10 @@
     <_ContentIncludedByDefault Remove="Pages\Auth\Register.cshtml" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <Folder Include="DTOs/" />
+    <Folder Include="Services/Security/" />
+  </ItemGroup>
+
 </Project>

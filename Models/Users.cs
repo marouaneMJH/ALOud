@@ -10,11 +10,11 @@ namespace ALOud.Models
         public Guid Id { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(20)]
         public string FirstName { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(20)]
         public string LastName { get; set; }
 
         [Required]
@@ -26,6 +26,13 @@ namespace ALOud.Models
         public string PasswordHash { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        [Required]
+        [MinLength(8)]
+        [MaxLength(100)]
+        public string Address;
+
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

@@ -2,12 +2,24 @@
 using StackExchange.Redis;
 using ALOud.Data;
 using Services;
+using ALOud.Services;
+using ALOud.Services.Security;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
 
 // =====================================================
 // SERVICES
 // =====================================================
+
+// -----------------------------------------------------
+// User Management Service
+// -----------------------------------------------------
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<PasswordHasherService>();
+
 
 // Razor Pages (MVVM)
 builder.Services.AddRazorPages();
