@@ -31,6 +31,7 @@ public class UserService : IUserService
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Email = dto.Email,
+            Address = dto.Address,
             PasswordHash = _passwordHasher.Hash(dto.Password)
         };
 

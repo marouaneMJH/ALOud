@@ -1,13 +1,80 @@
 ﻿@model ALOud.DTOs.LoginDto
+@{
+    ViewData["Title"] = "Connexion";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
 
-<h2>Login</h2>
+<!-- Auth Container -->
+<section class="py-6">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h1 class="mb-3">Connexion</h1>
+                    <p class="text-muted">Accédez à votre espace personnel ALOud</p>
+                </div>
 
-<form asp-action="Login" method="post">
-    <input asp-for="Email" placeholder="Email" />
-    <span asp-validation-for="Email"></span>
+                <!-- Login Form -->
+                <div class="auth-card">
+                    <form asp-action="Login" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <input asp-for="Password" type="password" placeholder="Password" />
-    <span asp-validation-for="Password"></span>
+                        <!-- Email Field -->
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label small text-uppercase" 
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Email</label>
+                            <input asp-for="Email" 
+                                   type="email" 
+                                   class="form-control" 
+                                   placeholder="votre@email.com" 
+                                   autocomplete="email" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
 
-    <button type="submit">Login</button>
-</form>
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label asp-for="Password" class="form-label small text-uppercase" 
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Mot de passe</label>
+                            <input asp-for="Password" 
+                                   type="password" 
+                                   class="form-control" 
+                                   placeholder="Votre mot de passe" 
+                                   autocomplete="current-password" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="mb-4">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Se connecter
+                            </button>
+                        </div>
+
+                        <!-- Register Link -->
+                        <div class="text-center">
+                            <p class="mb-0 text-muted">
+                                Pas encore de compte ? 
+                                <a href="Register" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Créer un compte</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show validation summary if there are model errors
+        document.addEventListener('DOMContentLoaded', function() {
+            const validationSummary = document.querySelector('[data-valmsg-summary="true"]');
+            if (validationSummary && validationSummary.innerHTML.trim() !== '') {
+                validationSummary.style.display = 'block';
+            }
+        });
+    </script>
+}

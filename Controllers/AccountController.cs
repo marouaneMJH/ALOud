@@ -9,11 +9,14 @@ namespace ALOud.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly ILogger<AccountController> _logger;
+
         private readonly IUserService _userService;
 
         public AccountController(IUserService userService)
         {
             _userService = userService;
+
         }
 
         // ======================
@@ -27,10 +30,18 @@ namespace ALOud.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(CreateUserDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                // Log validation errors for debugging
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
                 return View(dto);
+            }
 
             try
             {
@@ -55,6 +66,7 @@ namespace ALOud.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             if (!ModelState.IsValid)

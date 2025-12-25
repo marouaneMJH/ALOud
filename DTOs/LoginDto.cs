@@ -3,13 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ALOud.DTOs;
 
-
 public class LoginDto
 {
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; }
+    [Required(ErrorMessage = "L'email est requis")]
+    [EmailAddress(ErrorMessage = "L'email n'est pas valide")]
+    [Display(Name = "Email")]
+    public string Email { get; set; } = string.Empty;
 
-    [Required]
-    public string Password { get; set; }
+    [Required(ErrorMessage = "Le mot de passe est requis")]
+    [Display(Name = "Mot de passe")]
+    public string Password { get; set; } = string.Empty;
 }
