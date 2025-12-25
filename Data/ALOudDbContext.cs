@@ -13,6 +13,7 @@ namespace ALOud.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
 
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,18 +42,11 @@ namespace ALOud.Data
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             });
 
-            // Seed data
-            modelBuilder.Entity<Category>().HasData(
-                new Category { Id = 1, Name = "Men's Fragrances" },
-                new Category { Id = 2, Name = "Women's Fragrances" },
-                new Category { Id = 3, Name = "Unisex Fragrances" }
-            );
+            // Configure User Entity
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
 
-            modelBuilder.Entity<Product>().HasData(
-                new Product { Id = 1, Name = "ALOud Royal", Description = "A luxurious woody fragrance with notes of oud and rose", Price = 299.99m, CategoryId = 3, ImageUrl = "/images/products/aloud-royal.jpg", Stock = 50 },
-                new Product { Id = 2, Name = "ALOud Elegance", Description = "An elegant floral fragrance perfect for special occasions", Price = 199.99m, CategoryId = 2, ImageUrl = "/images/products/aloud-elegance.jpg", Stock = 30 },
-                new Product { Id = 3, Name = "ALOud Classic", Description = "A timeless masculine scent with woody and spicy notes", Price = 149.99m, CategoryId = 1, ImageUrl = "/images/products/aloud-classic.jpg", Stock = 75 }
-            );
         }
     }
 }
