@@ -1,0 +1,21 @@
+﻿@model ALOud.DTOs.CreateUserDto
+@{
+    ViewData["Title"] = "Register";
+}
+<h2>Register</h2>
+
+<form asp-action="Register" method="post">
+    <input asp-for="FirstName" placeholder="First Name" />
+    <span asp-validation-for="FirstName"></span>
+
+    <input asp-for="LastName" placeholder="Last Name" />
+    <span asp-validation-for="LastName"></span>
+
+    <input asp-for="Email" placeholder="Email" />
+    <span asp-validation-for="Email"></span>
+
+    <input asp-for="Password" type="password" placeholder="Password" />
+    <span asp-validation-for="Password"></span>
+
+    <button type="submit">Create Account</button>
+</form>
