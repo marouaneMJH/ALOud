@@ -69,8 +69,18 @@ namespace ALOud.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto dto)
         {
+
+            Console.WriteLine(dto.Email);
+            Console.WriteLine(dto.Password);
+
             if (!ModelState.IsValid)
+            {
+                // TODO remove The debug inst
+                Console.WriteLine("Login class is not valid");
+                Console.WriteLine(ModelState.Values);
                 return View(dto);
+            }
+
 
             var user = await _userService.AuthenticateAsync(dto);
 
@@ -102,6 +112,7 @@ namespace ALOud.Controllers
 
         private async Task SignInUser(string userId, string email)
         {
+            Console.WriteLine("email:", email);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId),
@@ -115,7 +126,11 @@ namespace ALOud.Controllers
 
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(principal);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal
+            );
+
         }
     }
 }

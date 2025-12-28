@@ -1,9 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace ALOud.Models
 {
     [Table("Users")]
+    [Index(nameof(Email), IsUnique = true)]
+
     public class User
     {
         [Key]
@@ -30,7 +33,10 @@ namespace ALOud.Models
         [Required]
         [MinLength(8)]
         [MaxLength(100)]
-        public string Address;
+        public string Address
+        {
+            get; set;
+        } = string.Empty;
 
 
 

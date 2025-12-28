@@ -13,4 +13,5 @@ public class LoginDto
     [Required(ErrorMessage = "Le mot de passe est requis")]
     [Display(Name = "Mot de passe")]
     public string Password { get; set; } = string.Empty;
+
 }
