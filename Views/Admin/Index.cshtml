@@ -12,21 +12,20 @@
     </p>
 
     <table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
+        <thead>
+            <tr>
                 <th></th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th></th>
-        </tr>
-    </thead>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th></th>
+            </tr>
+        </thead>
     <tbody>
         @foreach (var p in Model)
         {
             <tr>
-                <td>@p.Id</td>
+                    
                     <td>
                         @if (!string.IsNullOrEmpty(p.ImageUrl))
                         {

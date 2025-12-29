@@ -20,13 +20,9 @@ public class RedisCacheService : ICacheService
     {
         var json = JsonSerializer.Serialize(value);
         if (expiry.HasValue)
-        {
             await _db.StringSetAsync(key, json, expiry.Value);
-        }
         else
-        {
             await _db.StringSetAsync(key, json);
-        }
     }
 
     public async Task RemoveAsync(string key)

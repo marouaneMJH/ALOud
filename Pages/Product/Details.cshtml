@@ -82,7 +82,7 @@
                     <div class="row g-3">
                         <div class="col-6">
                             <div class="small" style="color: var(--color-text-secondary);">Référence</div>
-                            <div style="font-weight: 500;">#@Model.Product.Id.ToString("D6")</div>
+                            <div style="font-weight: 500;">#@(Model.Product.Id != null && Model.Product.Id.Replace("-", "").Length >= 6 ? Model.Product.Id.Replace("-", "").Substring(0,6) : Model.Product.Id)</div>
                         </div>
                         <div class="col-6">
                             <div class="small" style="color: var(--color-text-secondary);">Stock</div>
