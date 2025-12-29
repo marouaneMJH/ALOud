@@ -25,11 +25,13 @@ namespace Services
             var cart = await _cache.GetAsync<List<CartItemVM>>(cartKey);
             return cart ?? new List<CartItemVM>();
         }
+        // Async: retrieve current user's cart from cache (or empty list).
 
         public List<CartItemVM> GetCart()
         {
             return GetCartAsync().Result;
         }
+        // Sync wrapper for GetCartAsync.
 
         public async Task SaveCartAsync(List<CartItemVM> cart)
         {
@@ -39,11 +41,13 @@ namespace Services
             // Set expiry to 7 days
             await _cache.SetAsync(cartKey, cart, TimeSpan.FromDays(7));
         }
+        // Persist cart to cache with 7-day expiry.
 
         public void SaveCart(List<CartItemVM> cart)
         {
             SaveCartAsync(cart).Wait();
         }
+        // Sync wrapper for SaveCartAsync.
 
         public async Task AddToCartAsync(CartItemVM item)
         {
@@ -57,11 +61,13 @@ namespace Services
 
             await SaveCartAsync(cart);
         }
+        // Add item to cart (async), increment quantity if exists.
 
         public void AddToCart(CartItemVM item)
         {
             AddToCartAsync(item).Wait();
         }
+        // Sync wrapper for AddToCartAsync.
 
         public async Task RemoveAsync(int productId)
         {
@@ -69,11 +75,13 @@ namespace Services
             cart.RemoveAll(p => p.ProductId == productId);
             await SaveCartAsync(cart);
         }
+        // Remove all entries for a product id from the cart (async).
 
         public void Remove(int productId)
         {
             RemoveAsync(productId).Wait();
         }
+        // Sync wrapper for RemoveAsync.
 
         public async Task IncreaseAsync(int productId)
         {
@@ -82,11 +90,13 @@ namespace Services
             if (item != null) item.Quantity++;
             await SaveCartAsync(cart);
         }
+        // Increase quantity for a product in the cart (async).
 
         public void Increase(int productId)
         {
             IncreaseAsync(productId).Wait();
         }
+        // Sync wrapper for IncreaseAsync.
 
         public async Task DecreaseAsync(int productId)
         {
@@ -100,29 +110,34 @@ namespace Services
             }
             await SaveCartAsync(cart);
         }
+        // Decrease quantity for a product; remove if quantity <= 0 (async).
 
         public void Decrease(int productId)
         {
             DecreaseAsync(productId).Wait();
         }
+        // Sync wrapper for DecreaseAsync.
 
         public async Task<int> GetCartItemCountAsync()
         {
             var cart = await GetCartAsync();
             return cart.Sum(item => item.Quantity);
         }
+        // Return total number of items in cart (async).
 
         public int GetCartItemCount()
         {
             return GetCartItemCountAsync().Result;
         }
 
+        // Get the Cart key from the cookie
         private string GetCartKey()
         {
             // TODO: merge the unauth user chart with the it auth for the first time
             const string CartIdCookie = "CartId";
             var httpContext = _accessor.HttpContext;
 
+            // For non-HTTP contexts (tests) return a transient key.
             if (httpContext == null)
                 return CartKeyPrefix + Guid.NewGuid().ToString();
 
