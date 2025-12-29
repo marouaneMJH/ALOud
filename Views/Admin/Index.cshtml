@@ -1,0 +1,50 @@
+@model List<ViewModels.ProductDetailsVM>
+
+@{
+    ViewData["Title"] = "Admin - Products";
+}
+
+<div class="container mt-4">
+    <h2>Products</h2>
+
+    <p>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Create">Create New Product</a>
+    </p>
+
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+                <th></th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Id</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(p.ImageUrl))
+                        {
+                            <img src="@p.ImageUrl" alt="@p.Name" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" />
+                        }
+                    </td>
+                <td>@p.Name</td>
+                <td>@p.Price</td>
+                <td>@p.Stock</td>
+                <td>
+                    <a class="btn btn-sm btn-secondary" asp-controller="Admin" asp-action="Edit" asp-route-id="@p.Id">Edit</a>
+                    <form asp-controller="Admin" asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
