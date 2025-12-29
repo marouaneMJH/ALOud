@@ -31,7 +31,7 @@ namespace ALOud.Models
         public bool IsActive { get; set; } = true;
 
         [Required]
-        [MinLength(8)]
+        [MinLength(10)]
         [MaxLength(100)]
         public string Address
         {

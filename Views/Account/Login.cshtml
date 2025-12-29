@@ -1,7 +1,6 @@
 ﻿@model ALOud.DTOs.LoginDto
 @{
     ViewData["Title"] = "Connexion";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <!-- Auth Container -->
@@ -17,7 +16,7 @@
 
                 <!-- Login Form -->
                 <div class="auth-card">
-                    <form asp-action="Login" method="post" >
+                    <form asp-action="Login" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
