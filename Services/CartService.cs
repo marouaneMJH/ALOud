@@ -17,14 +17,30 @@ namespace Services
 
         private string GetCartKey()
         {
-            // Use TraceIdentifier as the cart key since sessions are not configured
-            // This provides a unique identifier per request context
-            // var cartId = _accessor.HttpContext?.TraceIdentifier 
-            //     ?? Guid.NewGuid().ToString();
-            
-            return CartKeyPrefix;
-        }
+            // TODO: merge the unauth user chart with the it auth for the first time then set the 
+            const string CartIdCookie = "CartId";
+            var httpContext = _accessor.HttpContext;
 
+            if (httpContext == null)
+                return CartKeyPrefix + Guid.NewGuid().ToString();
+
+            // Try to get existing cart ID from cookie
+            if (!httpContext.Request.Cookies.TryGetValue(CartIdCookie, out var cartId)
+                || string.IsNullOrEmpty(cartId))
+            {
+                // Generate new cart ID and store in cookie
+                cartId = Guid.NewGuid().ToString();
+                httpContext.Response.Cookies.Append(CartIdCookie, cartId, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // Use HTTPS
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            }
+
+            return CartKeyPrefix + cartId;
+        }
         public async Task<List<CartItemVM>> GetCartAsync()
         {
             var cartKey = GetCartKey();
@@ -39,7 +55,7 @@ namespace Services
 
         public async Task SaveCartAsync(List<CartItemVM> cart)
         {
-            var cartKey = GetCartKey(); 
+            var cartKey = GetCartKey();
             Console.WriteLine("cartKey" + cartKey);
 
             // Set expiry to 7 days
