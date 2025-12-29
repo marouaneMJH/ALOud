@@ -56,29 +56,19 @@ namespace ALOud.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // !FIX: Add the uuid, the actual id not the tmp one
-        public async Task<IActionResult> Edit(string id)
+        // Edit product (GET) - use int id to match Product.Id
+        public async Task<IActionResult> Edit(int id)
         {
-            object key;
-            if (Guid.TryParse(id, out var g)) key = g;
-            else if (int.TryParse(id, out var i)) key = i;
-            else return BadRequest();
-
-            var p = await _db.Products.FindAsync(new object[] { key });
+            var p = await _db.Products.FindAsync(id);
             if (p == null) return NotFound();
             return View(p);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, Product model)
+        public async Task<IActionResult> Edit(int id, Product model)
         {
-            // validate route id matches model id
-            if (!string.IsNullOrEmpty(id))
-            {
-                // compare string forms
-                if (model.Id.ToString() != id) return BadRequest();
-            }
+            if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
             _db.Products.Update(model);
@@ -92,14 +82,9 @@ namespace ALOud.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
-            object key;
-            if (Guid.TryParse(id, out var g)) key = g;
-            else if (int.TryParse(id, out var i)) key = i;
-            else return BadRequest();
-
-            var p = await _db.Products.FindAsync(new object[] { key });
+            var p = await _db.Products.FindAsync(id);
             if (p == null) return NotFound();
 
             _db.Products.Remove(p);

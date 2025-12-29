@@ -7,7 +7,7 @@
 <div class="container mt-4" style="max-width:800px;">
     <h2>Edit Product</h2>
 
-    <form asp-controller="Admin" asp-action="Edit" method="post">
+    <form asp-controller="Admin" asp-action="Edit" asp-route-id="@Model.Id" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <div class="mb-3">
