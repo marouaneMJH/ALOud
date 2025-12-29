@@ -1,7 +1,9 @@
 @model List<ViewModels.ProductDetailsVM>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Admin - Products";
+    var fallback = Configuration["Images:FallbackUrl"];
 }
 
 <div class="container mt-4">
@@ -29,7 +31,7 @@
                     <td>
                         @if (!string.IsNullOrEmpty(p.ImageUrl))
                         {
-                            <img src="@p.ImageUrl" alt="@p.Name" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" />
+                            <img src="@p.ImageUrl" alt="@p.Name" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.onerror=null;this.src='@fallback';" />
                         }
                     </td>
                 <td>@p.Name</td>
