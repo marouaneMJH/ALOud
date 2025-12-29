@@ -24,7 +24,7 @@ namespace ALOud.Controllers
             var products = await _db.Products
                 .Select(p => new ProductDetailsVM
                 {
-                    Id = p.Id.ToString(),
+                    Id = p.Id,
                     Name = p.Name,
                     Description = p.Description,
                     Price = p.Price,
@@ -56,6 +56,7 @@ namespace ALOud.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // !FIX: Add the uuid, the actual id not the tmp one
         public async Task<IActionResult> Edit(string id)
         {
             object key;

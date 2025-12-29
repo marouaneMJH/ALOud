@@ -38,7 +38,7 @@ namespace Pages.Product
 
             Product = new ProductDetailsVM
             {
-                Id = p.Id.ToString(),
+                Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
                 Price = p.Price,

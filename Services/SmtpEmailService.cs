@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ALOud.Services;
 
+// SMTP implementation of IEmailService (reads configuration/env).
 public class SmtpEmailService : IEmailService
 {
     private readonly IConfiguration _config;
@@ -16,6 +17,7 @@ public class SmtpEmailService : IEmailService
         _logger = logger;
     }
 
+    // !FIX: the env problem
     public async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
         // var user = _config["SMTP_USER"] ?? Environment.GetEnvironmentVariable("SMTP_USER");

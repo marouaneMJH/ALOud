@@ -3,6 +3,7 @@ using ViewModels;
 
 namespace Services
 {
+    // Service: manages shopping cart persisted via cache and cookies.
     public class CartService
     {
         private readonly ICacheService _cache;

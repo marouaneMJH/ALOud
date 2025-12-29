@@ -7,6 +7,7 @@ namespace ALOud.Services;
 
 public class VerificationService : IVerificationService
 {
+    // Generates and validates email OTP codes and marks users verified.
     private readonly ALOudDbContext _db;
     private readonly IEmailService _email;
     private readonly ILogger<VerificationService> _logger;

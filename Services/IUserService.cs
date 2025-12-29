@@ -4,6 +4,7 @@ using ALOud.Models;
 
 namespace ALOud.Services;
 
+// User-related operations: create, authenticate, and lookup.
 public interface IUserService
 {
     Task<User> CreateUserAsync(CreateUserDto dto);

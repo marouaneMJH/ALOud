@@ -10,6 +10,7 @@ namespace ALOud.Services;
 
 public class UserService : IUserService
 {
+    // User service: create users, authenticate, and lookup helper methods.
     private readonly ALOudDbContext _db;
     private readonly PasswordHasherService _passwordHasher;
     private readonly ILogger<UserService> _logger;

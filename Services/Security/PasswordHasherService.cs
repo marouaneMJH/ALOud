@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ALOud.Services.Security;
 
+// Lightweight wrapper for ASP.NET Core Identity password hashing.
 public class PasswordHasherService
 {
     private readonly PasswordHasher<string> _hasher = new();
