@@ -29,6 +29,7 @@ namespace ALOud.Models
         public string PasswordHash { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public bool IsEmailVerified { get; set; } = false;
 
         [Required]
         [MinLength(10)]

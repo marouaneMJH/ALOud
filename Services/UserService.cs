@@ -75,7 +75,7 @@ public class UserService : IUserService
         {
             _logger.LogInformation("Searching for user in database...");
             var user = await _db.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
+                .FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive && u.IsEmailVerified);
 
             if (user == null)
             {
@@ -125,6 +125,19 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception occurred while fetching user by id");
+            throw;
+        }
+    }
+
+    public async Task<User?> GetByEmailAsync(string email)
+    {
+        try
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while fetching user by email");
             throw;
         }
     }

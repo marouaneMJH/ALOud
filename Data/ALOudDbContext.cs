@@ -14,6 +14,7 @@ namespace ALOud.Data
         public DbSet<Category> Categories { get; set; }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<ALOud.Models.EmailVerification> EmailVerifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

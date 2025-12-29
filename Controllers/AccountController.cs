@@ -12,11 +12,13 @@ namespace ALOud.Controllers
     {
         private readonly ILogger<AccountController> _logger;
         private readonly IUserService _userService;
+        private readonly IVerificationService _verificationService;
 
-        public AccountController(IUserService userService, ILogger<AccountController> logger)
+        public AccountController(IUserService userService, ILogger<AccountController> logger, IVerificationService verificationService)
         {
             _userService = userService;
             _logger = logger;
+            _verificationService = verificationService;
         }
 
         // ======================
@@ -45,8 +47,12 @@ namespace ALOud.Controllers
 
             try
             {
-                await _userService.CreateUserAsync(dto);
-                return RedirectToAction("Login");
+                var user = await _userService.CreateUserAsync(dto);
+
+                // send verification code
+                await _verificationService.SendVerificationAsync(user);
+
+                return RedirectToAction("Verify", new { email = user.Email });
             }
             catch (InvalidOperationException ex)
             {
@@ -125,6 +131,15 @@ namespace ALOud.Controllers
 
                 if (user == null)
                 {
+                    // check if exists but not verified
+                    var existing = await _userService.GetByEmailAsync(dto.Email);
+                    if (existing != null && !existing.IsEmailVerified)
+                    {
+                        // resend code and redirect to verify
+                        await _verificationService.SendVerificationAsync(existing);
+                        return RedirectToAction("Verify", new { email = existing.Email });
+                    }
+
                     _logger.LogWarning($"Authentication failed for email: {dto.Email}");
                     ModelState.AddModelError(string.Empty, "Invalid credentials");
                     return View(dto);
@@ -186,6 +201,35 @@ namespace ALOud.Controllers
             }
 
             return View(user);
+        }
+
+        [HttpGet]
+        public IActionResult Verify(string? email)
+        {
+            ViewData["Email"] = email ?? string.Empty;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Verify(string email, string code)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+            {
+                ModelState.AddModelError(string.Empty, "Email and code are required");
+                ViewData["Email"] = email;
+                return View();
+            }
+
+            var ok = await _verificationService.VerifyCodeAsync(email, code);
+            if (!ok)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid or expired code");
+                ViewData["Email"] = email;
+                return View();
+            }
+
+            return RedirectToAction("Login");
         }
 
         private async Task SignInUser(string userId, string email)

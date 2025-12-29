@@ -8,6 +8,31 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load .env file into environment variables (simple loader)
+var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#")) continue;
+
+        var idx = trimmed.IndexOf('=');
+        if (idx <= 0) continue;
+
+        var key = trimmed.Substring(0, idx).Trim();
+        var value = trimmed.Substring(idx + 1).Trim();
+
+        // remove optional surrounding quotes
+        if ((value.StartsWith("\"") && value.EndsWith("\"")) || (value.StartsWith("\'") && value.EndsWith("\'")))
+        {
+            value = value.Substring(1, value.Length - 2);
+        }
+
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
+
 
 
 
@@ -20,6 +45,9 @@ var builder = WebApplication.CreateBuilder(args);
 // -----------------------------------------------------
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<PasswordHasherService>();
+// Email & Verification
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
 
 
 // Razor Pages (MVVM)
