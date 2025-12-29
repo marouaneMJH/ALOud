@@ -15,32 +15,9 @@ namespace Services
             _accessor = accessor;
         }
 
-        private string GetCartKey()
-        {
-            // TODO: merge the unauth user chart with the it auth for the first time
-            const string CartIdCookie = "CartId";
-            var httpContext = _accessor.HttpContext;
 
-            if (httpContext == null)
-                return CartKeyPrefix + Guid.NewGuid().ToString();
 
-            // Try to get existing cart ID from cookie
-            if (!httpContext.Request.Cookies.TryGetValue(CartIdCookie, out var cartId)
-                || string.IsNullOrEmpty(cartId))
-            {
-                // Generate new cart ID and store in cookie
-                cartId = Guid.NewGuid().ToString();
-                httpContext.Response.Cookies.Append(CartIdCookie, cartId, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true, // Use HTTPS
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(30)
-                });
-            }
 
-            return CartKeyPrefix + cartId;
-        }
         public async Task<List<CartItemVM>> GetCartAsync()
         {
             var cartKey = GetCartKey();
@@ -137,6 +114,33 @@ namespace Services
         public int GetCartItemCount()
         {
             return GetCartItemCountAsync().Result;
+        }
+
+        private string GetCartKey()
+        {
+            // TODO: merge the unauth user chart with the it auth for the first time
+            const string CartIdCookie = "CartId";
+            var httpContext = _accessor.HttpContext;
+
+            if (httpContext == null)
+                return CartKeyPrefix + Guid.NewGuid().ToString();
+
+            // Try to get existing cart ID from cookie
+            if (!httpContext.Request.Cookies.TryGetValue(CartIdCookie, out var cartId)
+                || string.IsNullOrEmpty(cartId))
+            {
+                // Generate new cart ID and store in cookie
+                cartId = Guid.NewGuid().ToString();
+                httpContext.Response.Cookies.Append(CartIdCookie, cartId, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // Use HTTPS
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            }
+
+            return CartKeyPrefix + cartId;
         }
     }
 }
