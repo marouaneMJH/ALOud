@@ -17,7 +17,7 @@ namespace Services
 
         private string GetCartKey()
         {
-            // TODO: merge the unauth user chart with the it auth for the first time then set the 
+            // TODO: merge the unauth user chart with the it auth for the first time
             const string CartIdCookie = "CartId";
             var httpContext = _accessor.HttpContext;
 

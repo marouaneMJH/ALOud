@@ -11,11 +11,13 @@ namespace Pages
     {
         private readonly ALOudDbContext _context;
         private readonly CartService _cartService;
+        private readonly ICacheService _cache;
 
-        public IndexModel(ALOudDbContext context, CartService cartService)
+        public IndexModel(ALOudDbContext context, CartService cartService, ICacheService cache)
         {
             _context = context;
             _cartService = cartService;
+            _cache = cache;
         }
 
         public List<HomeProductVM> Products { get; set; } = new();
@@ -31,6 +33,16 @@ namespace Pages
                 MaxPrice = maxPrice,
                 Sort = sort
             };
+
+            // Build a cache key based on the query parameters
+            string key = $"products:list:q={query ?? ""}:min={minPrice?.ToString() ?? ""}:max={maxPrice?.ToString() ?? ""}:s={sort ?? ""}";
+
+            var cached = await _cache.GetAsync<List<HomeProductVM>>(key);
+            if (cached != null)
+            {
+                Products = cached;
+                return;
+            }
 
             var productsQuery = _context.Products.AsQueryable();
 
@@ -57,6 +69,9 @@ namespace Pages
                 Price = p.Price,
                 ImageUrl = p.ImageUrl
             }).ToListAsync();
+
+            // Cache for 5 minutes
+            await _cache.SetAsync(key, Products, TimeSpan.FromMinutes(5));
         }
 
         public IActionResult OnPostAddToCart(int productId)
