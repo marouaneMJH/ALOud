@@ -8,4 +8,5 @@ public interface IUserService
 {
     Task<User> CreateUserAsync(CreateUserDto dto);
     Task<User?> AuthenticateAsync(LoginDto dto);
+    Task<User?> GetByIdAsync(Guid id);
 }

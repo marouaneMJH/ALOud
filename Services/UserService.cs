@@ -116,4 +116,17 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.IsActive);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception occurred while fetching user by id");
+            throw;
+        }
+    }
+
 }

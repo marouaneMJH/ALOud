@@ -3,6 +3,7 @@ using ALOud.DTOs;
 using ALOud.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ALOud.Controllers
@@ -158,6 +159,34 @@ namespace ALOud.Controllers
         // ======================
         // PRIVATE
         // ======================
+
+        // ======================
+        // PROFILE
+        // ======================
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(idClaim))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!Guid.TryParse(idClaim, out var userId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _userService.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
 
         private async Task SignInUser(string userId, string email)
         {

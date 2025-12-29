@@ -14,6 +14,22 @@
                     </svg>
                     <span class="cart-count">@await Component.InvokeAsync("CartCount")</span>
                 </a>
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <a class="nav-link" asp-controller="Account" asp-action="Profile" title="My Profile">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.21 3.58-4 8-4s8 1.79 8 4v1H4v-1z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                }
+                else
+                {
+                     <a class="nav-link" asp-controller="Account" asp-action="Profile" title="Login">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.21 3.58-4 8-4s8 1.79 8 4v1H4v-1z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                }
             </div>
         </div>
     </div>
