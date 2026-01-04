@@ -1,4 +1,8 @@
 
+help:
+	@echo "	make dev: to start development environment"
+	@echo "	run: to start production  environment"
+
 
 dev:
 	dotnet watch run
@@ -6,3 +10,4 @@ dev:
 run:
 	dotnet run
 
+all: help

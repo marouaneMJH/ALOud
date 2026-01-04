@@ -1,7 +1,9 @@
 ﻿@page
 @model Pages.IndexModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Collection";
+    var fallback = Configuration["Images:FallbackUrl"];
 }
 
 <!-- Hero Section -->
@@ -90,9 +92,9 @@
                         <!-- Product Image -->
                         <a asp-page="/Product/Details" asp-route-id="@product.Id" class="text-decoration-none">
                             <div class="product-image-container">
-                                <img src="@product.ImageUrl" 
-                                     alt="@product.Name"
-                                     class="product-image" />
+                                  <img src="@product.ImageUrl" 
+                                      alt="@product.Name"
+                                      class="product-image" onerror="this.onerror=null;this.src='@fallback';" />
                             </div>
                         </a>
 
@@ -126,6 +128,66 @@
                 <a asp-page="/Index" class="btn btn-primary mt-3">
                     Voir toute la collection
                 </a>
+            </div>
+        }
+
+        @* Pagination *@
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Page @Model.PageIndex sur @Model.TotalPages (@Model.TotalCount produits)
+                </div>
+                <nav class="pagination-nav">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a class="pagination-link" 
+                           asp-page="/Index" 
+                           asp-route-pageIndex="@(Model.PageIndex - 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           asp-route-query="@Model.Search.Query"
+                           asp-route-minPrice="@Model.Search.MinPrice"
+                           asp-route-maxPrice="@Model.Search.MaxPrice"
+                           asp-route-sort="@Model.Search.Sort">
+                            Précédent
+                        </a>
+                    }
+
+                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                    {
+                        if (i == Model.PageIndex)
+                        {
+                            <span class="pagination-link active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-link" 
+                               asp-page="/Index" 
+                               asp-route-pageIndex="@i"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-query="@Model.Search.Query"
+                               asp-route-minPrice="@Model.Search.MinPrice"
+                               asp-route-maxPrice="@Model.Search.MaxPrice"
+                               asp-route-sort="@Model.Search.Sort">
+                                @i
+                            </a>
+                        }
+                    }
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a class="pagination-link" 
+                           asp-page="/Index" 
+                           asp-route-pageIndex="@(Model.PageIndex + 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           asp-route-query="@Model.Search.Query"
+                           asp-route-minPrice="@Model.Search.MinPrice"
+                           asp-route-maxPrice="@Model.Search.MaxPrice"
+                           asp-route-sort="@Model.Search.Sort">
+                            Suivant
+                        </a>
+                    }
+                </nav>
             </div>
         }
     </div>

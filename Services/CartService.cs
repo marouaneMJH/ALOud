@@ -3,6 +3,7 @@ using ViewModels;
 
 namespace Services
 {
+    // Service: manages shopping cart persisted via cache and cookies.
     public class CartService
     {
         private readonly ICacheService _cache;
@@ -15,15 +16,8 @@ namespace Services
             _accessor = accessor;
         }
 
-        private string GetCartKey()
-        {
-            // Use TraceIdentifier as the cart key since sessions are not configured
-            // This provides a unique identifier per request context
-            // var cartId = _accessor.HttpContext?.TraceIdentifier 
-            //     ?? Guid.NewGuid().ToString();
-            
-            return CartKeyPrefix;
-        }
+
+
 
         public async Task<List<CartItemVM>> GetCartAsync()
         {
@@ -31,25 +25,29 @@ namespace Services
             var cart = await _cache.GetAsync<List<CartItemVM>>(cartKey);
             return cart ?? new List<CartItemVM>();
         }
+        // Async: retrieve current user's cart from cache (or empty list).
 
         public List<CartItemVM> GetCart()
         {
             return GetCartAsync().Result;
         }
+        // Sync wrapper for GetCartAsync.
 
         public async Task SaveCartAsync(List<CartItemVM> cart)
         {
-            var cartKey = GetCartKey(); 
+            var cartKey = GetCartKey();
             Console.WriteLine("cartKey" + cartKey);
 
             // Set expiry to 7 days
             await _cache.SetAsync(cartKey, cart, TimeSpan.FromDays(7));
         }
+        // Persist cart to cache with 7-day expiry.
 
         public void SaveCart(List<CartItemVM> cart)
         {
             SaveCartAsync(cart).Wait();
         }
+        // Sync wrapper for SaveCartAsync.
 
         public async Task AddToCartAsync(CartItemVM item)
         {
@@ -63,11 +61,13 @@ namespace Services
 
             await SaveCartAsync(cart);
         }
+        // Add item to cart (async), increment quantity if exists.
 
         public void AddToCart(CartItemVM item)
         {
             AddToCartAsync(item).Wait();
         }
+        // Sync wrapper for AddToCartAsync.
 
         public async Task RemoveAsync(int productId)
         {
@@ -75,11 +75,13 @@ namespace Services
             cart.RemoveAll(p => p.ProductId == productId);
             await SaveCartAsync(cart);
         }
+        // Remove all entries for a product id from the cart (async).
 
         public void Remove(int productId)
         {
             RemoveAsync(productId).Wait();
         }
+        // Sync wrapper for RemoveAsync.
 
         public async Task IncreaseAsync(int productId)
         {
@@ -88,11 +90,13 @@ namespace Services
             if (item != null) item.Quantity++;
             await SaveCartAsync(cart);
         }
+        // Increase quantity for a product in the cart (async).
 
         public void Increase(int productId)
         {
             IncreaseAsync(productId).Wait();
         }
+        // Sync wrapper for IncreaseAsync.
 
         public async Task DecreaseAsync(int productId)
         {
@@ -106,21 +110,53 @@ namespace Services
             }
             await SaveCartAsync(cart);
         }
+        // Decrease quantity for a product; remove if quantity <= 0 (async).
 
         public void Decrease(int productId)
         {
             DecreaseAsync(productId).Wait();
         }
+        // Sync wrapper for DecreaseAsync.
 
         public async Task<int> GetCartItemCountAsync()
         {
             var cart = await GetCartAsync();
             return cart.Sum(item => item.Quantity);
         }
+        // Return total number of items in cart (async).
 
         public int GetCartItemCount()
         {
             return GetCartItemCountAsync().Result;
+        }
+
+        // Get the Cart key from the cookie
+        private string GetCartKey()
+        {
+            // TODO: merge the unauth user chart with the it auth for the first time
+            const string CartIdCookie = "CartId";
+            var httpContext = _accessor.HttpContext;
+
+            // For non-HTTP contexts (tests) return a transient key.
+            if (httpContext == null)
+                return CartKeyPrefix + Guid.NewGuid().ToString();
+
+            // Try to get existing cart ID from cookie
+            if (!httpContext.Request.Cookies.TryGetValue(CartIdCookie, out var cartId)
+                || string.IsNullOrEmpty(cartId))
+            {
+                // Generate new cart ID and store in cookie
+                cartId = Guid.NewGuid().ToString();
+                httpContext.Response.Cookies.Append(CartIdCookie, cartId, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true, // Use HTTPS
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(30)
+                });
+            }
+
+            return CartKeyPrefix + cartId;
         }
     }
 }
