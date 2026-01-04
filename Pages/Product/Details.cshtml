@@ -1,7 +1,9 @@
 ﻿@page "{id:int}"
 @model Pages.Product.DetailsModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = Model.Product.Name;
+    var fallback = Configuration["Images:FallbackUrl"];
 }
 
 <section>
@@ -17,9 +19,9 @@
         <div class="product-detail-grid">
             <!-- Product Image -->
             <div class="product-detail-image">
-                <img src="@Model.Product.ImageUrl" 
+                 <img src="@Model.Product.ImageUrl" 
                      alt="@Model.Product.Name"
-                     style="width: 100%; height: 100%; object-fit: cover;" />
+                     style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='@fallback';" />
             </div>
 
             <!-- Product Information -->

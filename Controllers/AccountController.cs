@@ -1,0 +1,275 @@
+using System.Security.Claims;
+using ALOud.DTOs;
+using ALOud.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ALOud.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly ILogger<AccountController> _logger;
+        private readonly IUserService _userService;
+        private readonly IVerificationService _verificationService;
+
+        public AccountController(IUserService userService, ILogger<AccountController> logger, IVerificationService verificationService)
+        {
+            _userService = userService;
+            _logger = logger;
+            _verificationService = verificationService;
+        }
+
+        // ======================
+        // REGISTER
+        // ======================
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(CreateUserDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Log validation errors for debugging
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
+                return View(dto);
+            }
+
+            try
+            {
+                var user = await _userService.CreateUserAsync(dto);
+
+                // send verification code
+                await _verificationService.SendVerificationAsync(user);
+
+                return RedirectToAction("Verify", new { email = user.Email });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(dto);
+            }
+        }
+
+        // ======================
+        // LOGIN
+        // ======================
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginDto? dto)
+        {
+            _logger.LogInformation("=== LOGIN ATTEMPT START ===");
+
+            // Log raw form data
+            _logger.LogInformation("=== RAW FORM DATA ===");
+            foreach (var key in Request.Form.Keys)
+            {
+                _logger.LogInformation($"Form[{key}] = '{Request.Form[key]}'");
+            }
+
+            // Try manual binding as fallback
+            if (dto == null || (string.IsNullOrEmpty(dto.Email) && string.IsNullOrEmpty(dto.Password)))
+            {
+                _logger.LogInformation("DTO binding failed, trying manual binding...");
+                dto = new LoginDto
+                {
+                    Email = Request.Form["Email"].ToString(),
+                    Password = Request.Form["Password"].ToString()
+                };
+                _logger.LogInformation($"Manual binding - Email: '{dto.Email}', Password: {(!string.IsNullOrEmpty(dto.Password) ? "[PROVIDED]" : "[EMPTY]")}");
+            }
+
+            _logger.LogInformation($"Email received: '{dto?.Email ?? "null"}'");
+            _logger.LogInformation($"Password received: {(!string.IsNullOrEmpty(dto?.Password) ? "[PROVIDED]" : "[EMPTY/NULL]")}");
+            _logger.LogInformation($"DTO is null: {dto == null}");
+
+            if (dto == null)
+            {
+                _logger.LogWarning("DTO is still null after manual binding attempt");
+                return View();
+            }
+
+            // Re-validate after manual binding
+            if (dto.Email != Request.Form["Email"].ToString() || dto.Password != Request.Form["Password"].ToString())
+            {
+                ModelState.Clear();
+                TryValidateModel(dto);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState is invalid");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    _logger.LogWarning($"Validation Error: {error.ErrorMessage}");
+                }
+                return View(dto);
+            }
+
+            _logger.LogInformation("ModelState is valid, attempting authentication");
+
+            try
+            {
+                var user = await _userService.AuthenticateAsync(dto);
+
+                if (user == null)
+                {
+                    // check if exists but not verified
+                    var existing = await _userService.GetByEmailAsync(dto.Email);
+                    if (existing != null && !existing.IsEmailVerified)
+                    {
+                        // resend code and redirect to verify
+                        await _verificationService.SendVerificationAsync(existing);
+                        return RedirectToAction("Verify", new { email = existing.Email });
+                    }
+
+                    _logger.LogWarning($"Authentication failed for email: {dto.Email}");
+                    ModelState.AddModelError(string.Empty, "Invalid credentials");
+                    return View(dto);
+                }
+
+                _logger.LogInformation($"User authenticated successfully: {user.Email}, ID: {user.Id}");
+
+                await SignInUser(user.Id.ToString(), user.Email);
+
+                _logger.LogInformation("User signed in successfully, redirecting to Home");
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during login process");
+                ModelState.AddModelError(string.Empty, "An error occurred during login");
+                return View(dto);
+            }
+        }
+
+        // ======================
+        // LOGOUT
+        // ======================
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+            return RedirectToAction("Login");
+        }
+
+        // ======================
+        // PRIVATE
+        // ======================
+
+        // ======================
+        // PROFILE
+        // ======================
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(idClaim))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!Guid.TryParse(idClaim, out var userId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var user = await _userService.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+
+        [HttpGet]
+        public IActionResult Verify(string? email)
+        {
+            ViewData["Email"] = email ?? string.Empty;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Verify(string email, string code)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+            {
+                ModelState.AddModelError(string.Empty, "Email and code are required");
+                ViewData["Email"] = email;
+                return View();
+            }
+
+            var ok = await _verificationService.VerifyCodeAsync(email, code);
+            if (!ok)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid or expired code");
+                ViewData["Email"] = email;
+                return View();
+            }
+
+            return RedirectToAction("Login");
+        }
+
+        private async Task SignInUser(string userId, string email)
+        {
+            _logger.LogInformation($"=== SIGNIN PROCESS START === UserId: {userId}, Email: {email}");
+
+            try
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Email, email)
+                };
+
+                _logger.LogInformation($"Claims created: NameIdentifier={userId}, Email={email}");
+
+                var identity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme
+                );
+
+                _logger.LogInformation($"ClaimsIdentity created with scheme: {CookieAuthenticationDefaults.AuthenticationScheme}");
+
+                var principal = new ClaimsPrincipal(identity);
+                _logger.LogInformation("ClaimsPrincipal created");
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal
+                );
+
+                _logger.LogInformation("HttpContext.SignInAsync completed successfully");
+                _logger.LogInformation($"User.Identity.IsAuthenticated: {HttpContext.User.Identity?.IsAuthenticated ?? false}");
+                _logger.LogInformation($"User.Identity.Name: {HttpContext.User.Identity?.Name ?? "null"}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during SignInUser process");
+                throw;
+            }
+        }
+    }
+}

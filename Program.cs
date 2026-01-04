@@ -2,12 +2,76 @@
 using StackExchange.Redis;
 using ALOud.Data;
 using Services;
+using ALOud.Services;
+using ALOud.Services.Security;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load .env file into environment variables (simple loader)
+var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#")) continue;
+
+        var idx = trimmed.IndexOf('=');
+        if (idx <= 0) continue;
+
+        var key = trimmed.Substring(0, idx).Trim();
+        var value = trimmed.Substring(idx + 1).Trim();
+
+        // remove optional surrounding quotes
+        if ((value.StartsWith("\"") && value.EndsWith("\"")) || (value.StartsWith("\'") && value.EndsWith("\'")))
+        {
+            value = value.Substring(1, value.Length - 2);
+        }
+
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
+
+// =====================================================
+// Configuration
+// =====================================================
+builder.Services.Configure<SmtpOptions>(options =>
+{
+    var smtpSection = builder.Configuration.GetSection("Smtp");
+    options.Host = smtpSection["Host"] ?? "smtp.gmail.com";
+    options.Port = int.TryParse(smtpSection["Port"], out var port) ? port : 587;
+
+    // Read credentials from environment variables with fallback to config
+    options.User = Environment.GetEnvironmentVariable("SMTP_USER") ?? smtpSection["User"] ?? string.Empty;
+    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? smtpSection["Password"] ?? string.Empty;
+    options.From = Environment.GetEnvironmentVariable("SMTP_FROM") ?? smtpSection["From"] ?? string.Empty;
+});
+
+
+
+
 
 // =====================================================
 // SERVICES
 // =====================================================
+
+// -----------------------------------------------------
+// User Management Service
+// -----------------------------------------------------
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<PasswordHasherService>();
+// Email & Verification
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
+
+// -----------------------------------------------------
+// Admin Services
+// -----------------------------------------------------
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 // Razor Pages (MVVM)
 builder.Services.AddRazorPages();
@@ -67,6 +131,22 @@ builder.Services.AddHttpContextAccessor();
 
 // Cart service (Redis-based)
 builder.Services.AddScoped<CartService>();
+
+// Auth Cookies
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
+    });
+
+// MVC
+builder.Services.AddControllersWithViews();
+
+
 
 // =====================================================
 // BUILD APP
@@ -130,7 +210,14 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 app.MapRazorPages();
 
 // =====================================================

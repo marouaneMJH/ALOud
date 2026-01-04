@@ -1,0 +1,36 @@
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <!-- Brand -->
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">ALOud</a>
+            
+            <!-- Navigation Links -->
+            <div class="navbar-nav">
+                <a class="nav-link" asp-controller="Home" asp-action="Index">Collection</a>
+                <a class="nav-link nav-cart" asp-controller="Cart" asp-action="Index">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.1 16.4H17M17 13V17A2 2 0 0 1 15 19H9A2 2 0 0 1 7 17V13M17 13H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="cart-count">@await Component.InvokeAsync("CartCount")</span>
+                </a>
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <a class="nav-link" asp-controller="Account" asp-action="Profile" title="My Profile">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.21 3.58-4 8-4s8 1.79 8 4v1H4v-1z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                }
+                else
+                {
+                     <a class="nav-link" asp-controller="Account" asp-action="Profile" title="Login">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.21 3.58-4 8-4s8 1.79 8 4v1H4v-1z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</nav>

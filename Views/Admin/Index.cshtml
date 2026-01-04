@@ -1,0 +1,336 @@
+@model ALOud.DTOs.Admin.DashboardStatsDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<style>
+    .admin-header {
+        padding: var(--spacing-2xl) 0 var(--spacing-xl);
+        border-bottom: 1px solid var(--color-border);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .admin-title {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        color: var(--color-primary);
+        margin: 0;
+    }
+
+    .admin-nav {
+        display: flex;
+        gap: var(--spacing-md);
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .kpi-card {
+        background: var(--color-white);
+        padding: var(--spacing-xl);
+        border: 1px solid var(--color-border);
+        transition: all var(--transition-normal);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-card);
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--color-accent);
+        transform: scaleX(0);
+        transition: transform var(--transition-normal);
+    }
+
+    .kpi-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .kpi-label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 500;
+    }
+
+    .kpi-value {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        line-height: 1;
+    }
+
+    .kpi-card.warning .kpi-value {
+        color: #c9a24d;
+    }
+
+    .kpi-card.danger .kpi-value {
+        color: #8b5a3c;
+    }
+
+    .kpi-card.success .kpi-value {
+        color: #4a5d4e;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xl);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    @@media (min-width: 768px) {
+        .stats-section {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    .stats-card {
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+    }
+
+    .stats-header {
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .stats-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        margin: 0;
+        color: var(--color-primary);
+    }
+
+    .stats-body {
+        padding: var(--spacing-lg);
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .stats-table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        font-weight: 600;
+        padding: var(--spacing-sm) var(--spacing-md);
+        text-align: left;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .stats-table td {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid rgba(0,0,0,0.03);
+        color: var(--color-primary);
+    }
+
+    .stats-table tr:hover {
+        background: var(--color-hover);
+    }
+
+    .stats-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .alert-card {
+        background: var(--color-white);
+        border: 1px solid var(--color-accent);
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .alert-header {
+        padding: var(--spacing-lg);
+        background: var(--color-accent);
+        color: var(--color-white);
+        border-bottom: 1px solid var(--color-accent);
+    }
+
+    .alert-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .alert-list {
+        padding: var(--spacing-md);
+    }
+
+    .alert-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: background var(--transition-fast);
+    }
+
+    .alert-item:hover {
+        background: var(--color-hover);
+    }
+
+    .alert-item:last-child {
+        border-bottom: none;
+    }
+
+    .alert-image {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .alert-info {
+        flex: 1;
+    }
+
+    .alert-name {
+        font-weight: 500;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .alert-stock {
+        font-size: 0.875rem;
+        color: #8b5a3c;
+        font-weight: 500;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-2xl);
+        color: var(--color-text-secondary);
+    }
+</style>
+
+<div class="container">
+    <div class="admin-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="admin-title">Dashboard</h1>
+            <div class="admin-nav">
+                <a asp-action="Products" class="btn btn-primary">
+                    Manage Products
+                </a>
+                <a asp-action="Categories" class="btn btn-secondary">
+                    Manage Categories
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Total Products</div>
+            <div class="kpi-value">@Model.TotalProducts</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Categories</div>
+            <div class="kpi-value">@Model.TotalCategories</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-label">Low Stock</div>
+            <div class="kpi-value">@Model.LowStockProducts</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-label">Out of Stock</div>
+            <div class="kpi-value">@Model.OutOfStockProducts</div>
+        </div>
+    </div>
+
+    <div class="kpi-grid" style="grid-template-columns: 1fr;">
+        <div class="kpi-card success">
+            <div class="kpi-label">Total Inventory Value</div>
+            <div class="kpi-value">@Model.TotalInventoryValue.ToString("C")</div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="stats-section">
+        <div class="stats-card">
+            <div class="stats-header">
+                <h3 class="stats-title">Products by Category</h3>
+            </div>
+            <div class="stats-body">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th style="text-align: center;">Products</th>
+                            <th style="text-align: center;">Total Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in Model.CategoryStats)
+                        {
+                            <tr>
+                                <td style="font-weight: 500;">@cat.CategoryName</td>
+                                <td style="text-align: center;">@cat.ProductCount</td>
+                                <td style="text-align: center;">@cat.TotalStock</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Stock Alerts -->
+        <div class="alert-card">
+            <div class="alert-header">
+                <h3 class="alert-title">
+                    <span>⚠</span>
+                    <span>Stock Alerts</span>
+                </h3>
+            </div>
+            <div class="alert-list">
+                @if (Model.LowStockAlerts.Any())
+                {
+                    @foreach (var alert in Model.LowStockAlerts)
+                    {
+                        <div class="alert-item">
+                            @if (!string.IsNullOrEmpty(alert.ImageUrl))
+                            {
+                                <img src="@alert.ImageUrl" alt="@alert.ProductName" class="alert-image" />
+                            }
+                            <div class="alert-info">
+                                <div class="alert-name">@alert.ProductName</div>
+                                <div class="alert-stock">Stock: @alert.Stock units</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        All products have sufficient stock
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
