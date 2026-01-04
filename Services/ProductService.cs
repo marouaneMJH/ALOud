@@ -36,6 +36,27 @@ public class ProductService : IProductService
             }).ToListAsync();
     }
 
+    public async Task<PaginatedList<ProductDetailsVM>> GetAllProductsAsync(int pageIndex, int pageSize)
+    {
+        var totalCount = await _db.Products.CountAsync();
+
+        var products = await _db.Products
+            .OrderByDescending(p => p.Id)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new ProductDetailsVM
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                Stock = p.Stock,
+                ImageUrl = p.ImageUrl
+            }).ToListAsync();
+
+        return new PaginatedList<ProductDetailsVM>(products, totalCount, pageIndex, pageSize);
+    }
+
     public async Task<ProductDetailsVM?> GetProductByIdAsync(int id)
     {
         var product = await _db.Products.FindAsync(id);

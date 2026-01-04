@@ -1,4 +1,4 @@
-@model List<ViewModels.ProductDetailsVM>
+@model ViewModels.PaginatedList<ViewModels.ProductDetailsVM>
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
@@ -161,6 +161,60 @@
         background: #8b5a3c;
         color: var(--color-white);
     }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-xl);
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        border-top: none;
+        font-family: var(--font-body);
+    }
+
+    .pagination-info {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .pagination-btn,
+    .pagination-page {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border: 2px solid var(--color-border);
+        background: var(--color-white);
+        color: var(--color-primary);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-block;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .pagination-btn:hover:not(.disabled) {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    .pagination-page.active {
+        background: var(--color-accent);
+        color: var(--color-white);
+        border-color: var(--color-accent);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="container">
@@ -186,7 +240,7 @@
             </tr>
         </thead>
     <tbody>
-        @foreach (var p in Model)
+        @foreach (var p in Model.Items)
         {
             <tr>
                     
@@ -212,4 +266,45 @@
         }
     </tbody>
 </table>
+</div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Showing @((Model.PageIndex - 1) * Model.PageSize + 1) - @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount)) of @Model.TotalCount products
+            </div>
+            <div class="pagination-controls">
+                @if (Model.HasPreviousPage)
+                {
+                    <a class="pagination-btn" asp-action="Products" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-pageSize="@Model.PageSize">Previous</a>
+                }
+                else
+                {
+                    <span class="pagination-btn disabled">Previous</span>
+                }
+
+                @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                {
+                    if (i == Model.PageIndex)
+                    {
+                        <span class="pagination-page active">@i</span>
+                    }
+                    else
+                    {
+                        <a class="pagination-page" asp-action="Products" asp-route-pageIndex="@i" asp-route-pageSize="@Model.PageSize">@i</a>
+                    }
+                }
+
+                @if (Model.HasNextPage)
+                {
+                    <a class="pagination-btn" asp-action="Products" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-pageSize="@Model.PageSize">Next</a>
+                }
+                else
+                {
+                    <span class="pagination-btn disabled">Next</span>
+                }
+            </div>
+        </div>
+    }
 </div>

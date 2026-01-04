@@ -38,9 +38,9 @@ namespace ALOud.Controllers
         // PRODUCTS MANAGEMENT
         // =====================================================
 
-        public async Task<IActionResult> Products()
+        public async Task<IActionResult> Products(int pageIndex = 1, int pageSize = 10)
         {
-            var products = await _productService.GetAllProductsAsync();
+            var products = await _productService.GetAllProductsAsync(pageIndex, pageSize);
             return View(products);
         }
 
@@ -118,9 +118,9 @@ namespace ALOud.Controllers
         // CATEGORIES MANAGEMENT
         // =====================================================
 
-        public async Task<IActionResult> Categories()
+        public async Task<IActionResult> Categories(int pageIndex = 1, int pageSize = 10)
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
+            var categories = await _categoryService.GetAllCategoriesAsync(pageIndex, pageSize);
             return View(categories);
         }
 

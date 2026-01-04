@@ -1,4 +1,4 @@
-@model List<ALOud.DTOs.Categories.CategoryDetailsDto>
+@model ViewModels.PaginatedList<ALOud.DTOs.Categories.CategoryDetailsDto>
 
 @{
     ViewData["Title"] = "Admin - Categories";
@@ -208,7 +208,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var category in Model)
+                @foreach (var category in Model.Items)
                 {
                     <tr>
                         <td class="category-name-cell">@category.Name</td>
@@ -237,4 +237,44 @@
             </tbody>
         </table>
     </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Showing @((Model.PageIndex - 1) * Model.PageSize + 1) - @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount)) of @Model.TotalCount categories
+            </div>
+            <div class="pagination-controls">
+                @if (Model.HasPreviousPage)
+                {
+                    <a class="pagination-btn" asp-action="Categories" asp-route-pageIndex="@(Model.PageIndex - 1)" asp-route-pageSize="@Model.PageSize">Previous</a>
+                }
+                else
+                {
+                    <span class="pagination-btn disabled">Previous</span>
+                }
+
+                @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                {
+                    if (i == Model.PageIndex)
+                    {
+                        <span class="pagination-page active">@i</span>
+                    }
+                    else
+                    {
+                        <a class="pagination-page" asp-action="Categories" asp-route-pageIndex="@i" asp-route-pageSize="@Model.PageSize">@i</a>
+                    }
+                }
+
+                @if (Model.HasNextPage)
+                {
+                    <a class="pagination-btn" asp-action="Categories" asp-route-pageIndex="@(Model.PageIndex + 1)" asp-route-pageSize="@Model.PageSize">Next</a>
+                }
+                else
+                {
+                    <span class="pagination-btn disabled">Next</span>
+                }
+            </div>
+        </div>
+    }
 </div>

@@ -3,6 +3,7 @@ using ALOud.DTOs.Categories;
 using ALOud.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ViewModels;
 
 namespace ALOud.Services;
 
@@ -29,6 +30,25 @@ public class CategoryService : ICategoryService
             })
             .OrderBy(c => c.Name)
             .ToListAsync();
+    }
+
+    public async Task<PaginatedList<CategoryDetailsDto>> GetAllCategoriesAsync(int pageIndex, int pageSize)
+    {
+        var totalCount = await _db.Categories.CountAsync();
+
+        var categories = await _db.Categories
+            .OrderBy(c => c.Name)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new CategoryDetailsDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                ProductCount = c.Products.Count
+            })
+            .ToListAsync();
+
+        return new PaginatedList<CategoryDetailsDto>(categories, totalCount, pageIndex, pageSize);
     }
 
     public async Task<CategoryDetailsDto?> GetCategoryByIdAsync(int id)

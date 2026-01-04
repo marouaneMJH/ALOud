@@ -7,6 +7,7 @@ namespace ALOud.Services;
 public interface IProductService
 {
     Task<List<ProductDetailsVM>> GetAllProductsAsync();
+    Task<PaginatedList<ProductDetailsVM>> GetAllProductsAsync(int pageIndex, int pageSize);
     Task<ProductDetailsVM?> GetProductByIdAsync(int id);
     Task<int> CreateProductAsync(CreateProductDto dto);
     Task<bool> UpdateProductAsync(int id, UpdateProductDto dto);

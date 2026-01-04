@@ -1,4 +1,5 @@
 using ALOud.DTOs.Categories;
+using ViewModels;
 
 namespace ALOud.Services;
 
@@ -6,6 +7,7 @@ namespace ALOud.Services;
 public interface ICategoryService
 {
     Task<List<CategoryDetailsDto>> GetAllCategoriesAsync();
+    Task<PaginatedList<CategoryDetailsDto>> GetAllCategoriesAsync(int pageIndex, int pageSize);
     Task<CategoryDetailsDto?> GetCategoryByIdAsync(int id);
     Task<int> CreateCategoryAsync(CreateCategoryDto dto);
     Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto dto);
