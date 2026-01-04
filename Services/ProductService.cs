@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ALOud.Data;
 using ALOud.DTOs.Products;
 using ALOud.Models;
@@ -70,6 +71,23 @@ public class ProductService : IProductService
             Price = product.Price,
             Stock = product.Stock,
             ImageUrl = product.ImageUrl
+
+        };
+    }
+    public async Task<UpdateProductDto?> GetUpdateProductDtoAsync(int id)
+    {
+        var product = await _db.Products.FindAsync(id);
+        if (product == null) return null;
+
+        return new UpdateProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Stock = product.Stock,
+            ImageUrl = product.ImageUrl,
+            CategoryId = product.CategoryId,
         };
     }
 

@@ -66,10 +66,9 @@ namespace ALOud.Controllers
 
         public async Task<IActionResult> EditProduct(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
+            var product = await _productService.GetUpdateProductDtoAsync(id);
             if (product == null) return NotFound();
 
-            // TODO: We need to get CategoryId from product - update ProductDetailsVM or add to service
             var dto = new UpdateProductDto
             {
                 Id = product.Id,
@@ -78,7 +77,7 @@ namespace ALOud.Controllers
                 Price = product.Price,
                 Stock = product.Stock,
                 ImageUrl = product.ImageUrl,
-                CategoryId = 1 // Temporary - needs fix
+                CategoryId = product.CategoryId
             };
 
             ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
