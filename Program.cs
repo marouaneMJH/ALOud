@@ -65,6 +65,13 @@ builder.Services.AddScoped<PasswordHasherService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 
+// -----------------------------------------------------
+// Admin Services
+// -----------------------------------------------------
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 // Razor Pages (MVVM)
 builder.Services.AddRazorPages();
