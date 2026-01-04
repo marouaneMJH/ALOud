@@ -33,6 +33,22 @@ if (File.Exists(envPath))
     }
 }
 
+// =====================================================
+// Configuration
+// =====================================================
+builder.Services.Configure<SmtpOptions>(options =>
+{
+    var smtpSection = builder.Configuration.GetSection("Smtp");
+    options.Host = smtpSection["Host"] ?? "smtp.gmail.com";
+    options.Port = int.TryParse(smtpSection["Port"], out var port) ? port : 587;
+
+    // Read credentials from environment variables with fallback to config
+    options.User = Environment.GetEnvironmentVariable("SMTP_USER") ?? smtpSection["User"] ?? string.Empty;
+    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? smtpSection["Password"] ?? string.Empty;
+    options.From = Environment.GetEnvironmentVariable("SMTP_FROM") ?? smtpSection["From"] ?? string.Empty;
+});
+
+
 
 
 
