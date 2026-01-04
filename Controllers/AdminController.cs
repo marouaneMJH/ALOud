@@ -41,8 +41,9 @@ namespace ALOud.Controllers
             return View(products);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            ViewBag.Categories = await _db.Categories.ToListAsync();
             return View(new CreateProductDto());
         }
 
@@ -51,7 +52,10 @@ namespace ALOud.Controllers
         public async Task<IActionResult> Create(CreateProductDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = await _db.Categories.ToListAsync();
                 return View(dto);
+            }
 
             var product = dto.ToEntity();
             //  new Product
@@ -91,6 +95,7 @@ namespace ALOud.Controllers
                 CategoryId = product.CategoryId
             };
 
+            ViewBag.Categories = await _db.Categories.ToListAsync();
             return View(dto);
         }
 
@@ -104,6 +109,7 @@ namespace ALOud.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid product update payload {@Dto}", dto);
+                ViewBag.Categories = await _db.Categories.ToListAsync();
                 return View(dto);
             }
 
