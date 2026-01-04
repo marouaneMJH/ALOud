@@ -1,4 +1,4 @@
-@model ALOud.Models.Product
+@model ALOud.DTOs.Products.UpdateProductDto
 
 @{
     ViewData["Title"] = "Edit Product";
@@ -10,6 +10,7 @@
     <form asp-controller="Admin" asp-action="Edit" asp-route-id="@Model.Id" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CategoryId" />
     <div class="mb-3">
         <label class="form-label">Name</label>
         <input asp-for="Name" class="form-control" />
@@ -30,7 +31,7 @@
         <label class="form-label">ImageUrl</label>
         <input asp-for="ImageUrl" class="form-control" />
     </div>
-
+    
     <button class="btn btn-primary">Save</button>
     <a class="btn btn-secondary" asp-controller="Admin" asp-action="Index">Cancel</a>
 </form>
