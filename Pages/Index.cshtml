@@ -6,79 +6,156 @@
     var fallback = Configuration["Images:FallbackUrl"];
 }
 
-<!-- Hero Section -->
-<section class="py-6 text-center">
+<!-- Search Section -->
+<section style="margin-bottom: var(--spacing-lg); margin-top: var(--spacing-2xl);">
     <div class="container">
-        <h1 class="display-1 mb-4">ALOud</h1>
-        <p class="lead mb-0" style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
-            Découvrez notre collection exclusive de parfums authentiques, 
-            où chaque fragrance raconte une histoire d'élégance intemporelle.
-        </p>
-    </div>
-</section>
-
-<!-- Search & Filters -->
-<section>
-    <div class="container">
-        <form method="get" class="search-form">
-            <div class="row g-3 align-items-end">
-                <!-- Search -->
-                <div class="col-md-4">
-                    <label for="query" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Rechercher</label>
-                    <input type="text"
-                           id="query"
-                           name="query"
-                           value="@Model.Search.Query"
-                           class="form-control"
-                           placeholder="Nom du parfum..." />
-                </div>
-
-                <!-- Price Min -->
-                <div class="col-md-2">
-                    <label for="minPrice" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prix Min</label>
-                    <input type="number"
-                           id="minPrice"
-                           name="minPrice"
-                           value="@Model.Search.MinPrice"
-                           class="form-control"
-                           placeholder="0" />
-                </div>
-
-                <!-- Price Max -->
-                <div class="col-md-2">
-                    <label for="maxPrice" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prix Max</label>
-                    <input type="number"
-                           id="maxPrice"
-                           name="maxPrice"
-                           value="@Model.Search.MaxPrice"
-                           class="form-control"
-                           placeholder="1000" />
-                </div>
-
-                <!-- Sort -->
-                <div class="col-md-2">
-                    <label for="sort" class="form-label small text-uppercase" style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Trier par</label>
-                    <select name="sort" id="sort" class="form-control">
-                        <option value="">Sélectionner</option>
-                        <option value="price_asc" selected="@(Model.Search.Sort == "price_asc")">
-                            Prix croissant
-                        </option>
-                        <option value="price_desc" selected="@(Model.Search.Sort == "price_desc")">
-                            Prix décroissant
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Button -->
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100">
-                        Filtrer
-                    </button>
-                </div>
+        <form method="get" class="premium-search-form">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text"
+                       id="query"
+                       name="query"
+                       value="@Model.Search.Query"
+                       class="search-input"
+                       placeholder="Rechercher un parfum..."
+                       onchange="this.form.submit()" />
             </div>
         </form>
     </div>
 </section>
+
+<!-- Category Filter Band -->
+<section class="category-section" style="margin-bottom: var(--spacing-3xl);">
+    <div class="category-band">
+        <div class="container">
+            <div class="category-scroll">
+                <a class="category-pill @(Model.SelectedCategoryId == null ? "active" : "")" 
+                   asp-page="/Index">
+                    Tous
+                </a>
+                @foreach (var category in Model.Categories)
+                {
+                    <a class="category-pill @(Model.SelectedCategoryId == category.Id ? "active" : "")" 
+                       asp-page="/Index" 
+                       asp-route-categoryId="@category.Id"
+                       asp-route-query="@Model.Search.Query">
+                        @category.Name
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .premium-search-form {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid var(--color-border);
+        transition: all var(--transition-normal);
+    }
+
+    .search-wrapper:focus-within {
+        border-bottom-color: var(--color-accent);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 0;
+        color: var(--color-text-secondary);
+        pointer-events: none;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: var(--spacing-md) 0 var(--spacing-md) 2.5rem;
+        border: none;
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+        color: var(--color-primary);
+        background: transparent;
+        outline: none;
+    }
+
+    .search-input::placeholder {
+        color: var(--color-text-secondary);
+        opacity: 0.5;
+        font-weight: 300;
+    }
+
+    .category-section {
+        background: var(--color-background);
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        padding: var(--spacing-md) 0;
+    }
+
+    .category-band {
+        width: 100%;
+    }
+
+    .category-scroll {
+        display: flex;
+        gap: var(--spacing-md);
+        overflow-x: auto;
+        padding: var(--spacing-xs) 0;
+        scrollbar-width: none;
+    }
+
+    .category-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-pill {
+        padding: var(--spacing-sm) var(--spacing-xl);
+        background: var(--color-white);
+        color: var(--color-primary);
+        border: 2px solid var(--color-border);
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        transition: all var(--transition-normal);
+        display: inline-block;
+    }
+
+    .category-pill:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-card);
+    }
+
+    .category-pill.active {
+        background: var(--color-accent);
+        color: var(--color-white);
+        border-color: var(--color-accent);
+    }
+
+    @@media (max-width: 768px) {
+        .search-input {
+            font-size: 1rem;
+            padding: var(--spacing-sm) 0 var(--spacing-sm) 2.5rem;
+        }
+
+        .category-scroll {
+            gap: var(--spacing-sm);
+        }
+    }
+</style>
 
 <!-- Products Grid -->
 <section>
@@ -146,9 +223,7 @@
                            asp-route-pageIndex="@(Model.PageIndex - 1)"
                            asp-route-pageSize="@Model.PageSize"
                            asp-route-query="@Model.Search.Query"
-                           asp-route-minPrice="@Model.Search.MinPrice"
-                           asp-route-maxPrice="@Model.Search.MaxPrice"
-                           asp-route-sort="@Model.Search.Sort">
+                           asp-route-categoryId="@Model.SelectedCategoryId">
                             Précédent
                         </a>
                     }
@@ -166,9 +241,7 @@
                                asp-route-pageIndex="@i"
                                asp-route-pageSize="@Model.PageSize"
                                asp-route-query="@Model.Search.Query"
-                               asp-route-minPrice="@Model.Search.MinPrice"
-                               asp-route-maxPrice="@Model.Search.MaxPrice"
-                               asp-route-sort="@Model.Search.Sort">
+                               asp-route-categoryId="@Model.SelectedCategoryId">
                                 @i
                             </a>
                         }
@@ -181,9 +254,7 @@
                            asp-route-pageIndex="@(Model.PageIndex + 1)"
                            asp-route-pageSize="@Model.PageSize"
                            asp-route-query="@Model.Search.Query"
-                           asp-route-minPrice="@Model.Search.MinPrice"
-                           asp-route-maxPrice="@Model.Search.MaxPrice"
-                           asp-route-sort="@Model.Search.Sort">
+                           asp-route-categoryId="@Model.SelectedCategoryId">
                             Suivant
                         </a>
                     }

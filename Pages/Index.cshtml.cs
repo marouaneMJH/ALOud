@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ALOud.Data;
+using ALOud.Models;
 using Services;
 using ViewModels;
 
@@ -21,6 +22,7 @@ namespace Pages
         }
 
         public List<HomeProductVM> Products { get; set; } = new();
+        public List<Category> Categories { get; set; } = new();
 
         public SearchVM Search { get; set; } = new();
 
@@ -30,22 +32,24 @@ namespace Pages
         public int PageSize { get; set; } = 12;
         public bool HasPreviousPage => PageIndex > 1;
         public bool HasNextPage => PageIndex < TotalPages;
+        public int? SelectedCategoryId { get; set; }
 
-        public async Task OnGetAsync(string? query, decimal? minPrice, decimal? maxPrice, string? sort, int pageIndex = 1, int pageSize = 12)
+        public async Task OnGetAsync(string? query, int? categoryId, int pageIndex = 1, int pageSize = 12)
         {
             PageIndex = pageIndex;
             PageSize = pageSize;
+            SelectedCategoryId = categoryId;
 
             Search = new SearchVM
             {
-                Query = query,
-                MinPrice = minPrice,
-                MaxPrice = maxPrice,
-                Sort = sort
+                Query = query
             };
 
+            // Fetch all categories
+            Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+
             // Build a cache key based on the query parameters
-            string key = $"products:list:q={query ?? ""}:min={minPrice?.ToString() ?? ""}:max={maxPrice?.ToString() ?? ""}:s={sort ?? ""}:p={pageIndex}:ps={pageSize}";
+            string key = $"products:list:q={query ?? ""}:cat={categoryId?.ToString() ?? ""}:p={pageIndex}:ps={pageSize}";
 
             var cached = await _cache.GetAsync<(List<HomeProductVM>, int)>(key);
             if (cached.Item1 != null)
@@ -61,18 +65,10 @@ namespace Pages
             if (!string.IsNullOrWhiteSpace(query))
                 productsQuery = productsQuery.Where(p => p.Name.Contains(query));
 
-            if (minPrice.HasValue)
-                productsQuery = productsQuery.Where(p => p.Price >= minPrice);
+            if (categoryId.HasValue)
+                productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
 
-            if (maxPrice.HasValue)
-                productsQuery = productsQuery.Where(p => p.Price <= maxPrice);
-
-            productsQuery = sort switch
-            {
-                "price_asc" => productsQuery.OrderBy(p => p.Price),
-                "price_desc" => productsQuery.OrderByDescending(p => p.Price),
-                _ => productsQuery.OrderByDescending(p => p.Id)
-            };
+            productsQuery = productsQuery.OrderByDescending(p => p.Id);
 
             TotalCount = await productsQuery.CountAsync();
             TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
