@@ -1,4 +1,5 @@
 using ALOud.Services;
+using System.Text.Json;
 
 namespace ALOud.Services.Rag;
 
@@ -35,8 +36,8 @@ public sealed class RagToolDispatcher
 
     private async Task<object> HandleAddAsync(Dictionary<string, object> args)
     {
-        var productId = Convert.ToInt32(args["productId"]);
-        var quantity = Convert.ToInt32(args["quantity"]);
+        var productId = GetInt32(args["productId"]);
+        var quantity = GetInt32(args["quantity"]);
 
         var product = await _productService.GetProductByIdAsync(productId)
             ?? throw new InvalidOperationException("Product not found");
@@ -57,22 +58,29 @@ public sealed class RagToolDispatcher
 
     private async Task<object> HandleRemoveAsync(Dictionary<string, object> args)
     {
-        var productId = Convert.ToInt32(args["productId"]);
+        var productId = GetInt32(args["productId"]);
         await _cartService.RemoveAsync(productId);
         return new { Success = true };
     }
 
     private async Task<object> HandleIncreaseAsync(Dictionary<string, object> args)
     {
-        var productId = Convert.ToInt32(args["productId"]);
+        var productId = GetInt32(args["productId"]);
         await _cartService.IncreaseAsync(productId);
         return new { Success = true };
     }
 
     private async Task<object> HandleDecreaseAsync(Dictionary<string, object> args)
     {
-        var productId = Convert.ToInt32(args["productId"]);
+        var productId = GetInt32(args["productId"]);
         await _cartService.DecreaseAsync(productId);
         return new { Success = true };
+    }
+
+    private static int GetInt32(object value)
+    {
+        if (value is JsonElement element)
+            return element.GetInt32();
+        return Convert.ToInt32(value);
     }
 }

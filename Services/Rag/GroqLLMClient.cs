@@ -56,29 +56,55 @@ public sealed class GroqLLMClient : IRagLLMClient
     private static object BuildPayload(RagLLMRequest request)
     {
         var messages = new List<object>
+    {
+        new
         {
-            new {role =  "system", content = request.SystemPrompt},
-            new {role =  "user", content = request.UserMessage}
-        };
-
-        if (request.Context != null)
+            role = "system",
+            content = request.SystemPrompt
+        },
+        new
         {
-            messages.Insert(1, new
-            {
-                role = "system",
-                content = JsonSerializer.Serialize(request.Context)
-            });
+            role = "user",
+            content = BuildUserContent(request)
         }
+    };
 
         return new
         {
             model = "llama-3.1-8b-instant",
             temperature = 0.1,
             messages,
-            tools = request.Tools,
+            tools = request.Tools?.Select(t => new
+            {
+                type = "function",
+                function = new
+                {
+                    name = t.Name,
+                    description = t.Description,
+                    parameters = t.ParametersSchema
+                }
+            }),
             tool_choice = "auto"
         };
     }
+
+    private static string BuildUserContent(RagLLMRequest request)
+    {
+        if (request.Context == null)
+            return request.UserMessage;
+
+        return $"""
+        USER MESSAGE:
+        {request.UserMessage}
+
+        CURRENT CART CONTEXT (JSON):
+        {JsonSerializer.Serialize(request.Context, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        })}
+        """;
+    }
+
 
 
     private static RagLLMResult ParseResponse(JsonDocument doc)
@@ -88,14 +114,14 @@ public sealed class GroqLLMClient : IRagLLMClient
         if (message.TryGetProperty("tool_calls", out var toolCalls))
         {
             var call = toolCalls[0];
+            var argumentsJson = call.GetProperty("function").GetProperty("arguments").GetString()!;
+
             return new RagLLMResult
             {
                 ToolCall = new RagToolCall
                 {
                     Name = call.GetProperty("function").GetProperty("name").GetString()!,
-                    Arguments = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                        call.GetProperty("function").GetProperty("arguments")
-                    ) ?? new()
+                    Arguments = JsonSerializer.Deserialize<Dictionary<string, object>>(argumentsJson) ?? new()
                 }
             };
         }
