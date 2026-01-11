@@ -1,16 +1,15 @@
-using Services;
-using ALOud.Services.Rag.Models;
+using ALOud.Services;
 
 namespace ALOud.Services.Rag;
 
 public sealed class RagContextBuilder
 {
     private readonly CartService _cartService;
-    private readonly ProductService _productService;
+    private readonly IProductService _productService;
 
     public RagContextBuilder(
         CartService cartService,
-        ProductService productService)
+        IProductService productService)
     {
         _cartService = cartService;
         _productService = productService;

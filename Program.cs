@@ -1,32 +1,37 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using ALOud.Data;
-using Services;
 using ALOud.Services;
 using ALOud.Services.Security;
+using ALOud.Services.Rag;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file into environment variables (simple loader)
+// =====================================================
+// ENVIRONMENT VARIABLES (.env loader)
+// =====================================================
 var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
 if (File.Exists(envPath))
 {
     foreach (var line in File.ReadAllLines(envPath))
     {
         var trimmed = line.Trim();
-        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#")) continue;
+        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#"))
+            continue;
 
         var idx = trimmed.IndexOf('=');
-        if (idx <= 0) continue;
+        if (idx <= 0)
+            continue;
 
-        var key = trimmed.Substring(0, idx).Trim();
-        var value = trimmed.Substring(idx + 1).Trim();
+        var key = trimmed[..idx].Trim();
+        var value = trimmed[(idx + 1)..].Trim();
 
-        // remove optional surrounding quotes
-        if ((value.StartsWith("\"") && value.EndsWith("\"")) || (value.StartsWith("\'") && value.EndsWith("\'")))
+        // Remove optional surrounding quotes
+        if ((value.StartsWith("\"") && value.EndsWith("\"")) ||
+            (value.StartsWith("'") && value.EndsWith("'")))
         {
-            value = value.Substring(1, value.Length - 2);
+            value = value[1..^1];
         }
 
         Environment.SetEnvironmentVariable(key, value);
@@ -34,72 +39,39 @@ if (File.Exists(envPath))
 }
 
 // =====================================================
-// Configuration
+// SMTP CONFIGURATION
 // =====================================================
 builder.Services.Configure<SmtpOptions>(options =>
 {
     var smtpSection = builder.Configuration.GetSection("Smtp");
+
     options.Host = smtpSection["Host"] ?? "smtp.gmail.com";
     options.Port = int.TryParse(smtpSection["Port"], out var port) ? port : 587;
 
-    // Read credentials from environment variables with fallback to config
-    options.User = Environment.GetEnvironmentVariable("SMTP_USER") ?? smtpSection["User"] ?? string.Empty;
-    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? smtpSection["Password"] ?? string.Empty;
-    options.From = Environment.GetEnvironmentVariable("SMTP_FROM") ?? smtpSection["From"] ?? string.Empty;
+    // Credentials from environment variables (preferred)
+    options.User = Environment.GetEnvironmentVariable("SMTP_USER")
+                   ?? smtpSection["User"]
+                   ?? string.Empty;
+
+    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+                       ?? smtpSection["Password"]
+                       ?? string.Empty;
+
+    options.From = Environment.GetEnvironmentVariable("SMTP_FROM")
+                   ?? smtpSection["From"]
+                   ?? string.Empty;
 });
 
-
-
-
-
 // =====================================================
-// SERVICES
-// =====================================================
-
-// -----------------------------------------------------
-// User Management Service
-// -----------------------------------------------------
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<PasswordHasherService>();
-// Email & Verification
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
-builder.Services.AddScoped<IVerificationService, VerificationService>();
-
-// -----------------------------------------------------
-// Admin Services
-// -----------------------------------------------------
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-
-
-// Razor Pages (MVVM)
-builder.Services.AddRazorPages();
-
-// -----------------------------------------------------
-// SQL SERVER - EF CORE
-// -----------------------------------------------------
-builder.Services.AddDbContext<ALOudDbContext>(options =>
-{
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql =>
-        {
-            sql.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null
-            );
-        });
-});
-
-// -----------------------------------------------------
 // REDIS
-// -----------------------------------------------------
+// =====================================================
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<Program>>();
     var redisConnection = builder.Configuration.GetSection("Redis")["ConnectionString"];
+
+    if (string.IsNullOrWhiteSpace(redisConnection))
+        throw new InvalidOperationException("Redis connection string is missing");
 
     try
     {
@@ -111,7 +83,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
         var connection = ConnectionMultiplexer.Connect(options);
 
         logger.LogInformation("[+] Redis connection established");
-
         return connection;
     }
     catch (Exception ex)
@@ -121,35 +92,82 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     }
 });
 
-// Redis abstraction layer
+// Redis cache abstraction
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
-// -----------------------------------------------------
-// HTTP CONTEXT (needed for cart/user scope)
-// -----------------------------------------------------
+// =====================================================
+// HTTP CONTEXT (required for cart & cookies)
+// =====================================================
 builder.Services.AddHttpContextAccessor();
 
-// Cart service (Redis-based)
-builder.Services.AddScoped<CartService>();
-
-// Auth Cookies
+// =====================================================
+// AUTHENTICATION (Cookies)
+// =====================================================
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
-
         options.ExpireTimeSpan = TimeSpan.FromHours(2);
     });
 
-// MVC
-builder.Services.AddControllersWithViews();
+// =====================================================
+// CORE BUSINESS SERVICES
+// =====================================================
 
+// User & security
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<PasswordHasherService>();
 
+// Email & verification
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
+
+// Admin / domain services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// Cart (Redis + cookies)
+builder.Services.AddScoped<CartService>();
 
 // =====================================================
-// BUILD APP
+// RAG – CORE
+// =====================================================
+builder.Services.AddScoped<RagContextBuilder>();
+builder.Services.AddScoped<RagToolDispatcher>();
+builder.Services.AddScoped<RagCartService>();
+
+// =====================================================
+// LLM CLIENT (GROQ)
+// =====================================================
+builder.Services.AddHttpClient<IRagLLMClient, GroqLLMClient>();
+
+// =====================================================
+// DATA ACCESS (EF CORE – SQL SERVER)
+// =====================================================
+builder.Services.AddDbContext<ALOudDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql =>
+        {
+            sql.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null);
+        });
+});
+
+// =====================================================
+// MVC / RAZOR
+// =====================================================
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+// =====================================================
+// BUILD APPLICATION
 // =====================================================
 var app = builder.Build();
 
@@ -161,20 +179,14 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
 
-    // ---- SQL Server check
+    // SQL Server connectivity check
     try
     {
         var db = services.GetRequiredService<ALOudDbContext>();
+        if (!db.Database.CanConnect())
+            throw new Exception("Database not reachable");
 
-        if (db.Database.CanConnect())
-        {
-            logger.LogInformation("[+] SQL Server connection OK");
-        }
-        else
-        {
-            logger.LogCritical("SQL Server connection FAILED");
-            throw new Exception("[-] Database not reachable");
-        }
+        logger.LogInformation("[+] SQL Server connection OK");
     }
     catch (Exception ex)
     {
@@ -182,17 +194,17 @@ using (var scope = app.Services.CreateScope())
         throw;
     }
 
-    // ---- Redis check
+    // Redis connectivity check
     try
     {
         var redis = services.GetRequiredService<IConnectionMultiplexer>();
         var ping = redis.GetDatabase().Ping();
 
-        logger.LogInformation("Redis ping OK ({Ping} ms)", ping.TotalMilliseconds);
+        logger.LogInformation("[+] Redis ping OK ({Ping} ms)", ping.TotalMilliseconds);
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "Redis startup check failed");
+        logger.LogCritical(ex, "[-] Redis startup check failed");
         throw;
     }
 }
@@ -213,11 +225,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 // =====================================================

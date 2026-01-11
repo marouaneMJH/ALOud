@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using ViewModels;
 
-namespace Services
+namespace ALOud.Services
 {
     // Service: manages shopping cart persisted via cache and cookies.
     public class CartService

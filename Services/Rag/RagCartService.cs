@@ -20,6 +20,7 @@ public sealed class RagCartService
         _llm = llm;
     }
 
+
     public async Task<RagResponse> HandleAsync(string userMessage)
     {
         var baseContext = await _contextBuilder.BuildAsync();

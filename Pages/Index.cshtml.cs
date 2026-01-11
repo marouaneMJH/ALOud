@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ALOud.Data;
 using ALOud.Models;
-using Services;
+using ALOud.Services;
 using ViewModels;
 
 namespace Pages

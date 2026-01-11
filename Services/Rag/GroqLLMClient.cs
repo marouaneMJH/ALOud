@@ -1,4 +1,5 @@
 using System.ComponentModel.Design.Serialization;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -14,11 +15,13 @@ public sealed class GroqLLMClient : IRagLLMClient
     private readonly HttpClient _http;
     private readonly string _apiKey;
 
-    public GroqLLMClient(HttpClient http, IConfiguration config)
+    private readonly ILogger<GroqLLMClient> _logger;
+    public GroqLLMClient(HttpClient http, ILogger<GroqLLMClient> logger)
     {
         _http = http;
-        _apiKey = config["GROK_API_KEY"]
+        _apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY")
             ?? throw new InvalidCastException("GROQ_API_KEY missing");
+        _logger = logger;
     }
     public async Task<RagLLMResult> ExecuteAsync(RagLLMRequest request)
     {
@@ -29,6 +32,7 @@ public sealed class GroqLLMClient : IRagLLMClient
             "https://api.groq.com/openai/v1/chat/completions"
         );
 
+
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
         httpRequest.Content = new StringContent(
@@ -38,6 +42,7 @@ public sealed class GroqLLMClient : IRagLLMClient
         );
 
         var response = await _http.SendAsync(httpRequest);
+        _logger.LogInformation(JsonSerializer.Serialize(response));
         response.EnsureSuccessStatusCode();
 
         using var stream = await response.Content.ReadAsStreamAsync();
@@ -88,7 +93,7 @@ public sealed class GroqLLMClient : IRagLLMClient
                 ToolCall = new RagToolCall
                 {
                     Name = call.GetProperty("function").GetProperty("name").GetString()!,
-                    Argument = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    Arguments = JsonSerializer.Deserialize<Dictionary<string, object>>(
                         call.GetProperty("function").GetProperty("arguments")
                     ) ?? new()
                 }

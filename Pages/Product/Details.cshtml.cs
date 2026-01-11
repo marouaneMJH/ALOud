@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ALOud.Data;
-using Services;
+using ALOud.Services;
 using ViewModels;
 
 namespace Pages.Product
