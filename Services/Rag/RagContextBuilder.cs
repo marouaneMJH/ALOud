@@ -18,7 +18,7 @@ public sealed class RagContextBuilder
     public async Task<object> BuildAsync()
     {
         var cart = await _cartService.GetCartAsync();
-        
+
         // Minimal context - only send IDs and quantities
         return new
         {

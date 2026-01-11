@@ -10,17 +10,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ALOud.Services.Rag;
 
-public sealed class GroqLLMClient : IRagLLMClient
+[Obsolete("Use GeminiLLMClient instead. Grok API integration is deprecated.")]
+public sealed class GrokLLMClient : IRagLLMClient
 {
     private readonly HttpClient _http;
     private readonly string _apiKey;
 
-    private readonly ILogger<GroqLLMClient> _logger;
-    public GroqLLMClient(HttpClient http, ILogger<GroqLLMClient> logger)
+    private readonly ILogger<GrokLLMClient> _logger;
+    public GrokLLMClient(HttpClient http, ILogger<GrokLLMClient> logger)
     {
         _http = http;
-        _apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY")
-            ?? throw new InvalidCastException("GROQ_API_KEY missing");
+        _apiKey = Environment.GetEnvironmentVariable("GROK_API_KEY")
+            ?? throw new InvalidCastException("GROK_API_KEY missing");
         _logger = logger;
     }
     public async Task<RagLLMResult> ExecuteAsync(RagLLMRequest request)
@@ -29,7 +30,7 @@ public sealed class GroqLLMClient : IRagLLMClient
 
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            "https://api.groq.com/openai/v1/chat/completions"
+            "https://api.x.ai/v1/chat/completions"
         );
 
 
@@ -43,16 +44,27 @@ public sealed class GroqLLMClient : IRagLLMClient
 
         var response = await _http.SendAsync(httpRequest);
 
+        // Log response details for debugging
+        _logger.LogInformation($"Grok API response status: {(int)response.StatusCode} {response.StatusCode}");
+
         // Handle rate limiting
         if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
         {
-            _logger.LogWarning("Groq API rate limit exceeded");
+            _logger.LogWarning("Grok API rate limit exceeded");
             throw new InvalidOperationException(
                 "Le service d'IA a atteint sa limite de requêtes. Veuillez réessayer dans quelques secondes.");
         }
 
+        // Handle forbidden
+        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"Grok API returned 403 Forbidden. Response: {errorBody}");
+            throw new InvalidOperationException(
+                "Accès refusé à l'API Grok. Vérifiez votre clé API.");
+        }
+
         response.EnsureSuccessStatusCode();
-        _logger.LogInformation(JsonSerializer.Serialize(response.Content));
 
         using var stream = await response.Content.ReadAsStreamAsync();
         using var doc = await JsonDocument.ParseAsync(stream);
@@ -80,7 +92,7 @@ public sealed class GroqLLMClient : IRagLLMClient
 
         return new
         {
-            model = "llama-3.1-8b-instant",
+            model = "grok-beta",
             temperature = 0.1,
             messages,
             tools = request.Tools?.Select(t => new

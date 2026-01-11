@@ -140,9 +140,9 @@ builder.Services.AddScoped<RagToolDispatcher>();
 builder.Services.AddScoped<RagCartService>();
 
 // =====================================================
-// LLM CLIENT (GROQ)
+// LLM CLIENT (GOOGLE GEMINI)
 // =====================================================
-builder.Services.AddHttpClient<IRagLLMClient, GroqLLMClient>();
+builder.Services.AddHttpClient<IRagLLMClient, GeminiLLMClient>();
 
 // =====================================================
 // DATA ACCESS (EF CORE – SQL SERVER)

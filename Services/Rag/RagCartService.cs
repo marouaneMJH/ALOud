@@ -4,7 +4,7 @@ namespace ALOud.Services.Rag;
 
 public sealed class RagCartService
 {
-    private const int MaxToolCalls = 6;
+    private const int MaxToolCalls = 3;
 
     private readonly RagContextBuilder _contextBuilder;
     private readonly RagToolDispatcher _dispatcher;
