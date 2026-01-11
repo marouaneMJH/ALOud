@@ -22,13 +22,13 @@ public static class RagToolCatalog
     private static RagToolDefinition SearchProducts() => new()
     {
         Name = "search_products",
-        Description = "Search for products by name, brand, or description. Returns product ID, name, price, stock, and category. ALWAYS use this before adding products to cart.",
+        Description = "Find products by name/brand. Use before adding to cart.",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                query = new { type = "string", description = "Search query (product name, brand, or keyword)" }
+                query = new { type = "string" }
             },
             required = new[] { "query" }
         }
@@ -37,13 +37,13 @@ public static class RagToolCatalog
     private static RagToolDefinition GetProductDetails() => new()
     {
         Name = "get_product_details",
-        Description = "Get complete details about a specific product including description, price, stock, image URL, and category. Use this when user asks about a product or wants more information.",
+        Description = "Get product details: description, price, stock, image.",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                productId = new { type = "integer", description = "Product ID to get details for" }
+                productId = new { type = "integer" }
             },
             required = new[] { "productId" }
         }
@@ -52,14 +52,14 @@ public static class RagToolCatalog
     private static RagToolDefinition RecommendProducts() => new()
     {
         Name = "recommend_products",
-        Description = "Get personalized product recommendations based on user preferences or cart contents. Use when user asks for suggestions, recommendations, or describes what they're looking for (e.g., 'something fresh', 'for summer', 'woody scents').",
+        Description = "Recommend products by preferences (e.g. fresh, woody).",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                preferences = new { type = "string", description = "User preferences or description of what they're looking for" },
-                limit = new { type = "integer", description = "Maximum number of recommendations (default 5)", minimum = 1, maximum = 10 }
+                preferences = new { type = "string" },
+                limit = new { type = "integer", minimum = 1, maximum = 10 }
             },
             required = new[] { "preferences" }
         }
@@ -68,7 +68,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetCart() => new()
     {
         Name = "get_cart",
-        Description = "Get the current shopping cart content",
+        Description = "Get cart contents",
         ParametersSchema = new
         {
             type = "object",
@@ -80,7 +80,7 @@ public static class RagToolCatalog
     private static RagToolDefinition AddToCart() => new()
     {
         Name = "add_to_cart",
-        Description = "Add a product to the cart with a given quantity",
+        Description = "Add product to cart",
         ParametersSchema = new
         {
             type = "object",
@@ -96,7 +96,7 @@ public static class RagToolCatalog
     private static RagToolDefinition RemoveFromCart() => new()
     {
         Name = "remove_from_cart",
-        Description = "Remove a product entirely from the cart",
+        Description = "Remove product from cart",
         ParametersSchema = new
         {
             type = "object",
@@ -111,7 +111,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Increase() => new()
     {
         Name = "increase",
-        Description = "Increase quantity of a product in the cart by one",
+        Description = "Increase quantity by 1",
         ParametersSchema = new
         {
             type = "object",
@@ -126,7 +126,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Decrease() => new()
     {
         Name = "decrease",
-        Description = "Decrease quantity of a product in the cart by one; remove if quantity reaches zero",
+        Description = "Decrease quantity by 1",
         ParametersSchema = new
         {
             type = "object",

@@ -18,29 +18,12 @@ public sealed class RagContextBuilder
     public async Task<object> BuildAsync()
     {
         var cart = await _cartService.GetCartAsync();
-
-        var products = new List<object>();
-
-        foreach (var item in cart)
-        {
-            var product = await _productService.GetProductByIdAsync(item.ProductId);
-            if (product == null) continue;
-
-            products.Add(new
-            {
-                product.Id,
-                product.Name,
-                product.Price,
-                item.Quantity,
-                Total = product.Price * item.Quantity
-            });
-        }
-
+        
+        // Minimal context - only send IDs and quantities
         return new
         {
-            Cart = products,
-            ItemCount = cart.Sum(i => i.Quantity),
-            GrandTotal = products.Sum(p => (decimal)p.GetType().GetProperty("Total")!.GetValue(p)!)
+            items = cart.Select(i => new { id = i.ProductId, qty = i.Quantity }).ToList(),
+            count = cart.Sum(i => i.Quantity)
         };
     }
 }
