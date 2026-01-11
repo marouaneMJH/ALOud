@@ -7,6 +7,7 @@ namespace ALOud.Services.Rag;
 public static class RagToolCatalog
 {
     public static readonly IReadOnlyList<RagToolDefinition> All = [
+        SearchProducts(),
         GetCart(),
         AddToCart(),
         RemoveFromCart(),
@@ -15,6 +16,21 @@ public static class RagToolCatalog
 
     ];
 
+
+    private static RagToolDefinition SearchProducts() => new()
+    {
+        Name = "search_products",
+        Description = "Search for products by name, brand, or description. Returns product ID, name, price, stock, and category. ALWAYS use this before adding products to cart.",
+        ParametersSchema = new
+        {
+            type = "object",
+            properties = new
+            {
+                query = new { type = "string", description = "Search query (product name, brand, or keyword)" }
+            },
+            required = new[] { "query" }
+        }
+    };
 
     private static RagToolDefinition GetCart() => new()
     {

@@ -8,6 +8,7 @@ public interface IProductService
 {
     Task<List<ProductDetailsVM>> GetAllProductsAsync();
     Task<PaginatedList<ProductDetailsVM>> GetAllProductsAsync(int pageIndex, int pageSize);
+    Task<List<object>> SearchProductsAsync(string query);
     Task<ProductDetailsVM?> GetProductByIdAsync(int id);
     Task<UpdateProductDto?> GetUpdateProductDtoAsync(int id);
     Task<int> CreateProductAsync(CreateProductDto dto);

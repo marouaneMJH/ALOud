@@ -58,6 +58,32 @@ public class ProductService : IProductService
         return new PaginatedList<ProductDetailsVM>(products, totalCount, pageIndex, pageSize);
     }
 
+    public async Task<List<object>> SearchProductsAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return new List<object>();
+
+        var lowerQuery = query.ToLower();
+
+        return await _db.Products
+            .Include(p => p.Category)
+            .Where(p => p.Name.ToLower().Contains(lowerQuery) ||
+                       p.Description.ToLower().Contains(lowerQuery))
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Description,
+                p.Price,
+                p.Stock,
+                p.ImageUrl,
+                CategoryName = p.Category != null ? p.Category.Name : "Uncategorized"
+            })
+            .Take(20)
+            .Cast<object>()
+            .ToListAsync();
+    }
+
     public async Task<ProductDetailsVM?> GetProductByIdAsync(int id)
     {
         var product = await _db.Products.FindAsync(id);

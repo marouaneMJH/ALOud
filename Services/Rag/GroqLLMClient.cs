@@ -42,8 +42,8 @@ public sealed class GroqLLMClient : IRagLLMClient
         );
 
         var response = await _http.SendAsync(httpRequest);
-        _logger.LogInformation(JsonSerializer.Serialize(response));
         response.EnsureSuccessStatusCode();
+        _logger.LogInformation(JsonSerializer.Serialize(response.Content));
 
         using var stream = await response.Content.ReadAsStreamAsync();
         using var doc = await JsonDocument.ParseAsync(stream);

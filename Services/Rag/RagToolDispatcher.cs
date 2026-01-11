@@ -20,6 +20,8 @@ public sealed class RagToolDispatcher
     {
         return toolName switch
         {
+            "search_products" => await HandleSearchAsync(args),
+
             "get_cart" => await _cartService.GetCartAsync(),
 
             "add_to_cart" => await HandleAddAsync(args),
@@ -31,6 +33,17 @@ public sealed class RagToolDispatcher
             "decrease" => await HandleDecreaseAsync(args),
 
             _ => throw new InvalidOperationException($"Unknown tool: {toolName}")
+        };
+    }
+
+    private async Task<object> HandleSearchAsync(Dictionary<string, object> args)
+    {
+        var query = args["query"].ToString() ?? string.Empty;
+        var products = await _productService.SearchProductsAsync(query);
+
+        return new
+        {
+            Products = products.Take(10).ToList()
         };
     }
 
