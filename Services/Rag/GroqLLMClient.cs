@@ -42,6 +42,15 @@ public sealed class GroqLLMClient : IRagLLMClient
         );
 
         var response = await _http.SendAsync(httpRequest);
+
+        // Handle rate limiting
+        if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        {
+            _logger.LogWarning("Groq API rate limit exceeded");
+            throw new InvalidOperationException(
+                "Le service d'IA a atteint sa limite de requêtes. Veuillez réessayer dans quelques secondes.");
+        }
+
         response.EnsureSuccessStatusCode();
         _logger.LogInformation(JsonSerializer.Serialize(response.Content));
 

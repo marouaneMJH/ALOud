@@ -27,8 +27,28 @@ public sealed class AiCartController : ControllerBase
 
         _logger.LogInformation("AI Cart request: {Message}", request.Message);
 
-        var response = await _ragCartService.HandleAsync(request.Message);
-
-        return Ok(response);
+        try
+        {
+            var response = await _ragCartService.HandleAsync(request.Message);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("limite de requêtes"))
+        {
+            _logger.LogWarning("Rate limit hit: {Message}", ex.Message);
+            return StatusCode(429, new RagResponse
+            {
+                Answer = ex.Message,
+                CartSnapshot = null
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing AI cart request");
+            return StatusCode(500, new RagResponse
+            {
+                Answer = "Une erreur s'est produite. Veuillez réessayer.",
+                CartSnapshot = null
+            });
+        }
     }
 }
