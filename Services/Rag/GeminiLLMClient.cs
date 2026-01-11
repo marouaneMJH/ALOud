@@ -22,13 +22,17 @@ public sealed class GeminiLLMClient : IRagLLMClient
     public async Task<RagLLMResult> ExecuteAsync(RagLLMRequest request)
     {
         var payload = BuildPayload(request);
+        var payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={_apiKey}";
+        _logger.LogInformation($"Sending request to Gemini. Payload size: {payloadJson.Length} bytes");
+        _logger.LogDebug($"Payload: {payloadJson}");
+
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
         httpRequest.Content = new StringContent(
-            JsonSerializer.Serialize(payload),
+            payloadJson,
             Encoding.UTF8,
             "application/json"
         );
@@ -40,7 +44,8 @@ public sealed class GeminiLLMClient : IRagLLMClient
         // Handle rate limiting
         if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
         {
-            _logger.LogWarning("Gemini API rate limit exceeded");
+            var errorBody = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning($"Gemini API rate limit exceeded. Response: {errorBody}");
             throw new InvalidOperationException(
                 "Le service d'IA a atteint sa limite de requêtes. Veuillez réessayer dans quelques secondes.");
         }
@@ -74,21 +79,46 @@ public sealed class GeminiLLMClient : IRagLLMClient
             parts = new[] { new { text = request.SystemPrompt } }
         };
 
-        var userContent = BuildUserContent(request);
+        var contentsList = new List<object>();
 
-        var contents = new[]
+        // Add initial user message with cart context
+        var userContent = BuildUserContent(request);
+        contentsList.Add(new
         {
-            new
+            role = "user",
+            parts = new[] { new { text = userContent } }
+        });
+
+        // Add conversation history if present
+        if (request.ConversationHistory != null)
+        {
+            foreach (var turn in request.ConversationHistory)
             {
-                role = "user",
-                parts = new[] { new { text = userContent } }
+                if (turn.Role == "model" && turn.FunctionCallName != null)
+                {
+                    // Model called a function
+                    contentsList.Add(new
+                    {
+                        role = "model",
+                        parts = new[] { new { functionCall = new { name = turn.FunctionCallName, args = turn.FunctionCallArgs } } }
+                    });
+                }
+                else if (turn.Role == "function")
+                {
+                    // Function response
+                    contentsList.Add(new
+                    {
+                        role = "user",
+                        parts = new[] { new { functionResponse = new { name = turn.FunctionName, response = turn.FunctionResponse } } }
+                    });
+                }
             }
-        };
+        }
 
         var payload = new
         {
             systemInstruction,
-            contents,
+            contents = contentsList.ToArray(),
             generationConfig = new
             {
                 temperature = 0.1,
@@ -115,7 +145,7 @@ public sealed class GeminiLLMClient : IRagLLMClient
             return new
             {
                 systemInstruction,
-                contents,
+                contents = contentsList.ToArray(),
                 tools,
                 generationConfig = new
                 {

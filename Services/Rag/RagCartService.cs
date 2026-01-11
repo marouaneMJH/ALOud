@@ -23,11 +23,8 @@ public sealed class RagCartService
 
     public async Task<RagResponse> HandleAsync(string userMessage)
     {
-        var baseContext = await _contextBuilder.BuildAsync();
-        var conversationContext = new List<object>
-        {
-            new { role = "system", content = baseContext }
-        };
+        var cartContext = await _contextBuilder.BuildAsync();
+        var conversationHistory = new List<ConversationTurn>();
 
         for (var step = 0; step < MaxToolCalls; step++)
         {
@@ -35,7 +32,8 @@ public sealed class RagCartService
             {
                 SystemPrompt = SystemPrompts.CartAssistant,
                 UserMessage = userMessage,
-                Context = conversationContext,
+                Context = cartContext,
+                ConversationHistory = conversationHistory,
                 Tools = RagToolCatalog.All
             });
 
@@ -51,16 +49,25 @@ public sealed class RagCartService
 
             // Tool execution
             var toolCall = llmResult.ToolCall!;
+            
+            // Add model's function call to history
+            conversationHistory.Add(new ConversationTurn
+            {
+                Role = "model",
+                FunctionCallName = toolCall.Name,
+                FunctionCallArgs = toolCall.Arguments
+            });
+            
             var toolResult = await _dispatcher.DispatchAsync(
                 toolCall.Name,
                 toolCall.Arguments);
 
-            // Inject tool result into context for next iteration
-            conversationContext.Add(new
+            // Add function response to history
+            conversationHistory.Add(new ConversationTurn
             {
-                role = "tool",
-                name = toolCall.Name,
-                content = System.Text.Json.JsonSerializer.Serialize(toolResult)
+                Role = "function",
+                FunctionName = toolCall.Name,
+                FunctionResponse = toolResult
             });
         }
 
