@@ -57,7 +57,11 @@ public sealed class RagToolDispatcher
         var product = await _productService.GetProductByIdAsync(productId);
 
         if (product == null)
-            return new { Error = "Product not found" };
+            return new
+            {
+                Error = $"Product with ID {productId} not found",
+                Suggestion = "Try searching for similar products or check if the product is still available"
+            };
 
         return new
         {
@@ -105,6 +109,18 @@ public sealed class RagToolDispatcher
         var product = await _productService.GetProductByIdAsync(productId)
             ?? throw new InvalidOperationException("Product not found");
 
+        // Stock validation
+        if (product.Stock < quantity)
+        {
+            return new
+            {
+                Success = false,
+                Error = $"Only {product.Stock} items available in stock",
+                AvailableStock = product.Stock,
+                ProductName = product.Name
+            };
+        }
+
         for (int i = 0; i < quantity; i++)
         {
             await _cartService.AddToCartAsync(new ViewModels.CartItemVM
@@ -116,7 +132,13 @@ public sealed class RagToolDispatcher
             });
         }
 
-        return new { Success = true };
+        return new
+        {
+            Success = true,
+            ProductName = product.Name,
+            Quantity = quantity,
+            Message = $"Added {quantity} x {product.Name} to cart"
+        };
     }
 
     private async Task<object> HandleRemoveAsync(Dictionary<string, object> args)

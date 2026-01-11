@@ -27,7 +27,7 @@ public sealed class GeminiLLMClient : IRagLLMClient
         _logger.LogInformation($"Sending request to Gemini. Payload size: {payloadJson.Length} bytes");
         _logger.LogDebug($"Payload: {payloadJson}");
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_apiKey}";
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 

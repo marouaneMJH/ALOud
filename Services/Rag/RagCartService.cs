@@ -4,7 +4,7 @@ namespace ALOud.Services.Rag;
 
 public sealed class RagCartService
 {
-    private const int MaxToolCalls = 3;
+    private const int MaxToolCalls = 6;
 
     private readonly RagContextBuilder _contextBuilder;
     private readonly RagToolDispatcher _dispatcher;
@@ -49,7 +49,7 @@ public sealed class RagCartService
 
             // Tool execution
             var toolCall = llmResult.ToolCall!;
-            
+
             // Add model's function call to history
             conversationHistory.Add(new ConversationTurn
             {
@@ -57,7 +57,7 @@ public sealed class RagCartService
                 FunctionCallName = toolCall.Name,
                 FunctionCallArgs = toolCall.Arguments
             });
-            
+
             var toolResult = await _dispatcher.DispatchAsync(
                 toolCall.Name,
                 toolCall.Arguments);

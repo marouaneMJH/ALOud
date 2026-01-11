@@ -22,7 +22,7 @@ public static class RagToolCatalog
     private static RagToolDefinition SearchProducts() => new()
     {
         Name = "search_products",
-        Description = "Find products by name/brand. Use before adding to cart.",
+        Description = "Find products by name/brand. Returns Id, Name, Description, Price, ImageUrl. Always display ImageUrl.",
         ParametersSchema = new
         {
             type = "object",
@@ -37,7 +37,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetProductDetails() => new()
     {
         Name = "get_product_details",
-        Description = "Get product details: description, price, stock, image.",
+        Description = "Get full product info: Name, Description, Price, Stock, ImageUrl. Always show image.",
         ParametersSchema = new
         {
             type = "object",
@@ -52,7 +52,7 @@ public static class RagToolCatalog
     private static RagToolDefinition RecommendProducts() => new()
     {
         Name = "recommend_products",
-        Description = "Recommend products by preferences (e.g. fresh, woody).",
+        Description = "Recommend products by preferences (fresh, woody, etc). Returns products with ImageUrl. Show images.",
         ParametersSchema = new
         {
             type = "object",

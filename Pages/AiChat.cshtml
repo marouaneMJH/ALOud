@@ -216,16 +216,14 @@
             addMessage(data.answer, false);
 
             // Show cart snapshot if available
-            if (data.cartSnapshot) {
+            if (data.cartSnapshot && data.cartSnapshot.items && data.cartSnapshot.items.length > 0) {
                 const cart = data.cartSnapshot;
-                if (cart.items && cart.items.length > 0) {
-                    let cartSummary = '\n📦 Votre panier:\n';
-                    cart.items.forEach(item => {
-                        cartSummary += `• ${item.productName} x${item.quantity} - ${item.price.toFixed(2)} MAD\n`;
-                    });
-                    cartSummary += `\nTotal: ${cart.totalPrice.toFixed(2)} MAD`;
-                    addMessage(cartSummary, false);
-                }
+                let cartSummary = '\n📦 Votre panier:\n';
+                cart.items.forEach(item => {
+                    cartSummary += `• ${item.productName} x${item.quantity} - ${item.price.toFixed(2)} MAD\n`;
+                });
+                cartSummary += `\nTotal: ${cart.totalPrice.toFixed(2)} MAD`;
+                addMessage(cartSummary, false);
             }
 
         } catch (error) {
