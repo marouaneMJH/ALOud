@@ -29,7 +29,7 @@ class MenPerfumeScraper {
             return parseFloat(match[0].replace(",", ""));
         }
         // Generate random price between $50 and $200 for men's perfumes
-        return Math.floor(Math.random() * (200 - 50 + 1)) + 50;
+        return Math.floor(Math.random() * (20 - 5)) * 10 + 50;
     }
 
     private generateDescription(name: string): string {
@@ -50,19 +50,19 @@ class MenPerfumeScraper {
     }
 
     private getHighResImageUrl(imageUrl: string): string {
-        if (!imageUrl || imageUrl.includes('placeholder')) {
+        if (!imageUrl || imageUrl.includes("placeholder")) {
             return imageUrl;
         }
-        
+
         // Convert Amazon low-res image URLs to high-res
         // Replace common size parameters with larger ones
         return imageUrl
-            .replace(/_AC_UL320_/g, '_AC_UL1500_')
-            .replace(/_AC_UL\d+_/g, '_AC_UL1500_')
-            .replace(/\._AC_SR\d+,\d+_/g, '._AC_SL1500_')
-            .replace(/\._SS\d+_/g, '._SS1500_')
-            .replace(/\._SX\d+_/g, '._SX1500_')
-            .replace(/\._SY\d+_/g, '._SY1500_');
+            .replace(/_AC_UL320_/g, "_AC_UL320_")
+            .replace(/_AC_UL\d+_/g, "_AC_UL320_")
+            .replace(/\._AC_SR\d+,\d+_/g, "._AC_SL320_")
+            .replace(/\._SS\d+_/g, "._SS320_")
+            .replace(/\._SX\d+_/g, "._SX320_")
+            .replace(/\._SY\d+_/g, "._S320_");
     }
 
     async scrapePage(pageUrl: string): Promise<ScrapedProduct[]> {
@@ -147,9 +147,10 @@ class MenPerfumeScraper {
         return products.map((product) => ({
             Name: product.name,
             Description: product.description,
-            Price: product.price === 0 
-                ? Math.floor(Math.random() * (3000 - 100 + 1)) + 100 
-                : product.price,
+            Price:
+                product.price === 0
+                    ? Math.floor(Math.random() * (3000 - 100 + 1)) + 100
+                    : product.price,
             Stock: Math.floor(Math.random() * (60 - 20 + 1)) + 20, // Random stock 20-60
             ImageUrl: product.imageUrl,
             CategoryId: this.getRandomCategoryId(), // Random category between 1-9
