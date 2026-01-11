@@ -4,5 +4,5 @@ namespace ALOud.Services.Rag;
 
 public interface IRagLLMClient
 {
-    Task<RagResponse> ExecuteAsync(RagRequest request);
+    Task<RagLLMResult> ExecuteAsync(RagLLMRequest request);
 }
