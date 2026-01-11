@@ -8,6 +8,8 @@ public static class RagToolCatalog
 {
     public static readonly IReadOnlyList<RagToolDefinition> All = [
         SearchProducts(),
+        GetProductDetails(),
+        RecommendProducts(),
         GetCart(),
         AddToCart(),
         RemoveFromCart(),
@@ -29,6 +31,37 @@ public static class RagToolCatalog
                 query = new { type = "string", description = "Search query (product name, brand, or keyword)" }
             },
             required = new[] { "query" }
+        }
+    };
+
+    private static RagToolDefinition GetProductDetails() => new()
+    {
+        Name = "get_product_details",
+        Description = "Get complete details about a specific product including description, price, stock, image URL, and category. Use this when user asks about a product or wants more information.",
+        ParametersSchema = new
+        {
+            type = "object",
+            properties = new
+            {
+                productId = new { type = "integer", description = "Product ID to get details for" }
+            },
+            required = new[] { "productId" }
+        }
+    };
+
+    private static RagToolDefinition RecommendProducts() => new()
+    {
+        Name = "recommend_products",
+        Description = "Get personalized product recommendations based on user preferences or cart contents. Use when user asks for suggestions, recommendations, or describes what they're looking for (e.g., 'something fresh', 'for summer', 'woody scents').",
+        ParametersSchema = new
+        {
+            type = "object",
+            properties = new
+            {
+                preferences = new { type = "string", description = "User preferences or description of what they're looking for" },
+                limit = new { type = "integer", description = "Maximum number of recommendations (default 5)", minimum = 1, maximum = 10 }
+            },
+            required = new[] { "preferences" }
         }
     };
 

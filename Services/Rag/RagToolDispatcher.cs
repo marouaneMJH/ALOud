@@ -22,6 +22,10 @@ public sealed class RagToolDispatcher
         {
             "search_products" => await HandleSearchAsync(args),
 
+            "get_product_details" => await HandleGetProductDetailsAsync(args),
+
+            "recommend_products" => await HandleRecommendProductsAsync(args),
+
             "get_cart" => await _cartService.GetCartAsync(),
 
             "add_to_cart" => await HandleAddAsync(args),
@@ -44,6 +48,52 @@ public sealed class RagToolDispatcher
         return new
         {
             Products = products.Take(10).ToList()
+        };
+    }
+
+    private async Task<object> HandleGetProductDetailsAsync(Dictionary<string, object> args)
+    {
+        var productId = GetInt32(args["productId"]);
+        var product = await _productService.GetProductByIdAsync(productId);
+
+        if (product == null)
+            return new { Error = "Product not found" };
+
+        return new
+        {
+            product.Id,
+            product.Name,
+            product.Description,
+            product.Price,
+            product.Stock,
+            product.ImageUrl,
+            InStock = product.InStock
+        };
+    }
+
+    private async Task<object> HandleRecommendProductsAsync(Dictionary<string, object> args)
+    {
+        var preferences = args["preferences"].ToString() ?? string.Empty;
+        var limit = args.ContainsKey("limit") ? GetInt32(args["limit"]) : 5;
+
+        // Get recommendations based on preferences
+        var products = await _productService.SearchProductsAsync(preferences);
+
+        // If no results, get random popular products
+        if (!products.Any())
+        {
+            var allProducts = await _productService.GetAllProductsAsync();
+            products = allProducts
+                .OrderBy(_ => Guid.NewGuid())
+                .Take(limit)
+                .Cast<object>()
+                .ToList();
+        }
+
+        return new
+        {
+            Recommendations = products.Take(limit).ToList(),
+            BasedOn = preferences
         };
     }
 

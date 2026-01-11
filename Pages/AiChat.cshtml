@@ -31,12 +31,14 @@
                         <div class="message-content">
                             <p class="mb-0">Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :</p>
                             <ul class="mt-2 mb-0">
+                                <li>Rechercher et recommander des parfums selon vos préférences</li>
+                                <li>Vous montrer les détails des produits avec images</li>
                                 <li>Ajouter des produits à votre panier</li>
-                                <li>Consulter votre panier actuel</li>
-                                <li>Modifier les quantités</li>
-                                <li>Retirer des articles</li>
+                                <li>Consulter et gérer votre panier</li>
+                                <li>Modifier les quantités ou retirer des articles</li>
                             </ul>
-                            <p class="mt-2 mb-0"><small class="text-muted">Exemple: "Ajoute 2 parfums Dior à mon panier"</small></p>
+                            <p class="mt-2 mb-0"><small class="text-muted">Exemples:</small></p>
+                            <p class="mb-0"><small class="text-muted">• "Montre-moi des parfums frais pour l'été"<br>• "J'aimerais quelque chose de boisé et épicé"<br>• "Parle-moi du parfum Dior"<br>• "Ajoute 2 parfums vanille à mon panier"</small></p>
                         </div>
                     </div>
                 </div>
@@ -81,6 +83,22 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Parse message for images and format
+    function formatMessage(text) {
+        // Check for image URLs in the format [image:URL]
+        const imageRegex = /\[image:(https?:\/\/[^\]]+)\]/g;
+        let formattedText = text;
+        const images = [];
+        
+        let match;
+        while ((match = imageRegex.exec(text)) !== null) {
+            images.push(match[1]);
+            formattedText = formattedText.replace(match[0], '');
+        }
+        
+        return { text: formattedText, images };
+    }
+
     // Add message to chat
     function addMessage(text, isUser = false) {
         const messageDiv = document.createElement('div');
@@ -100,9 +118,32 @@
 
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
-        contentDiv.textContent = text;
+        
+        // Parse for images
+        const { text: cleanText, images } = formatMessage(text);
+        
+        // Add text
+        const textDiv = document.createElement('div');
+        textDiv.style.whiteSpace = 'pre-wrap';
+        textDiv.textContent = cleanText;
+        contentDiv.appendChild(textDiv);
+        
+        // Add images if any
+        images.forEach(imgUrl => {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'product-image-container';
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.alt = 'Product';
+            img.className = 'product-image';
+            img.onerror = function() {
+                this.style.display = 'none';
+            };
+            imgContainer.appendChild(img);
+            contentDiv.appendChild(imgContainer);
+        });
+        
         messageDiv.appendChild(contentDiv);
-
         chatMessages.appendChild(messageDiv);
         scrollToBottom();
     }
@@ -349,6 +390,26 @@
     .chat-send-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .product-image-container {
+        margin-top: 0.75rem;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 300px;
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(11, 11, 11, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .product-image:hover {
+        transform: scale(1.02);
     }
 
     .typing-indicator {
