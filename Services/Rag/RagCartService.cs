@@ -1,7 +1,11 @@
+using ALOud.Services.Rag.Models;
+
 namespace ALOud.Services.Rag;
 
 public sealed class RagCartService
 {
+    private const int MaxToolCalls = 3;
+
     private readonly RagContextBuilder _contextBuilder;
     private readonly RagToolDispatcher _dispatcher;
     private readonly IRagLLMClient _llm;
@@ -16,15 +20,50 @@ public sealed class RagCartService
         _llm = llm;
     }
 
-    public async Task<string> HandleAsync(string userMessage)
+    public async Task<RagResponse> HandleAsync(string userMessage)
     {
-        var context = await _contextBuilder.BuildAsync();
+        var baseContext = await _contextBuilder.BuildAsync();
+        var conversationContext = new List<object>
+        {
+            new { role = "system", content = baseContext }
+        };
 
-        // 1. Send message + context to LLM
-        // 2. LLM decides tool or final answer
-        // 3. If tool → dispatch
-        // 4. Return final answer
+        for (var step = 0; step < MaxToolCalls; step++)
+        {
+            var llmResult = await _llm.ExecuteAsync(new RagLLMRequest
+            {
+                SystemPrompt = SystemPrompts.CartAssistant,
+                UserMessage = userMessage,
+                Context = conversationContext,
+                Tools = RagToolCatalog.All
+            });
 
-        throw new NotImplementedException("Next step: system prompt + GROQ integration");
+            // Final answer → stop
+            if (!llmResult.IsToolCall)
+            {
+                return new RagResponse
+                {
+                    Answer = llmResult.FinalAnswer ?? "No response",
+                    CartSnapshot = await _contextBuilder.BuildAsync()
+                };
+            }
+
+            // Tool execution
+            var toolCall = llmResult.ToolCall!;
+            var toolResult = await _dispatcher.DispatchAsync(
+                toolCall.Name,
+                toolCall.Arguments);
+
+            // Inject tool result into context for next iteration
+            conversationContext.Add(new
+            {
+                role = "tool",
+                name = toolCall.Name,
+                content = toolResult
+            });
+        }
+
+        throw new InvalidOperationException(
+            "AI exceeded maximum allowed tool calls");
     }
 }
