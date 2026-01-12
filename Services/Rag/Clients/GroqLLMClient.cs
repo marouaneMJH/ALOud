@@ -115,7 +115,8 @@ public sealed class GroqLLMClient : BaseLLMClient
                 messages = messages.ToArray(),
                 tools,
                 tool_choice = "auto",
-                temperature = 0.1,
+                parallel_tool_calls = false, // Prevent hallucinated parallel calls
+                temperature = 0.0, // Lower temperature for more deterministic tool selection
                 max_tokens = 2048
             };
         }

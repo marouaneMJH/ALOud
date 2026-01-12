@@ -57,7 +57,8 @@ public class GroqSettings
 
     public GroqSettings()
     {
-        Model = Environment.GetEnvironmentVariable("GROQ_MODEL") ?? "llama-3.1-8b-instant";
+        // Use llama-3.3-70b-versatile for better tool following (8b hallucinates brave_search)
+        Model = Environment.GetEnvironmentVariable("GROQ_MODEL") ?? "llama-3.3-70b-versatile";
         ApiKeyEnvVar = "GROQ_API_KEY";
     }
 }
