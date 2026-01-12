@@ -6,6 +6,7 @@ namespace ALOud.Services.Rag;
 
 public static class RagToolCatalog
 {
+    // Full catalog for general queries
     public static readonly IReadOnlyList<RagToolDefinition> All = [
         SearchProducts(),
         GetProductDetails(),
@@ -15,20 +16,38 @@ public static class RagToolCatalog
         RemoveFromCart(),
         Increase(),
         Decrease(),
+        AnalyzeCart(),
+        CompareProducts(),
+    ];
 
+    // Optimized subsets for intent-specific routing (reduces token usage)
+    public static readonly IReadOnlyList<RagToolDefinition> CartTools = [
+        GetCart(),
+        AddToCart(),
+        RemoveFromCart(),
+        Increase(),
+        Decrease(),
+        AnalyzeCart(),
+    ];
+
+    public static readonly IReadOnlyList<RagToolDefinition> SearchTools = [
+        SearchProducts(),
+        GetProductDetails(),
+        RecommendProducts(),
+        CompareProducts(),
     ];
 
 
     private static RagToolDefinition SearchProducts() => new()
     {
         Name = "search_products",
-        Description = "Find products by name/brand. Returns Id, Name, Description, Price, ImageUrl. Always display ImageUrl.",
+        Description = "Chercher produits par nom/marque. Retourne max 5 résultats avec Id, Name, Price, ImageUrl.",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                query = new { type = "string" }
+                query = new { type = "string", description = "Mots-clés de recherche" }
             },
             required = new[] { "query" }
         }
@@ -37,7 +56,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetProductDetails() => new()
     {
         Name = "get_product_details",
-        Description = "Get full product info: Name, Description, Price, Stock, ImageUrl. Always show image.",
+        Description = "Détails complets d'un produit par son ID.",
         ParametersSchema = new
         {
             type = "object",
@@ -52,14 +71,14 @@ public static class RagToolCatalog
     private static RagToolDefinition RecommendProducts() => new()
     {
         Name = "recommend_products",
-        Description = "Recommend products by preferences (fresh, woody, etc). Returns products with ImageUrl. Show images.",
+        Description = "Recommander parfums selon préférences (boisé, frais, oriental, floral, épicé).",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                preferences = new { type = "string" },
-                limit = new { type = "integer", minimum = 1, maximum = 10 }
+                preferences = new { type = "string", description = "Type de parfum souhaité" },
+                limit = new { type = "integer", minimum = 1, maximum = 5, @default = 3 }
             },
             required = new[] { "preferences" }
         }
@@ -68,7 +87,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetCart() => new()
     {
         Name = "get_cart",
-        Description = "Get cart contents",
+        Description = "Voir contenu du panier actuel.",
         ParametersSchema = new
         {
             type = "object",
@@ -80,23 +99,23 @@ public static class RagToolCatalog
     private static RagToolDefinition AddToCart() => new()
     {
         Name = "add_to_cart",
-        Description = "Add product to cart",
+        Description = "Ajouter produit au panier. Vérifie le stock automatiquement.",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
                 productId = new { type = "integer" },
-                quantity = new { type = "integer", minimum = 1 }
+                quantity = new { type = "integer", minimum = 1, @default = 1 }
             },
-            required = new[] { "productId", "quantity" }
+            required = new[] { "productId" }
         }
     };
 
     private static RagToolDefinition RemoveFromCart() => new()
     {
         Name = "remove_from_cart",
-        Description = "Remove product from cart",
+        Description = "Retirer produit du panier.",
         ParametersSchema = new
         {
             type = "object",
@@ -111,7 +130,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Increase() => new()
     {
         Name = "increase",
-        Description = "Increase quantity by 1",
+        Description = "Augmenter quantité de 1.",
         ParametersSchema = new
         {
             type = "object",
@@ -126,7 +145,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Decrease() => new()
     {
         Name = "decrease",
-        Description = "Decrease quantity by 1",
+        Description = "Diminuer quantité de 1.",
         ParametersSchema = new
         {
             type = "object",
@@ -138,4 +157,38 @@ public static class RagToolCatalog
         }
     };
 
+    // NEW: Smart cart analysis tool
+    private static RagToolDefinition AnalyzeCart() => new()
+    {
+        Name = "analyze_cart",
+        Description = "Analyse intelligente du panier: total, nombre d'articles, alertes stock, suggestions.",
+        ParametersSchema = new
+        {
+            type = "object",
+            properties = new { },
+            required = Array.Empty<string>()
+        }
+    };
+
+    // NEW: Price comparison tool
+    private static RagToolDefinition CompareProducts() => new()
+    {
+        Name = "compare_products",
+        Description = "Comparer 2-3 produits par prix et caractéristiques.",
+        ParametersSchema = new
+        {
+            type = "object",
+            properties = new
+            {
+                productIds = new
+                {
+                    type = "array",
+                    items = new { type = "integer" },
+                    minItems = 2,
+                    maxItems = 3
+                }
+            },
+            required = new[] { "productIds" }
+        }
+    };
 }

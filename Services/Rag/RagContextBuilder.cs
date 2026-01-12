@@ -19,11 +19,19 @@ public sealed class RagContextBuilder
     {
         var cart = await _cartService.GetCartAsync();
 
-        // Minimal context - only send IDs and quantities
+        // Include essential fields for display
         return new
         {
-            items = cart.Select(i => new { id = i.ProductId, qty = i.Quantity }).ToList(),
-            count = cart.Sum(i => i.Quantity)
+            items = cart.Select(i => new
+            {
+                id = i.ProductId,
+                productName = i.ProductName,
+                qty = i.Quantity,
+                price = i.Price,
+                total = i.Total
+            }).ToList(),
+            count = cart.Sum(i => i.Quantity),
+            totalPrice = cart.Sum(i => i.Total)
         };
     }
 }

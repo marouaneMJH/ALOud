@@ -45,11 +45,15 @@ public sealed class GroqLLMClient : BaseLLMClient
         // Add conversation history if present
         if (request.ConversationHistory != null)
         {
+            string? lastToolCallId = null;
+
             foreach (var turn in request.ConversationHistory)
             {
                 if (turn.Role == "assistant" && turn.FunctionCallName != null)
                 {
-                    // Assistant called a function
+                    // Generate consistent tool_call_id based on function name and args hash
+                    lastToolCallId = $"call_{turn.FunctionCallName}_{turn.FunctionCallArgs?.GetHashCode() ?? 0:X}";
+
                     messages.Add(new
                     {
                         role = "assistant",
@@ -58,7 +62,7 @@ public sealed class GroqLLMClient : BaseLLMClient
                         {
                             new
                             {
-                                id = $"call_{Guid.NewGuid():N}",
+                                id = lastToolCallId,
                                 type = "function",
                                 function = new
                                 {
@@ -69,15 +73,16 @@ public sealed class GroqLLMClient : BaseLLMClient
                         }
                     });
                 }
-                else if (turn.Role == "tool")
+                else if (turn.Role == "tool" && lastToolCallId != null)
                 {
-                    // Function response
+                    // Use the SAME tool_call_id from the preceding assistant message
                     messages.Add(new
                     {
                         role = "tool",
-                        tool_call_id = $"call_{Guid.NewGuid():N}",
+                        tool_call_id = lastToolCallId,
                         content = JsonSerializer.Serialize(turn.FunctionResponse)
                     });
+                    lastToolCallId = null; // Reset for next pair
                 }
             }
         }
