@@ -129,6 +129,7 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<LLMConfigService>();
 
 // Cart (Redis + cookies)
 builder.Services.AddScoped<CartService>();
@@ -144,7 +145,7 @@ builder.Services.AddScoped<RagCartService>();
 // LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)
 // =====================================================
 builder.Services.AddHttpClient("LLMClient");
-builder.Services.AddSingleton<LLMClientFactory>();
+builder.Services.AddScoped<LLMClientFactory>();
 builder.Services.AddScoped<IRagLLMClient>(sp =>
 {
     var factory = sp.GetRequiredService<LLMClientFactory>();

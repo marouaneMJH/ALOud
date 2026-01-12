@@ -42,10 +42,15 @@ public abstract class BaseLLMClient : IRagLLMClient
         // Handle common error cases
         await HandleErrorResponse(response);
 
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var doc = await JsonDocument.ParseAsync(stream);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        _logger.LogDebug($"Response body: {responseBody}");
 
-        return ParseResponse(doc);
+        using var doc = JsonDocument.Parse(responseBody);
+        var result = ParseResponse(doc);
+
+        _logger.LogInformation($"Parsed result - IsToolCall: {result.IsToolCall}, ToolName: {result.ToolCall?.Name}, HasAnswer: {!string.IsNullOrEmpty(result.FinalAnswer)}");
+
+        return result;
     }
 
     /// <summary>

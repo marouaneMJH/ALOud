@@ -4,7 +4,7 @@ namespace ALOud.Services.Rag;
 
 public sealed class RagCartService
 {
-    private const int MaxToolCalls = 6;
+    private const int MaxToolCalls = 8;
 
     private readonly RagContextBuilder _contextBuilder;
     private readonly RagToolDispatcher _dispatcher;
@@ -36,6 +36,9 @@ public sealed class RagCartService
                 ConversationHistory = conversationHistory,
                 Tools = RagToolCatalog.All
             });
+
+            // Log the step
+            Console.WriteLine($"[RAG Step {step + 1}/{MaxToolCalls}] IsToolCall: {llmResult.IsToolCall}, Tool: {llmResult.ToolCall?.Name}");
 
             // Final answer → stop
             if (!llmResult.IsToolCall)

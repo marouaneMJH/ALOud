@@ -13,17 +13,20 @@ namespace ALOud.Controllers
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IDashboardService _dashboardService;
+        private readonly LLMConfigService _llmConfigService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
             IProductService productService,
             ICategoryService categoryService,
             IDashboardService dashboardService,
+            LLMConfigService llmConfigService,
             ILogger<AdminController> logger)
         {
             _productService = productService;
             _categoryService = categoryService;
             _dashboardService = dashboardService;
+            _llmConfigService = llmConfigService;
             _logger = logger;
         }
 
@@ -180,6 +183,40 @@ namespace ALOud.Controllers
             }
 
             return RedirectToAction(nameof(Categories));
+        }
+
+        // =====================================================
+        // LLM CONFIGURATION
+        // =====================================================
+
+        public IActionResult LLMConfig()
+        {
+            var providers = _llmConfigService.GetAvailableProviders();
+            return View(providers);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SwitchProvider(string providerId)
+        {
+            if (string.IsNullOrEmpty(providerId))
+            {
+                TempData["Error"] = "Provider ID is required";
+                return RedirectToAction(nameof(LLMConfig));
+            }
+
+            var success = await _llmConfigService.SwitchProvider(providerId);
+
+            if (success)
+            {
+                TempData["Success"] = $"Successfully switched to {providerId}. The change will take effect on the next request.";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to switch provider. Please check the logs.";
+            }
+
+            return RedirectToAction(nameof(LLMConfig));
         }
     }
 }

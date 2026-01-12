@@ -120,14 +120,21 @@ public sealed class GroqLLMClient : BaseLLMClient
 
     protected override RagLLMResult ParseResponse(JsonDocument doc)
     {
-        var choices = doc.RootElement.GetProperty("choices");
+        if (!doc.RootElement.TryGetProperty("choices", out var choices))
+        {
+            throw new InvalidOperationException($"No 'choices' property in Groq response. Response: {doc.RootElement.ToString()}");
+        }
+
         if (choices.GetArrayLength() == 0)
         {
             throw new InvalidOperationException("No choices returned from Groq API");
         }
 
         var choice = choices[0];
-        var message = choice.GetProperty("message");
+        if (!choice.TryGetProperty("message", out var message))
+        {
+            throw new InvalidOperationException($"No 'message' property in choice. Choice: {choice.ToString()}");
+        }
 
         // Check if it's a tool call
         if (message.TryGetProperty("tool_calls", out var toolCalls) && toolCalls.GetArrayLength() > 0)
