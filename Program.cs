@@ -4,6 +4,7 @@ using ALOud.Data;
 using ALOud.Services;
 using ALOud.Services.Security;
 using ALOud.Services.Rag;
+using ALOud.Services.Rag.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -140,9 +141,15 @@ builder.Services.AddScoped<RagToolDispatcher>();
 builder.Services.AddScoped<RagCartService>();
 
 // =====================================================
-// LLM CLIENT (GOOGLE GEMINI)
+// LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)
 // =====================================================
-builder.Services.AddHttpClient<IRagLLMClient, GeminiLLMClient>();
+builder.Services.AddHttpClient("LLMClient");
+builder.Services.AddSingleton<LLMClientFactory>();
+builder.Services.AddScoped<IRagLLMClient>(sp =>
+{
+    var factory = sp.GetRequiredService<LLMClientFactory>();
+    return factory.CreateClient();
+});
 
 // =====================================================
 // DATA ACCESS (EF CORE – SQL SERVER)

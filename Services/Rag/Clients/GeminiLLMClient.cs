@@ -1,78 +1,27 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using ALOud.Services.Rag.Models;
 
 namespace ALOud.Services.Rag;
 
-public sealed class GeminiLLMClient : IRagLLMClient
+public sealed class GeminiLLMClient : BaseLLMClient
 {
-    private readonly HttpClient _http;
-    private readonly string _apiKey;
-    private readonly ILogger<GeminiLLMClient> _logger;
+    private readonly GeminiSettings _settings;
 
-    public GeminiLLMClient(HttpClient http, ILogger<GeminiLLMClient> logger)
+    public GeminiLLMClient(HttpClient http, ILogger<GeminiLLMClient> logger, GeminiSettings settings)
+        : base(http, logger, settings.ApiKeyEnvVar)
     {
-        _http = http;
-        _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
-            ?? throw new InvalidOperationException("GEMINI_API_KEY missing");
-        _logger = logger;
+        _settings = settings;
     }
 
-    public async Task<RagLLMResult> ExecuteAsync(RagLLMRequest request)
+    protected override string GetProviderName() => "Gemini";
+
+    protected override string BuildRequestUrl()
     {
-        var payload = BuildPayload(request);
-        var payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
-
-        _logger.LogInformation($"Sending request to Gemini. Payload size: {payloadJson.Length} bytes");
-        _logger.LogDebug($"Payload: {payloadJson}");
-
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_apiKey}";
-
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-
-        httpRequest.Content = new StringContent(
-            payloadJson,
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        var response = await _http.SendAsync(httpRequest);
-
-        _logger.LogInformation($"Gemini API response status: {(int)response.StatusCode} {response.StatusCode}");
-
-        // Handle rate limiting
-        if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogWarning($"Gemini API rate limit exceeded. Response: {errorBody}");
-            throw new InvalidOperationException(
-                "Le service d'IA a atteint sa limite de requêtes. Veuillez réessayer dans quelques secondes.");
-        }
-
-        // Handle forbidden
-        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Gemini API returned 403 Forbidden. Response: {errorBody}");
-            throw new InvalidOperationException(
-                "Accès refusé à l'API Gemini. Vérifiez votre clé API.");
-        }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Gemini API error: {errorBody}");
-            response.EnsureSuccessStatusCode();
-        }
-
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var doc = await JsonDocument.ParseAsync(stream);
-
-        return ParseResponse(doc);
+        return $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_apiKey}";
     }
 
-    private static object BuildPayload(RagLLMRequest request)
+    protected override object BuildPayload(RagLLMRequest request)
     {
         var systemInstruction = new
         {
@@ -158,24 +107,7 @@ public sealed class GeminiLLMClient : IRagLLMClient
         return payload;
     }
 
-    private static string BuildUserContent(RagLLMRequest request)
-    {
-        if (request.Context == null)
-            return request.UserMessage;
-
-        return $"""
-        USER MESSAGE:
-        {request.UserMessage}
-
-        CURRENT CART CONTEXT (JSON):
-        {JsonSerializer.Serialize(request.Context, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        })}
-        """;
-    }
-
-    private static RagLLMResult ParseResponse(JsonDocument doc)
+    protected override RagLLMResult ParseResponse(JsonDocument doc)
     {
         var candidates = doc.RootElement.GetProperty("candidates");
         if (candidates.GetArrayLength() == 0)
