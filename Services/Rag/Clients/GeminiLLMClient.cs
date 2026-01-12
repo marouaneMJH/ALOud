@@ -43,7 +43,7 @@ public sealed class GeminiLLMClient : BaseLLMClient
         {
             foreach (var turn in request.ConversationHistory)
             {
-                if (turn.Role == "model" && turn.FunctionCallName != null)
+                if (turn.Role == "assistant" && turn.FunctionCallName != null)
                 {
                     // Model called a function
                     contentsList.Add(new
@@ -52,7 +52,7 @@ public sealed class GeminiLLMClient : BaseLLMClient
                         parts = new[] { new { functionCall = new { name = turn.FunctionCallName, args = turn.FunctionCallArgs } } }
                     });
                 }
-                else if (turn.Role == "function")
+                else if (turn.Role == "tool")
                 {
                     // Function response
                     contentsList.Add(new

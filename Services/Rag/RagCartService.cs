@@ -56,7 +56,7 @@ public sealed class RagCartService
             // Add model's function call to history
             conversationHistory.Add(new ConversationTurn
             {
-                Role = "model",
+                Role = "assistant",
                 FunctionCallName = toolCall.Name,
                 FunctionCallArgs = toolCall.Arguments
             });
@@ -68,7 +68,7 @@ public sealed class RagCartService
             // Add function response to history
             conversationHistory.Add(new ConversationTurn
             {
-                Role = "function",
+                Role = "tool",
                 FunctionName = toolCall.Name,
                 FunctionResponse = toolResult
             });
