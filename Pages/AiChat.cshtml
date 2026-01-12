@@ -6,18 +6,10 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-10 col-xl-8">
+        @* <div class="col-12 col-lg-10 col-xl-8"> *@
             
-            <!-- Header -->
-            <div class="text-center mb-5">
-                <h1 class="display-5 mb-3" style="font-family: var(--font-heading); color: var(--color-primary);">
-                    Assistant Shopping IA
-                </h1>
-                <p class="text-muted">Discutez avec notre assistant pour gérer votre panier intelligemment</p>
-            </div>
 
             <!-- Chat Container -->
-            <div class="chat-container">
                 <!-- Messages Area -->
                 <div id="chatMessages" class="chat-messages">
                     <!-- Welcome Message -->
@@ -28,17 +20,13 @@
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
                         </div>
-                        <div class="message-content">
-                            <p class="m-0">Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :</p>
-                            <p class=" m-0">
+                        <div class="message-content"><span>Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :</span>
                                 <br>• Rechercher et recommander des parfums selon vos préférences</>
                                 <br>• Vous montrer les détails des produits avec images
                                 <br>• Ajouter des produits à votre panier
                                 <br>• Consulter et gérer votre panier
                                 <br>• Modifier les quantités ou retirer des articles
-                            </p>
-                            <p class=" mb-0"><small class="text-muted">Exemples:</small></p>
-                            <p class="mb-0"><small class="text-muted">• "Montre-moi des parfums frais pour l'été"<br>• "J'aimerais quelque chose de boisé et épicé"<br>• "Parle-moi du parfum Dior"<br>• "Ajoute 2 parfums vanille à mon panier"</small></p>
+                            <br><span class=" mb-0"><small class="text-muted">Exemples:</small></span><span class="mb-0"><small class="text-muted">• "Montre-moi des parfums frais pour l'été"<br>• "J'aimerais quelque chose de boisé et épicé"<br>• "Parle-moi du parfum Dior"<br>• "Ajoute 2 parfums vanille à mon panier"</small></span>
                         </div>
                     </div>
                 </div>
@@ -65,9 +53,8 @@
                         <small class="text-muted">Appuyez sur Entrée pour envoyer</small>
                     </div>
                 </div>
-            </div>
 
-        </div>
+        @* </div> *@
     </div>
 </div>
 
@@ -81,22 +68,6 @@
     // Auto-scroll to bottom
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Parse message for images and format
-    function formatMessage(text) {
-        // Check for image URLs in the format [image:URL]
-        const imageRegex = /\[image:(https?:\/\/[^\]]+)\]/g;
-        let formattedText = text;
-        const images = [];
-        
-        let match;
-        while ((match = imageRegex.exec(text)) !== null) {
-            images.push(match[1]);
-            formattedText = formattedText.replace(match[0], '');
-        }
-        
-        return { text: formattedText, images };
     }
 
     // Add message to chat
@@ -119,33 +90,114 @@
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
         
-        // Parse for images
-        const { text: cleanText, images } = formatMessage(text);
-        
-        // Add text
-        const textDiv = document.createElement('div');
-        textDiv.style.whiteSpace = 'pre-wrap';
-        textDiv.textContent = cleanText;
-        contentDiv.appendChild(textDiv);
-        
-        // Add images if any
-        images.forEach(imgUrl => {
-            const imgContainer = document.createElement('div');
-            imgContainer.className = 'product-image-container';
-            const img = document.createElement('img');
-            img.src = imgUrl;
-            img.alt = 'Product';
-            img.className = 'product-image';
-            img.onerror = function() {
-                this.style.display = 'none';
-            };
-            imgContainer.appendChild(img);
-            contentDiv.appendChild(imgContainer);
-        });
+        // Render content with inline images
+        contentDiv.innerHTML = formatContentWithInlineImages(text);
         
         messageDiv.appendChild(contentDiv);
         chatMessages.appendChild(messageDiv);
         scrollToBottom();
+    }
+
+    // Format content with inline images at exact positions
+    function formatContentWithInlineImages(text) {
+        // First, extract and protect image placeholders
+        const imagePlaceholders = [];
+        let formatted = text.replace(/\[image:(https?:\/\/[^\]]+)\]/g, (match, url) => {
+            const placeholder = `___IMAGE_${imagePlaceholders.length}___`;
+            imagePlaceholders.push(`<div class="product-image-container"><img src="${url}" alt="Product" class="product-image" onerror="this.parentElement.style.display='none'"></div>`);
+            return placeholder;
+        });
+
+        // Apply markdown formatting (this will escape HTML but not our placeholders)
+        formatted = formatTextWithMarkdown(formatted);
+
+        // Restore image HTML (placeholders are already escaped-safe)
+        imagePlaceholders.forEach((imgHtml, index) => {
+            formatted = formatted.replace(`___IMAGE_${index}___`, imgHtml);
+        });
+
+        return formatted;
+    }
+
+    // Format text with markdown-like syntax
+    function formatTextWithMarkdown(text) {
+        // Escape HTML first
+        const escapeHtml = (unsafe) => {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        let formatted = escapeHtml(text);
+
+        // Bold text: **text**
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Italic text: *text* (but not **)
+        formatted = formatted.replace(/(?<!\*)\*(?!\*)([^\*]+?)\*(?!\*)/g, '<em>$1</em>');
+
+        // Convert line breaks and handle lists
+        const lines = formatted.split('\n');
+        let html = '';
+        let inOrderedList = false;
+        let inUnorderedList = false;
+
+        lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+
+            // Numbered list: 1., 2., 3., etc.
+            if (/^\d+\.\s+/.test(trimmedLine)) {
+                if (!inOrderedList) {
+                    if (inUnorderedList) {
+                        html += '</ul>';
+                        inUnorderedList = false;
+                    }
+                    html += '<ol>';
+                    inOrderedList = true;
+                }
+                const content = trimmedLine.replace(/^\d+\.\s+/, '');
+                html += `<li>${content}</li>`;
+            }
+            // Bullet list: •, -, *
+            else if (/^[•\-\*]\s+/.test(trimmedLine)) {
+                if (!inUnorderedList) {
+                    if (inOrderedList) {
+                        html += '</ol>';
+                        inOrderedList = false;
+                    }
+                    html += '<ul>';
+                    inUnorderedList = true;
+                }
+                const content = trimmedLine.replace(/^[•\-\*]\s+/, '');
+                html += `<li>${content}</li>`;
+            }
+            // Regular line
+            else {
+                if (inOrderedList) {
+                    html += '</ol>';
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    html += '</ul>';
+                    inUnorderedList = false;
+                }
+                
+                if (trimmedLine === '') {
+                    html += '<br>';
+                } else {
+                    html += line + (index < lines.length - 1 ? '<br>' : '');
+                }
+            }
+        });
+
+        // Close any open lists
+        if (inOrderedList) html += '</ol>';
+        if (inUnorderedList) html += '</ul>';
+
+        return html;
     }
 
     // Add loading indicator
@@ -197,7 +249,7 @@
         showLoading();
 
         try {
-            const response = await fetch('/api/ai/cart', {
+            const response = await fetch('/api/ai/cart/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -323,7 +375,7 @@
         max-width: 75%;
         padding: 1rem 1.25rem;
         border-radius: 12px;
-        line-height: 1.6;
+        line-height: 1.8;
         white-space: pre-wrap;
         word-wrap: break-word;
     }
