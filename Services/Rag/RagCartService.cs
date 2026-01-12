@@ -5,7 +5,7 @@ namespace ALOud.Services.Rag;
 
 public sealed class RagCartService
 {
-    private const int MaxToolCalls = 6; // Reduced from 8
+    private const int MaxToolCalls = 10;
 
     private readonly RagContextBuilder _contextBuilder;
     private readonly RagToolDispatcher _dispatcher;
@@ -31,12 +31,12 @@ public sealed class RagCartService
         {
             return new RagResponse
             {
-                Answer = "Bonjour! 👋 Je suis l'assistant ALOud. Je peux vous aider à:\n" +
-                         "- 🔍 Chercher des parfums\n" +
-                         "- 💡 Recommander selon vos goûts\n" +
-                         "- 🛒 Gérer votre panier\n\n" +
+                Answer = "Bonjour! Je suis l'assistant ALOud. Je peux vous aider à:\n" +
+                         "- Chercher des parfums\n" +
+                         "- Recommander selon vos goûts\n" +
+                         "- Gérer votre panier\n\n" +
                          "Que puis-je faire pour vous?",
-                CartSnapshot = await _contextBuilder.BuildAsync()
+                CartSnapshot = null
             };
         }
 
@@ -205,9 +205,9 @@ public sealed class RagCartService
 
             _ =>
                 "Je suis votre assistant parfumerie ALOud. Je peux:\n" +
-                "🔍 Chercher des parfums\n" +
-                "💡 Faire des recommandations\n" +
-                "🛒 Gérer votre panier\n\n" +
+                "- Chercher des parfums\n" +
+                "- Faire des recommandations\n" +
+                "- Gérer votre panier\n\n" +
                 "Comment puis-je vous aider?"
         };
     }

@@ -267,19 +267,8 @@
             // Add bot response
             addMessage(data.answer, false);
 
-            // Show cart snapshot if available
-            if (data.cartSnapshot && data.cartSnapshot.items && data.cartSnapshot.items.length > 0) {
-                const cart = data.cartSnapshot;
-                let cartSummary = '🛒 Votre panier:\n';
-                cart.items.forEach(item => {
-                    const price = item.price ?? 0;
-                    const qty = item.qty ?? item.quantity ?? 1;
-                    cartSummary += `• ${item.productName} x${qty} - ${price.toFixed(2)} MAD\n`;
-                });
-                const total = cart.totalPrice ?? 0;
-                cartSummary += `\nTotal: ${total.toFixed(2)} MAD`;
-                addMessage(cartSummary, false);
-            }
+            // Cart snapshot is now included in the answer by the LLM when relevant
+            // No automatic cart display - only shown when user asks about cart
 
         } catch (error) {
             hideLoading();
