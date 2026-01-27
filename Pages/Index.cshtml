@@ -43,7 +43,7 @@
                        asp-route-gender="@Model.SelectedGender">
                         Toutes
                     </a>
-                    @foreach (var brand in Model.Brands.Take(8))
+                    @foreach (var brand in Model.Brands.Take(10))
                     {
                         <a class="filter-pill @(Model.SelectedBrandId == brand.Id ? "active" : "")" 
                            asp-page="/Index" 
@@ -68,7 +68,7 @@
                        asp-route-gender="@Model.SelectedGender">
                         Toutes
                     </a>
-                    @foreach (var family in Model.Families.Take(6))
+                    @foreach (var family in Model.Families.Take(10))
                     {
                         <a class="filter-pill @(Model.SelectedFamilyId == family.Id ? "active" : "")" 
                            asp-page="/Index" 

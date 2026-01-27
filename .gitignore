@@ -367,3 +367,6 @@ FodyWeavers.xsd
 .idea
 
 .config
+
+
+raw-data/scrapers/src/*.ts
