@@ -21,15 +21,21 @@ namespace Pages.Cart
             Items = _cartService.GetCart();
         }
 
-        public IActionResult OnPostIncrease(int productId)
+        public IActionResult OnPostIncrease(Guid productId)
         {
             _cartService.Increase(productId);
             return RedirectToPage();
         }
 
-        public IActionResult OnPostDecrease(int productId)
+        public IActionResult OnPostDecrease(Guid productId)
         {
             _cartService.Decrease(productId);
+            return RedirectToPage();
+        }
+
+        public IActionResult OnPostRemove(Guid productId)
+        {
+            _cartService.Remove(productId);
             return RedirectToPage();
         }
     }

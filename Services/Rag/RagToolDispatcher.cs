@@ -198,9 +198,10 @@ public sealed class RagToolDispatcher
         {
             await _cartService.AddToCartAsync(new ViewModels.CartItemVM
             {
-                ProductId = (int)(perfumeId.GetHashCode() & 0x7FFFFFFF), // Convert Guid to int for cart
-                ProductName = $"{perfume.Brand.Name} - {perfume.Name}",
-                Price = 0, // Price to be determined
+                ProductId = perfumeId,
+                ProductName = perfume.Name,
+                BrandName = perfume.Brand.Name,
+                Price = perfume.Price,
                 Quantity = 1,
                 ImageUrl = perfume.ImageUrl ?? ""
             });
@@ -215,21 +216,30 @@ public sealed class RagToolDispatcher
 
     private async Task<object> HandleRemoveAsync(Dictionary<string, object> args)
     {
-        var productId = GetInt32(args["productId"]);
+        var productIdStr = args["productId"]?.ToString();
+        if (!Guid.TryParse(productIdStr, out var productId))
+            return new { Ok = false, Error = "Invalid productId" };
+        
         await _cartService.RemoveAsync(productId);
         return new { Ok = true, Removed = productId };
     }
 
     private async Task<object> HandleIncreaseAsync(Dictionary<string, object> args)
     {
-        var productId = GetInt32(args["productId"]);
+        var productIdStr = args["productId"]?.ToString();
+        if (!Guid.TryParse(productIdStr, out var productId))
+            return new { Ok = false, Error = "Invalid productId" };
+        
         await _cartService.IncreaseAsync(productId);
         return new { Ok = true };
     }
 
     private async Task<object> HandleDecreaseAsync(Dictionary<string, object> args)
     {
-        var productId = GetInt32(args["productId"]);
+        var productIdStr = args["productId"]?.ToString();
+        if (!Guid.TryParse(productIdStr, out var productId))
+            return new { Ok = false, Error = "Invalid productId" };
+        
         await _cartService.DecreaseAsync(productId);
         return new { Ok = true };
     }

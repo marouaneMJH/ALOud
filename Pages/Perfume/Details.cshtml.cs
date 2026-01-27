@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ALOud.Data;
 using ALOud.Services;
 using ALOud.DTOs.Perfumes;
+using ViewModels;
 
 namespace Pages.Perfume
 {
@@ -11,13 +12,15 @@ namespace Pages.Perfume
     {
         private readonly ALOudDbContext _context;
         private readonly ICacheService _cache;
+        private readonly CartService _cartService;
 
         public PerfumeDetailsDto Perfume { get; set; } = new();
 
-        public DetailsModel(ALOudDbContext context, ICacheService cache)
+        public DetailsModel(ALOudDbContext context, ICacheService cache, CartService cartService)
         {
             _context = context;
             _cache = cache;
+            _cartService = cartService;
         }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
@@ -55,6 +58,9 @@ namespace Pages.Perfume
                 Sillage = perfume.Sillage,
                 GenderProfile = perfume.GenderProfile,
                 PriceRange = perfume.PriceRange,
+                Price = perfume.Price,
+                StockQuantity = perfume.StockQuantity,
+                Description = perfume.Description,
                 ImageUrl = perfume.ImageUrl,
                 CreatedAt = perfume.CreatedAt,
                 Families = perfume.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
@@ -79,6 +85,35 @@ namespace Pages.Perfume
             await _cache.SetAsync(key, Perfume, TimeSpan.FromMinutes(60));
 
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostAddToCartAsync(Guid id, int quantity = 1)
+        {
+            var perfume = await _context.Perfumes
+                .Include(p => p.Brand)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (perfume == null)
+                return RedirectToPage("/Index");
+
+            if (perfume.StockQuantity < quantity)
+            {
+                TempData["Error"] = "Stock insuffisant";
+                return RedirectToPage(new { id });
+            }
+
+            await _cartService.AddToCartAsync(new CartItemVM
+            {
+                ProductId = perfume.Id,
+                ProductName = perfume.Name,
+                BrandName = perfume.Brand.Name,
+                Price = perfume.Price,
+                Quantity = quantity,
+                ImageUrl = perfume.ImageUrl ?? ""
+            });
+
+            TempData["Success"] = $"{perfume.Name} ajouté au panier";
+            return RedirectToPage(new { id });
         }
     }
 }

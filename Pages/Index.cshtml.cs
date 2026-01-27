@@ -13,11 +13,13 @@ namespace Pages
     {
         private readonly ALOudDbContext _context;
         private readonly ICacheService _cache;
+        private readonly CartService _cartService;
 
-        public IndexModel(ALOudDbContext context, ICacheService cache)
+        public IndexModel(ALOudDbContext context, ICacheService cache, CartService cartService)
         {
             _context = context;
             _cache = cache;
+            _cartService = cartService;
         }
 
         public List<PerfumeDto> Perfumes { get; set; } = new();
@@ -118,6 +120,35 @@ namespace Pages
 
             // Cache for 5 minutes
             await _cache.SetAsync(key, (Perfumes, TotalCount), TimeSpan.FromMinutes(5));
+        }
+
+        public async Task<IActionResult> OnPostAddToCartAsync(Guid id)
+        {
+            var perfume = await _context.Perfumes
+                .Include(p => p.Brand)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (perfume == null)
+                return RedirectToPage();
+
+            if (perfume.StockQuantity < 1)
+            {
+                TempData["Error"] = "Stock insuffisant";
+                return RedirectToPage();
+            }
+
+            await _cartService.AddToCartAsync(new CartItemVM
+            {
+                ProductId = perfume.Id,
+                ProductName = perfume.Name,
+                BrandName = perfume.Brand.Name,
+                Price = perfume.Price,
+                Quantity = 1,
+                ImageUrl = perfume.ImageUrl ?? ""
+            });
+
+            TempData["Success"] = $"{perfume.Name} ajouté au panier";
+            return RedirectToPage();
         }
     }
 }

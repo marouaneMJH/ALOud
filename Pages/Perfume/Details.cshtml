@@ -303,6 +303,151 @@
         letter-spacing: 0.05em;
     }
 
+    /* Description */
+    .perfume-description {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--color-text-secondary);
+        padding: var(--spacing-lg) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Price and Stock Section */
+    .price-stock-section {
+        padding: var(--spacing-lg) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .price-large {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .stock-status {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .stock-status.in-stock {
+        color: #2e7d32;
+    }
+
+    .stock-status.low-stock {
+        color: #f57c00;
+    }
+
+    .stock-status.out-of-stock {
+        color: #c62828;
+    }
+
+    /* Add to Cart Section */
+    .add-to-cart-section {
+        padding: var(--spacing-lg) 0;
+    }
+
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .quantity-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--color-border);
+    }
+
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: var(--color-primary);
+        transition: all var(--transition-fast);
+    }
+
+    .quantity-btn:hover {
+        background: var(--color-background);
+    }
+
+    .quantity-input {
+        width: 60px;
+        height: 40px;
+        text-align: center;
+        border: none;
+        border-left: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .quantity-input:focus {
+        outline: none;
+    }
+
+    .add-to-cart-btn {
+        display: block;
+        width: 100%;
+        padding: var(--spacing-md) var(--spacing-xl);
+        background: var(--color-accent);
+        color: var(--color-primary);
+        border: 2px solid var(--color-accent);
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+
+    .add-to-cart-btn:hover {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    .add-to-cart-btn:disabled {
+        background: var(--color-border);
+        border-color: var(--color-border);
+        color: var(--color-text-secondary);
+        cursor: not-allowed;
+    }
+
+    .cart-message {
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        font-size: 0.9rem;
+        border-radius: 4px;
+    }
+
+    .cart-message.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+    }
+
+    .cart-message.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+    }
+
     @@media (max-width: 992px) {
         .perfume-detail-grid {
             grid-template-columns: 1fr;
@@ -367,14 +512,70 @@
                     }
                 </div>
 
-                <!-- Price -->
-                @if (!string.IsNullOrEmpty(Model.Perfume.PriceRange))
+                <!-- Description -->
+                @if (!string.IsNullOrEmpty(Model.Perfume.Description))
                 {
-                    <div class="perfume-price-section">
-                        <div class="perfume-price-label">Gamme de Prix</div>
-                        <div class="perfume-price">@Model.Perfume.PriceRange</div>
+                    <div class="perfume-description">
+                        @Model.Perfume.Description
                     </div>
                 }
+
+                <!-- Price and Stock -->
+                <div class="price-stock-section">
+                    <div class="perfume-price-label">Prix</div>
+                    <div class="price-large">@Model.Perfume.Price.ToString("N0") MAD</div>
+                    @if (!string.IsNullOrEmpty(Model.Perfume.PriceRange))
+                    {
+                        <div style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);">
+                            Gamme: @Model.Perfume.PriceRange
+                        </div>
+                    }
+                    @{
+                        var stockClass = Model.Perfume.StockQuantity > 10 ? "in-stock" 
+                            : Model.Perfume.StockQuantity > 0 ? "low-stock" 
+                            : "out-of-stock";
+                        var stockText = Model.Perfume.StockQuantity > 10 
+                            ? $"En stock ({Model.Perfume.StockQuantity} disponibles)"
+                            : Model.Perfume.StockQuantity > 0 
+                                ? $"Stock limité ({Model.Perfume.StockQuantity} restants)"
+                                : "Rupture de stock";
+                    }
+                    <div class="stock-status @stockClass">
+                        @stockText
+                    </div>
+                </div>
+
+                <!-- Add to Cart -->
+                <div class="add-to-cart-section">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="cart-message success">
+                            ✓ @TempData["Success"]
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="cart-message error">
+                            ✗ @TempData["Error"]
+                        </div>
+                    }
+                    
+                    <form method="post" asp-page-handler="AddToCart" asp-route-id="@Model.Perfume.Id">
+                        <div class="quantity-selector">
+                            <span class="quantity-label">Quantité</span>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn" onclick="decreaseQuantity()">−</button>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="@Model.Perfume.StockQuantity" class="quantity-input" />
+                                <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                            </div>
+                        </div>
+                        <button type="submit" 
+                                class="add-to-cart-btn"
+                                @(Model.Perfume.StockQuantity <= 0 ? "disabled" : "")>
+                            @(Model.Perfume.StockQuantity > 0 ? "Ajouter au panier" : "Indisponible")
+                        </button>
+                    </form>
+                </div>
 
                 <!-- Characteristics -->
                 @if (!string.IsNullOrEmpty(Model.Perfume.Intensity) || 
@@ -548,3 +749,31 @@
         }
     </div>
 </section>
+
+<script>
+    const maxStock = @Model.Perfume.StockQuantity;
+    
+    function increaseQuantity() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value) || 1;
+        if (currentValue < maxStock) {
+            input.value = currentValue + 1;
+        }
+    }
+    
+    function decreaseQuantity() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value) || 1;
+        if (currentValue > 1) {
+            input.value = currentValue - 1;
+        }
+    }
+    
+    // Ensure quantity stays within bounds on manual input
+    document.getElementById('quantity')?.addEventListener('change', function() {
+        let value = parseInt(this.value) || 1;
+        if (value < 1) value = 1;
+        if (value > maxStock) value = maxStock;
+        this.value = value;
+    });
+</script>

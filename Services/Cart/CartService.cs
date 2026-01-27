@@ -55,7 +55,7 @@ namespace ALOud.Services
             var existing = cart.FirstOrDefault(p => p.ProductId == item.ProductId);
 
             if (existing != null)
-                existing.Quantity++;
+                existing.Quantity += item.Quantity;
             else
                 cart.Add(item);
 
@@ -69,7 +69,7 @@ namespace ALOud.Services
         }
         // Sync wrapper for AddToCartAsync.
 
-        public async Task RemoveAsync(int productId)
+        public async Task RemoveAsync(Guid productId)
         {
             var cart = await GetCartAsync();
             cart.RemoveAll(p => p.ProductId == productId);
@@ -77,13 +77,13 @@ namespace ALOud.Services
         }
         // Remove all entries for a product id from the cart (async).
 
-        public void Remove(int productId)
+        public void Remove(Guid productId)
         {
             RemoveAsync(productId).Wait();
         }
         // Sync wrapper for RemoveAsync.
 
-        public async Task IncreaseAsync(int productId)
+        public async Task IncreaseAsync(Guid productId)
         {
             var cart = await GetCartAsync();
             var item = cart.FirstOrDefault(p => p.ProductId == productId);
@@ -92,13 +92,13 @@ namespace ALOud.Services
         }
         // Increase quantity for a product in the cart (async).
 
-        public void Increase(int productId)
+        public void Increase(Guid productId)
         {
             IncreaseAsync(productId).Wait();
         }
         // Sync wrapper for IncreaseAsync.
 
-        public async Task DecreaseAsync(int productId)
+        public async Task DecreaseAsync(Guid productId)
         {
             var cart = await GetCartAsync();
             var item = cart.FirstOrDefault(p => p.ProductId == productId);
@@ -112,7 +112,7 @@ namespace ALOud.Services
         }
         // Decrease quantity for a product; remove if quantity <= 0 (async).
 
-        public void Decrease(int productId)
+        public void Decrease(Guid productId)
         {
             DecreaseAsync(productId).Wait();
         }
