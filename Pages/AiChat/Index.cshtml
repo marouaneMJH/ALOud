@@ -1,5 +1,5 @@
 @page
-@model ALOud.Pages.AiChatModel
+@model ALOud.Pages.AiChat.AiChatModel
 @{
     ViewData["Title"] = "Assistant Shopping";
 }
@@ -13,22 +13,6 @@
                 <!-- Messages Area -->
                 <div id="chatMessages" class="chat-messages">
                     <!-- Welcome Message -->
-                    <div class="message bot-message">
-                        <div class="message-avatar">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </div>
-                        <div class="message-content"><span>Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :</span>
-                                <br>• Rechercher et recommander des parfums selon vos préférences</>
-                                <br>• Vous montrer les détails des produits avec images
-                                <br>• Ajouter des produits à votre panier
-                                <br>• Consulter et gérer votre panier
-                                <br>• Modifier les quantités ou retirer des articles
-                            <br><span class=" mb-0"><small class="text-muted">Exemples:</small></span><span class="mb-0"><small class="text-muted">• "Montre-moi des parfums frais pour l'été"<br>• "J'aimerais quelque chose de boisé et épicé"<br>• "Parle-moi du parfum Dior"<br>• "Ajoute 2 parfums vanille à mon panier"</small></span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Input Area -->
@@ -281,6 +265,9 @@
         }
     });
 
+
+
+    addMessage('Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :\n- Rechercher et recommander des parfums selon vos préférences\n- Vous montrer les détails des produits avec images\n- Ajouter des produits à votre panier\n- Consulter et gérer votre panier\n- Modifier les quantités ou retirer des articles\n\nExemples:\n• "Montre-moi des parfums frais pour l\'été"\n• "J\'aimerais quelque chose de boisé et épicé"\n• "Parle-moi du parfum Dior"\n• "Ajoute 2 parfums vanille à mon panier"', false);
     // Focus input on load
     chatInput.focus();
 </script>
@@ -375,6 +362,11 @@
     .message-content ul {
         padding-left: 1.25rem;
         margin: 0.5rem 0;
+    }
+
+    .message-content > p {
+        margin: 0;
+        padding:0;
     }
 
     .message-content li {
