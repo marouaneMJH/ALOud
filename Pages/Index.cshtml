@@ -6,13 +6,6 @@
     var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
 }
 
-<!-- Hero Section -->
-<section class="hero-section">
-    <div class="container">
-        <h1 class="hero-title">Notre Collection</h1>
-        <p class="hero-subtitle">Découvrez l'art de la parfumerie authentique</p>
-    </div>
-</section>
 
 <!-- Search Section -->
 <section style="margin-bottom: var(--spacing-lg); margin-top: var(--spacing-2xl);">
@@ -102,7 +95,7 @@
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Homme" ? "active" : "")" 
                        asp-page="/Index" 
-                       asp-route-gender="Homme"
+                       asp-route-gender="Male"
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
@@ -110,7 +103,7 @@
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Femme" ? "active" : "")" 
                        asp-page="/Index" 
-                       asp-route-gender="Femme"
+                       asp-route-gender="Female"
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
@@ -118,7 +111,7 @@
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Unisexe" ? "active" : "")" 
                        asp-page="/Index" 
-                       asp-route-gender="Unisexe"
+                       asp-route-gender="Unisex"
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
