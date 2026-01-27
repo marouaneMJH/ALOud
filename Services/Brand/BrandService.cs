@@ -116,7 +116,7 @@ namespace ALOud.Services.Brand
         public async Task<bool> BrandExistsAsync(string name, Guid? excludeId = null)
         {
             var query = _context.Brands.Where(b => b.Name == name);
-            
+
             if (excludeId.HasValue)
             {
                 query = query.Where(b => b.Id != excludeId.Value);

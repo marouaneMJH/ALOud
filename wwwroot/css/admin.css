@@ -33,7 +33,7 @@
 }
 
 .admin-title {
-    font-family: var(--font-heading, 'Playfair Display', serif);
+    font-family: var(--font-heading, "Playfair Display", serif);
     font-size: 2rem;
     font-weight: 400;
     letter-spacing: -0.02em;
@@ -103,7 +103,8 @@
 
 .search-input {
     width: 100%;
-    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem) var(--spacing-sm, 0.5rem) 2.5rem;
+    padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem)
+        var(--spacing-sm, 0.5rem) 2.5rem;
     border: 1px solid var(--color-border, #e5e7eb);
     font-size: 0.875rem;
     background: var(--color-bg, #faf9f7);
@@ -408,7 +409,7 @@
 }
 
 .form-label.required::after {
-    content: ' *';
+    content: " *";
     color: #dc2626;
 }
 
@@ -572,7 +573,7 @@
 }
 
 .modal-title {
-    font-family: var(--font-heading, 'Playfair Display', serif);
+    font-family: var(--font-heading, "Playfair Display", serif);
     font-size: 1.5rem;
     color: var(--color-primary, #2c2c2c);
     margin-bottom: var(--spacing-md, 1rem);

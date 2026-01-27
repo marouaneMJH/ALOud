@@ -138,22 +138,22 @@ namespace ALOud.Controllers
         // =====================================================
 
         public async Task<IActionResult> Perfumes(
-            int pageIndex = 1, 
-            int pageSize = 10, 
+            int pageIndex = 1,
+            int pageSize = 10,
             string? searchTerm = null,
             Guid? brandId = null,
             Guid? familyId = null,
             string? genderProfile = null)
         {
             var perfumes = await _perfumeService.GetAllPerfumesAsync(pageIndex, pageSize, searchTerm, brandId, familyId, genderProfile);
-            
+
             ViewBag.SearchTerm = searchTerm;
             ViewBag.BrandId = brandId;
             ViewBag.FamilyId = familyId;
             ViewBag.GenderProfile = genderProfile;
             ViewBag.Brands = await _brandService.GetAllBrandsForSelectAsync();
             ViewBag.Families = await _familyService.GetAllFamiliesForSelectAsync();
-            
+
             return View("~/Views/Admin/Perfumes/Index.cshtml", perfumes);
         }
 

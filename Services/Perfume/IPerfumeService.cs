@@ -6,8 +6,8 @@ namespace ALOud.Services.Perfume
     public interface IPerfumeService
     {
         Task<PaginatedList<PerfumeDto>> GetAllPerfumesAsync(
-            int pageIndex = 1, 
-            int pageSize = 10, 
+            int pageIndex = 1,
+            int pageSize = 10,
             string? searchTerm = null,
             Guid? brandId = null,
             Guid? familyId = null,
