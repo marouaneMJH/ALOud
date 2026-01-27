@@ -10,9 +10,7 @@ namespace ALOud.Data
         {
         }
 
-        // Legacy entities
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Category> Categories { get; set; }
+        // User entities
         public DbSet<User> Users { get; set; }
         public DbSet<EmailVerification> EmailVerifications { get; set; }
 
@@ -37,28 +35,6 @@ namespace ALOud.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // Configure Product entity (legacy)
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.Price).HasPrecision(10, 2);
-                entity.Property(e => e.ImageUrl).HasMaxLength(500);
-
-                entity.HasOne(p => p.Category)
-                      .WithMany(c => c.Products)
-                      .HasForeignKey(p => p.CategoryId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            // Configure Category entity (legacy)
-            modelBuilder.Entity<Category>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-            });
 
             // Configure User Entity
             modelBuilder.Entity<User>()

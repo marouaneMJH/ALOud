@@ -79,8 +79,10 @@ namespace ALOud.DTOs.Perfumes
         public string? Sillage { get; set; }
         public string? GenderProfile { get; set; }
         public string? PriceRange { get; set; }
+        public string? ImageUrl { get; set; }
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 
     public class PerfumeDetailsDto
@@ -92,6 +94,8 @@ namespace ALOud.DTOs.Perfumes
         public string? Sillage { get; set; }
         public string? GenderProfile { get; set; }
         public string? PriceRange { get; set; }
+        public string? ImageUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
 

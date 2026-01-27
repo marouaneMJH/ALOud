@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ALOud.Data;
 using ALOud.Models;
 using ALOud.Services;
+using ALOud.DTOs.Perfumes;
 using ViewModels;
 
 namespace Pages
@@ -11,18 +12,17 @@ namespace Pages
     public class IndexModel : PageModel
     {
         private readonly ALOudDbContext _context;
-        private readonly CartService _cartService;
         private readonly ICacheService _cache;
 
-        public IndexModel(ALOudDbContext context, CartService cartService, ICacheService cache)
+        public IndexModel(ALOudDbContext context, ICacheService cache)
         {
             _context = context;
-            _cartService = cartService;
             _cache = cache;
         }
 
-        public List<HomeProductVM> Products { get; set; } = new();
-        public List<Category> Categories { get; set; } = new();
+        public List<PerfumeDto> Perfumes { get; set; } = new();
+        public List<Brand> Brands { get; set; } = new();
+        public List<Family> Families { get; set; } = new();
 
         public SearchVM Search { get; set; } = new();
 
@@ -32,76 +32,86 @@ namespace Pages
         public int PageSize { get; set; } = 12;
         public bool HasPreviousPage => PageIndex > 1;
         public bool HasNextPage => PageIndex < TotalPages;
-        public int? SelectedCategoryId { get; set; }
+        public Guid? SelectedBrandId { get; set; }
+        public Guid? SelectedFamilyId { get; set; }
+        public string? SelectedGender { get; set; }
 
-        public async Task OnGetAsync(string? query, int? categoryId, int pageIndex = 1, int pageSize = 12)
+        public async Task OnGetAsync(string? query, Guid? brandId, Guid? familyId, string? gender, int pageIndex = 1, int pageSize = 12)
         {
             PageIndex = pageIndex;
             PageSize = pageSize;
-            SelectedCategoryId = categoryId;
+            SelectedBrandId = brandId;
+            SelectedFamilyId = familyId;
+            SelectedGender = gender;
 
             Search = new SearchVM
             {
                 Query = query
             };
 
-            // Fetch all categories
-            Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+            // Fetch all brands and families for filters
+            Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+            Families = await _context.Families.OrderBy(f => f.Name).ToListAsync();
 
             // Build a cache key based on the query parameters
-            string key = $"products:list:q={query ?? ""}:cat={categoryId?.ToString() ?? ""}:p={pageIndex}:ps={pageSize}";
+            string key = $"perfumes:list:q={query ?? ""}:brand={brandId?.ToString() ?? ""}:family={familyId?.ToString() ?? ""}:gender={gender ?? ""}:p={pageIndex}:ps={pageSize}";
 
-            var cached = await _cache.GetAsync<(List<HomeProductVM>, int)>(key);
+            var cached = await _cache.GetAsync<(List<PerfumeDto>, int)>(key);
             if (cached.Item1 != null)
             {
-                Products = cached.Item1;
+                Perfumes = cached.Item1;
                 TotalCount = cached.Item2;
                 TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
                 return;
             }
 
-            var productsQuery = _context.Products.AsQueryable();
+            var perfumesQuery = _context.Perfumes
+                .Include(p => p.Brand)
+                .AsQueryable();
 
+            // Search filter
             if (!string.IsNullOrWhiteSpace(query))
-                productsQuery = productsQuery.Where(p => p.Name.Contains(query));
+            {
+                var lowerQuery = query.ToLower();
+                perfumesQuery = perfumesQuery.Where(p =>
+                    p.Name.ToLower().Contains(lowerQuery) ||
+                    p.Brand.Name.ToLower().Contains(lowerQuery));
+            }
 
-            if (categoryId.HasValue)
-                productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
+            // Brand filter
+            if (brandId.HasValue)
+                perfumesQuery = perfumesQuery.Where(p => p.BrandId == brandId.Value);
 
-            productsQuery = productsQuery.OrderByDescending(p => p.Id);
+            // Family filter
+            if (familyId.HasValue)
+                perfumesQuery = perfumesQuery.Where(p => p.PerfumeFamilies.Any(pf => pf.FamilyId == familyId.Value));
 
-            TotalCount = await productsQuery.CountAsync();
+            // Gender filter
+            if (!string.IsNullOrWhiteSpace(gender))
+                perfumesQuery = perfumesQuery.Where(p => p.GenderProfile == gender);
+
+            perfumesQuery = perfumesQuery.OrderByDescending(p => p.CreatedAt);
+
+            TotalCount = await perfumesQuery.CountAsync();
             TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
 
-            Products = await productsQuery
+            Perfumes = await perfumesQuery
                 .Skip((PageIndex - 1) * PageSize)
                 .Take(PageSize)
-                .Select(p => new HomeProductVM
+                .Select(p => new PerfumeDto
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    Price = p.Price,
-                    ImageUrl = p.ImageUrl
+                    BrandId = p.BrandId,
+                    BrandName = p.Brand.Name,
+                    GenderProfile = p.GenderProfile,
+                    PriceRange = p.PriceRange,
+                    ImageUrl = p.ImageUrl,
+                    CreatedAt = p.CreatedAt
                 }).ToListAsync();
 
             // Cache for 5 minutes
-            await _cache.SetAsync(key, (Products, TotalCount), TimeSpan.FromMinutes(5));
-        }
-
-        public IActionResult OnPostAddToCart(int productId)
-        {
-            var product = _context.Products.First(p => p.Id == productId);
-
-            _cartService.AddToCart(new CartItemVM
-            {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                Price = product.Price,
-                ImageUrl = product.ImageUrl,
-                Quantity = 1
-            });
-
-            return RedirectToPage();
+            await _cache.SetAsync(key, (Perfumes, TotalCount), TimeSpan.FromMinutes(5));
         }
     }
 }

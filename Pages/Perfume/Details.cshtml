@@ -1,0 +1,550 @@
+@page "{id:guid}"
+@model Pages.Perfume.DetailsModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = $"{Model.Perfume.Name} - {Model.Perfume.BrandName}";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+    
+    var topNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Top").ToList();
+    var middleNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Middle" || n.NoteLevel == "Heart").ToList();
+    var baseNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Base").ToList();
+    var otherNotes = Model.Perfume.Notes.Where(n => string.IsNullOrEmpty(n.NoteLevel) || 
+        (n.NoteLevel != "Top" && n.NoteLevel != "Middle" && n.NoteLevel != "Heart" && n.NoteLevel != "Base")).ToList();
+}
+
+<style>
+    .perfume-detail-page {
+        padding: var(--spacing-2xl) 0;
+    }
+
+    .breadcrumb-nav {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .breadcrumb-nav a {
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color var(--transition-fast);
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--color-accent);
+    }
+
+    .perfume-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-3xl);
+        margin-bottom: var(--spacing-3xl);
+    }
+
+    .perfume-image-section {
+        position: sticky;
+        top: var(--spacing-xl);
+    }
+
+    .perfume-main-image {
+        aspect-ratio: 1;
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        overflow: hidden;
+    }
+
+    .perfume-main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .perfume-info-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+
+    .perfume-brand-name {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    .perfume-title {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .perfume-badges {
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .perfume-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--color-primary);
+        color: var(--color-white);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .perfume-badge.accent {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    .perfume-price-section {
+        padding: var(--spacing-lg) 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .perfume-price {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .perfume-price-label {
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    /* Characteristics Section */
+    .characteristics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .characteristic-item {
+        text-align: center;
+        padding: var(--spacing-md);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+    }
+
+    .characteristic-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .characteristic-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    /* Notes Section */
+    .notes-section {
+        padding: var(--spacing-3xl) 0;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+    }
+
+    .notes-pyramid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .notes-level {
+        text-align: center;
+    }
+
+    .notes-level-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 600;
+    }
+
+    .notes-list {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .note-tag {
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        font-size: 0.85rem;
+        color: var(--color-primary);
+        transition: all var(--transition-fast);
+    }
+
+    .note-tag:hover {
+        border-color: var(--color-accent);
+        background: var(--color-background);
+    }
+
+    /* Accords Section */
+    .accords-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--color-background);
+    }
+
+    .accords-grid {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+
+    .accord-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        min-width: 100px;
+    }
+
+    .accord-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--color-primary);
+    }
+
+    .accord-intensity {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+    }
+
+    /* Tags Section */
+    .tags-section {
+        padding: var(--spacing-3xl) 0;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .tags-grid {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-xl);
+        flex-wrap: wrap;
+    }
+
+    .tag-group {
+        text-align: center;
+    }
+
+    .tag-group-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .tag-list {
+        display: flex;
+        gap: var(--spacing-xs);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .tag-item {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background: var(--color-primary);
+        color: var(--color-white);
+        font-size: 0.8rem;
+    }
+
+    .tag-item.gold {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Families Section */
+    .families-list {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+    }
+
+    .family-badge {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        background: transparent;
+        border: 2px solid var(--color-accent);
+        color: var(--color-accent);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    @@media (max-width: 992px) {
+        .perfume-detail-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-xl);
+        }
+
+        .perfume-image-section {
+            position: relative;
+            top: 0;
+        }
+
+        .perfume-title {
+            font-size: 2rem;
+        }
+
+        .characteristics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .characteristics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="perfume-detail-page">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-nav">
+            <a asp-page="/Index">← Retour à la collection</a>
+        </nav>
+
+        <!-- Main Detail Grid -->
+        <div class="perfume-detail-grid">
+            <!-- Image Section -->
+            <div class="perfume-image-section">
+                <div class="perfume-main-image">
+                    <img src="@(Model.Perfume.ImageUrl ?? fallback)" 
+                         alt="@Model.Perfume.Name"
+                         onerror="this.onerror=null;this.src='@fallback';" />
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="perfume-info-section">
+                <div>
+                    <div class="perfume-brand-name">@Model.Perfume.BrandName</div>
+                    <h1 class="perfume-title">@Model.Perfume.Name</h1>
+                </div>
+
+                <!-- Badges -->
+                <div class="perfume-badges">
+                    @if (!string.IsNullOrEmpty(Model.Perfume.GenderProfile))
+                    {
+                        <span class="perfume-badge">@Model.Perfume.GenderProfile</span>
+                    }
+                    @foreach (var family in Model.Perfume.Families.Take(2))
+                    {
+                        <span class="perfume-badge accent">@family</span>
+                    }
+                </div>
+
+                <!-- Price -->
+                @if (!string.IsNullOrEmpty(Model.Perfume.PriceRange))
+                {
+                    <div class="perfume-price-section">
+                        <div class="perfume-price-label">Gamme de Prix</div>
+                        <div class="perfume-price">@Model.Perfume.PriceRange</div>
+                    </div>
+                }
+
+                <!-- Characteristics -->
+                @if (!string.IsNullOrEmpty(Model.Perfume.Intensity) || 
+                     !string.IsNullOrEmpty(Model.Perfume.Longevity) || 
+                     !string.IsNullOrEmpty(Model.Perfume.Sillage))
+                {
+                    <div class="characteristics-grid">
+                        @if (!string.IsNullOrEmpty(Model.Perfume.Intensity))
+                        {
+                            <div class="characteristic-item">
+                                <div class="characteristic-label">Intensité</div>
+                                <div class="characteristic-value">@Model.Perfume.Intensity</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Perfume.Longevity))
+                        {
+                            <div class="characteristic-item">
+                                <div class="characteristic-label">Longévité</div>
+                                <div class="characteristic-value">@Model.Perfume.Longevity</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Perfume.Sillage))
+                        {
+                            <div class="characteristic-item">
+                                <div class="characteristic-label">Sillage</div>
+                                <div class="characteristic-value">@Model.Perfume.Sillage</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Families -->
+                @if (Model.Perfume.Families.Any())
+                {
+                    <div>
+                        <div class="perfume-price-label" style="margin-bottom: var(--spacing-sm);">Familles Olfactives</div>
+                        <div class="families-list" style="justify-content: flex-start;">
+                            @foreach (var family in Model.Perfume.Families)
+                            {
+                                <span class="family-badge">@family</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Seasons & Occasions -->
+                @if (Model.Perfume.Seasons.Any() || Model.Perfume.Occasions.Any())
+                {
+                    <div class="tags-grid" style="justify-content: flex-start; gap: var(--spacing-xl);">
+                        @if (Model.Perfume.Seasons.Any())
+                        {
+                            <div class="tag-group" style="text-align: left;">
+                                <div class="tag-group-title">Saisons</div>
+                                <div class="tag-list" style="justify-content: flex-start;">
+                                    @foreach (var season in Model.Perfume.Seasons)
+                                    {
+                                        <span class="tag-item gold">@season</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (Model.Perfume.Occasions.Any())
+                        {
+                            <div class="tag-group" style="text-align: left;">
+                                <div class="tag-group-title">Occasions</div>
+                                <div class="tag-list" style="justify-content: flex-start;">
+                                    @foreach (var occasion in Model.Perfume.Occasions)
+                                    {
+                                        <span class="tag-item">@occasion</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Notes Pyramid Section -->
+        @if (Model.Perfume.Notes.Any())
+        {
+            <section class="notes-section">
+                <h2 class="section-title">Pyramide Olfactive</h2>
+                <div class="notes-pyramid">
+                    @if (topNotes.Any())
+                    {
+                        <div class="notes-level">
+                            <div class="notes-level-title">Notes de Tête</div>
+                            <div class="notes-list">
+                                @foreach (var note in topNotes)
+                                {
+                                    <span class="note-tag">@note.NoteName</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (middleNotes.Any())
+                    {
+                        <div class="notes-level">
+                            <div class="notes-level-title">Notes de Cœur</div>
+                            <div class="notes-list">
+                                @foreach (var note in middleNotes)
+                                {
+                                    <span class="note-tag">@note.NoteName</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (baseNotes.Any())
+                    {
+                        <div class="notes-level">
+                            <div class="notes-level-title">Notes de Fond</div>
+                            <div class="notes-list">
+                                @foreach (var note in baseNotes)
+                                {
+                                    <span class="note-tag">@note.NoteName</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (otherNotes.Any())
+                    {
+                        <div class="notes-level">
+                            <div class="notes-level-title">Autres Notes</div>
+                            <div class="notes-list">
+                                @foreach (var note in otherNotes)
+                                {
+                                    <span class="note-tag">@note.NoteName</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- Accords Section -->
+        @if (Model.Perfume.Accords.Any())
+        {
+            <section class="accords-section">
+                <div class="container">
+                    <h2 class="section-title">Accords</h2>
+                    <div class="accords-grid">
+                        @foreach (var accord in Model.Perfume.Accords)
+                        {
+                            <div class="accord-item">
+                                <span class="accord-name">@accord.AccordName</span>
+                                @if (!string.IsNullOrEmpty(accord.Intensity))
+                                {
+                                    <span class="accord-intensity">@accord.Intensity</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+
+        <!-- Tags Section -->
+        @if (Model.Perfume.Tags.Any())
+        {
+            <section class="tags-section">
+                <h2 class="section-title">Tags</h2>
+                <div class="tag-list" style="justify-content: center;">
+                    @foreach (var tag in Model.Perfume.Tags)
+                    {
+                        <span class="note-tag">@tag</span>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</section>
