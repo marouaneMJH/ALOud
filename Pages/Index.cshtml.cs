@@ -67,6 +67,8 @@ namespace Pages
 
             var perfumesQuery = _context.Perfumes
                 .Include(p => p.Brand)
+                .Include(p => p.PerfumeFamilies)
+                    .ThenInclude(pf => pf.Family)
                 .AsQueryable();
 
             // Search filter
@@ -106,7 +108,11 @@ namespace Pages
                     BrandName = p.Brand.Name,
                     GenderProfile = p.GenderProfile,
                     PriceRange = p.PriceRange,
+                    Price = p.Price,
+                    StockQuantity = p.StockQuantity,
+                    Description = p.Description,
                     ImageUrl = p.ImageUrl,
+                    Families = p.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
                     CreatedAt = p.CreatedAt
                 }).ToListAsync();
 

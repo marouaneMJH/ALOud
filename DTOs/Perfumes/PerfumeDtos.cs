@@ -79,9 +79,13 @@ namespace ALOud.DTOs.Perfumes
         public string? Sillage { get; set; }
         public string? GenderProfile { get; set; }
         public string? PriceRange { get; set; }
+        public decimal Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
+        public List<string> Families { get; set; } = new();
         public DateTime CreatedAt { get; set; }
     }
 

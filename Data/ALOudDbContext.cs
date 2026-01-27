@@ -63,6 +63,8 @@ namespace ALOud.Data
                 entity.Property(e => e.Sillage).HasMaxLength(100);
                 entity.Property(e => e.GenderProfile).HasMaxLength(100);
                 entity.Property(e => e.PriceRange).HasMaxLength(100);
+                entity.Property(e => e.Price).HasPrecision(10, 2);
+                entity.Property(e => e.Description).HasMaxLength(2000);
 
                 entity.HasOne(p => p.Brand)
                       .WithMany(b => b.Perfumes)

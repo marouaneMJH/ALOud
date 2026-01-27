@@ -329,11 +329,45 @@
     }
 
     .perfume-price {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: var(--color-primary);
+    }
+
+    .perfume-families {
+        font-size: 0.8rem;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-xs);
+        font-weight: 500;
+    }
+
+    .perfume-description {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .perfume-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding-top: var(--spacing-sm);
         border-top: 1px solid var(--color-border);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .perfume-stock {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .perfume-stock.in-stock {
+        color: #2e7d32;
+    }
+
+    .perfume-stock.out-of-stock {
+        color: #c62828;
     }
 
     .view-details-btn {
@@ -455,10 +489,24 @@
                                 <h3 class="perfume-name">@perfume.Name</h3>
                             </a>
                             
-                            @if (!string.IsNullOrEmpty(perfume.PriceRange))
+                            @if (perfume.Families.Any())
                             {
-                                <div class="perfume-price">@perfume.PriceRange</div>
+                                <div class="perfume-families">
+                                    @string.Join(" • ", perfume.Families.Take(2))
+                                </div>
                             }
+
+                            @if (!string.IsNullOrEmpty(perfume.Description))
+                            {
+                                <p class="perfume-description">@(perfume.Description.Length > 80 ? perfume.Description.Substring(0, 80) + "..." : perfume.Description)</p>
+                            }
+
+                            <div class="perfume-footer">
+                                <div class="perfume-price">@perfume.Price.ToString("N0") MAD</div>
+                                <div class="perfume-stock @(perfume.StockQuantity > 0 ? "in-stock" : "out-of-stock")">
+                                    @(perfume.StockQuantity > 0 ? $"En stock ({perfume.StockQuantity})" : "Rupture")
+                                </div>
+                            </div>
 
                             <a asp-page="/Perfume/Details" asp-route-id="@perfume.Id" class="view-details-btn">
                                 Découvrir

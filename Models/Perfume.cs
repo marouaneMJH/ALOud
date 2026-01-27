@@ -25,6 +25,13 @@ namespace ALOud.Models
         [MaxLength(100)]
         public string? PriceRange { get; set; }
 
+        public decimal Price { get; set; }
+
+        public int StockQuantity { get; set; }
+
+        [MaxLength(2000)]
+        public string? Description { get; set; }
+
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
 
