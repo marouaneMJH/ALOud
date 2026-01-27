@@ -25,6 +25,11 @@ namespace ALOud.Models
         [MaxLength(100)]
         public string? PriceRange { get; set; }
 
+        [MaxLength(500)]
+        public string? ImageUrl { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         // Foreign key to Brand
         public Guid BrandId { get; set; }
         public virtual Brand Brand { get; set; } = null!;

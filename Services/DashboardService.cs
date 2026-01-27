@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ALOud.Services;
 
-// Dashboard service: aggregates KPIs and statistics from products and categories.
+// Dashboard service: aggregates KPIs and statistics from perfume catalog.
 public class DashboardService : IDashboardService
 {
     private readonly ALOudDbContext _db;
@@ -21,41 +21,58 @@ public class DashboardService : IDashboardService
     {
         var stats = new DashboardStatsDto
         {
-            TotalProducts = await _db.Products.CountAsync(),
-            TotalCategories = await _db.Categories.CountAsync(),
-            LowStockProducts = await _db.Products.CountAsync(p => p.Stock > 0 && p.Stock <= 10),
-            OutOfStockProducts = await _db.Products.CountAsync(p => p.Stock == 0),
-            TotalInventoryValue = await _db.Products.SumAsync(p => p.Price * p.Stock)
+            TotalPerfumes = await _db.Perfumes.CountAsync(),
+            TotalBrands = await _db.Brands.CountAsync(),
+            TotalFamilies = await _db.Families.CountAsync(),
+            TotalNotes = await _db.Notes.CountAsync(),
+            TotalAccords = await _db.Accords.CountAsync(),
+            TotalTags = await _db.Tags.CountAsync(),
+            TotalSeasons = await _db.Seasons.CountAsync(),
+            TotalOccasions = await _db.Occasions.CountAsync()
         };
 
-        // Category statistics
-        stats.CategoryStats = await _db.Categories
-            .Select(c => new CategoryStatsDto
+        // Top brands by perfume count
+        stats.TopBrands = await _db.Brands
+            .Select(b => new BrandStatsDto
             {
-                CategoryId = c.Id,
-                CategoryName = c.Name,
-                ProductCount = c.Products.Count,
-                TotalStock = c.Products.Sum(p => p.Stock)
+                BrandId = b.Id,
+                BrandName = b.Name,
+                PerfumeCount = b.Perfumes.Count
             })
-            .OrderByDescending(c => c.ProductCount)
+            .OrderByDescending(b => b.PerfumeCount)
+            .Take(5)
             .ToListAsync();
 
-        // Low stock alerts
-        stats.LowStockAlerts = await _db.Products
-            .Where(p => p.Stock <= 10)
-            .OrderBy(p => p.Stock)
-            .Take(10)
-            .Select(p => new ProductStockAlertDto
+        // Top families by perfume count
+        stats.TopFamilies = await _db.Families
+            .Select(f => new FamilyStatsDto
             {
-                ProductId = p.Id,
-                ProductName = p.Name,
-                Stock = p.Stock,
-                ImageUrl = p.ImageUrl
+                FamilyId = f.Id,
+                FamilyName = f.Name,
+                PerfumeCount = f.PerfumeFamilies.Count
+            })
+            .OrderByDescending(f => f.PerfumeCount)
+            .Take(5)
+            .ToListAsync();
+
+        // Recent perfumes
+        stats.RecentPerfumes = await _db.Perfumes
+            .Include(p => p.Brand)
+            .OrderByDescending(p => p.Id)
+            .Take(5)
+            .Select(p => new RecentPerfumeDto
+            {
+                PerfumeId = p.Id,
+                PerfumeName = p.Name,
+                BrandName = p.Brand.Name,
+                GenderProfile = p.GenderProfile,
+                ImageUrl = p.ImageUrl,
+                CreatedAt = p.CreatedAt
             })
             .ToListAsync();
 
-        _logger.LogInformation("Dashboard stats generated: {TotalProducts} products, {TotalCategories} categories",
-            stats.TotalProducts, stats.TotalCategories);
+        _logger.LogInformation("Dashboard stats generated: {TotalPerfumes} perfumes, {TotalBrands} brands",
+            stats.TotalPerfumes, stats.TotalBrands);
 
         return stats;
     }

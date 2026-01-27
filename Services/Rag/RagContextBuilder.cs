@@ -1,18 +1,12 @@
-using ALOud.Services;
-
 namespace ALOud.Services.Rag;
 
 public sealed class RagContextBuilder
 {
     private readonly CartService _cartService;
-    private readonly IProductService _productService;
 
-    public RagContextBuilder(
-        CartService cartService,
-        IProductService productService)
+    public RagContextBuilder(CartService cartService)
     {
         _cartService = cartService;
-        _productService = productService;
     }
 
     public async Task<object> BuildAsync()

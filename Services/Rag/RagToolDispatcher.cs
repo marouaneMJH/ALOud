@@ -1,4 +1,6 @@
-using ALOud.Services;
+using ALOud.Services.Perfume;
+using ALOud.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace ALOud.Services.Rag;
@@ -6,134 +8,159 @@ namespace ALOud.Services.Rag;
 public sealed class RagToolDispatcher
 {
     private readonly CartService _cartService;
-    private readonly IProductService _productService;
+    private readonly ALOudDbContext _db;
 
     public RagToolDispatcher(
         CartService cartService,
-        IProductService productService)
+        ALOudDbContext db)
     {
         _cartService = cartService;
-        _productService = productService;
+        _db = db;
     }
 
     public async Task<object?> DispatchAsync(string toolName, Dictionary<string, object> args)
     {
         return toolName switch
         {
-            "search_products" => await HandleSearchAsync(args),
-            "get_product_details" => await HandleGetProductDetailsAsync(args),
-            "recommend_products" => await HandleRecommendProductsAsync(args),
+            "search_perfumes" => await HandleSearchPerfumesAsync(args),
+            "get_perfume_details" => await HandleGetPerfumeDetailsAsync(args),
+            "recommend_perfumes" => await HandleRecommendPerfumesAsync(args),
             "get_cart" => await HandleGetCartAsync(),
             "add_to_cart" => await HandleAddAsync(args),
             "remove_from_cart" => await HandleRemoveAsync(args),
             "increase" => await HandleIncreaseAsync(args),
             "decrease" => await HandleDecreaseAsync(args),
             "analyze_cart" => await HandleAnalyzeCartAsync(),
-            "compare_products" => await HandleCompareProductsAsync(args),
+            "compare_perfumes" => await HandleComparePerfumesAsync(args),
+            "get_brands" => await HandleGetBrandsAsync(),
+            "get_families" => await HandleGetFamiliesAsync(),
             _ => new { Error = $"Outil inconnu: {toolName}" }
         };
     }
 
-    // OPTIMIZED: Limit to 5 results, minimal fields
-    private async Task<object> HandleSearchAsync(Dictionary<string, object> args)
+    // Search perfumes by name, brand, notes, or family
+    private async Task<object> HandleSearchPerfumesAsync(Dictionary<string, object> args)
     {
-        var query = args["query"].ToString() ?? string.Empty;
-        var products = await _productService.SearchProductsAsync(query);
+        var query = args["query"].ToString()?.ToLower() ?? string.Empty;
 
-        if (!products.Any())
+        var perfumes = await _db.Perfumes
+            .Include(p => p.Brand)
+            .Where(p => p.Name.ToLower().Contains(query) ||
+                        p.Brand.Name.ToLower().Contains(query) ||
+                        (p.GenderProfile != null && p.GenderProfile.ToLower().Contains(query)))
+            .Take(5)
+            .Select(p => new
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Brand = p.Brand.Name,
+                Gender = p.GenderProfile,
+                Image = p.ImageUrl
+            })
+            .ToListAsync();
+
+        if (!perfumes.Any())
         {
             return new
             {
                 Found = 0,
-                Message = $"Aucun produit trouvé pour '{query}'",
-                Suggestion = "Essayez avec d'autres mots-clés comme 'boisé', 'frais', ou une marque spécifique"
+                Message = $"Aucun parfum trouvé pour '{query}'",
+                Suggestion = "Essayez avec des mots-clés comme 'boisé', 'floral', 'Dior', ou 'homme'"
             };
         }
 
-        // Return minimal data - only what's needed for display
         return new
         {
-            Found = products.Count,
-            Products = products.Take(5).Select(p =>
-            {
-                dynamic dp = p;
-                return new
-                {
-                    Id = (int)dp.Id,
-                    Name = (string)dp.Name,
-                    Price = (decimal)dp.Price,
-                    Image = (string)dp.ImageUrl
-                };
-            }).ToList()
+            Found = perfumes.Count,
+            Perfumes = perfumes
         };
     }
 
-    private async Task<object> HandleGetProductDetailsAsync(Dictionary<string, object> args)
+    private async Task<object> HandleGetPerfumeDetailsAsync(Dictionary<string, object> args)
     {
-        var productId = GetInt32(args["productId"]);
-        var product = await _productService.GetProductByIdAsync(productId);
+        var perfumeId = GetGuid(args["perfumeId"]);
+        
+        var perfume = await _db.Perfumes
+            .Include(p => p.Brand)
+            .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
+            .Include(p => p.PerfumeNotes).ThenInclude(pn => pn.Note)
+            .Include(p => p.PerfumeAccords).ThenInclude(pa => pa.Accord)
+            .FirstOrDefaultAsync(p => p.Id == perfumeId);
 
-        if (product == null)
+        if (perfume == null)
             return new
             {
-                Error = $"Produit #{productId} introuvable",
-                Action = "Utilisez search_products pour trouver le bon ID"
+                Error = "Parfum introuvable",
+                Action = "Utilisez search_perfumes pour trouver le bon ID"
             };
-
-        // Truncate description to save tokens
-        var shortDesc = product.Description?.Length > 100
-            ? product.Description[..100] + "..."
-            : product.Description;
 
         return new
         {
-            product.Id,
-            product.Name,
-            Desc = shortDesc,
-            product.Price,
-            product.Stock,
-            Dispo = product.Stock > 0 ? "En stock" : "Rupture",
-            Img = product.ImageUrl
+            perfume.Id,
+            perfume.Name,
+            Brand = perfume.Brand.Name,
+            Gender = perfume.GenderProfile,
+            Intensity = perfume.Intensity,
+            Longevity = perfume.Longevity,
+            Sillage = perfume.Sillage,
+            PriceRange = perfume.PriceRange,
+            Families = perfume.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
+            Notes = perfume.PerfumeNotes.Select(pn => new { pn.Note.Name, NoteLevel = pn.NoteLevel }).ToList(),
+            Accords = perfume.PerfumeAccords.Select(pa => pa.Accord.Name).ToList(),
+            Image = perfume.ImageUrl
         };
     }
 
-    private async Task<object> HandleRecommendProductsAsync(Dictionary<string, object> args)
+    private async Task<object> HandleRecommendPerfumesAsync(Dictionary<string, object> args)
     {
-        var preferences = args["preferences"].ToString() ?? string.Empty;
+        var preferences = args["preferences"].ToString()?.ToLower() ?? string.Empty;
         var limit = args.TryGetValue("limit", out var l) ? GetInt32(l) : 3;
-        limit = Math.Min(limit, 5); // Cap at 5 to save tokens
+        limit = Math.Min(limit, 5);
 
-        var products = await _productService.SearchProductsAsync(preferences);
+        // Try to match by gender, family, or notes
+        var perfumes = await _db.Perfumes
+            .Include(p => p.Brand)
+            .Where(p => p.Name.ToLower().Contains(preferences) ||
+                        p.Brand.Name.ToLower().Contains(preferences) ||
+                        (p.GenderProfile != null && p.GenderProfile.ToLower().Contains(preferences)) ||
+                        p.PerfumeFamilies.Any(pf => pf.Family.Name.ToLower().Contains(preferences)) ||
+                        p.PerfumeNotes.Any(pn => pn.Note.Name.ToLower().Contains(preferences)))
+            .Take(limit)
+            .Select(p => new
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Brand = p.Brand.Name,
+                Gender = p.GenderProfile,
+                Image = p.ImageUrl
+            })
+            .ToListAsync();
 
-        if (!products.Any())
+        if (!perfumes.Any())
         {
-            // Fallback to popular products instead of random
-            var allProducts = await _productService.GetAllProductsAsync();
-            products = allProducts
-                .OrderByDescending(p => p.Stock) // In-stock first
+            // Fallback to recent perfumes
+            perfumes = await _db.Perfumes
+                .Include(p => p.Brand)
+                .OrderByDescending(p => p.CreatedAt)
                 .Take(limit)
-                .Cast<object>()
-                .ToList();
+                .Select(p => new
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Brand = p.Brand.Name,
+                    Gender = p.GenderProfile,
+                    Image = p.ImageUrl
+                })
+                .ToListAsync();
         }
 
         return new
         {
             BasedOn = preferences,
-            Recommendations = products.Take(limit).Select(p =>
-            {
-                dynamic dp = p;
-                return new
-                {
-                    Id = (int)dp.Id,
-                    Name = (string)dp.Name,
-                    Price = (decimal)dp.Price,
-                    Img = (string)dp.ImageUrl
-                };
-            }).ToList()
+            Recommendations = perfumes
         };
     }
 
-    // OPTIMIZED: Minimal cart data
     private async Task<object> HandleGetCartAsync()
     {
         var cart = await _cartService.GetCartAsync();
@@ -156,40 +183,33 @@ public sealed class RagToolDispatcher
 
     private async Task<object> HandleAddAsync(Dictionary<string, object> args)
     {
-        var productId = GetInt32(args["productId"]);
+        var perfumeId = GetGuid(args["perfumeId"]);
         var quantity = args.TryGetValue("quantity", out var q) ? GetInt32(q) : 1;
 
-        var product = await _productService.GetProductByIdAsync(productId);
+        var perfume = await _db.Perfumes
+            .Include(p => p.Brand)
+            .FirstOrDefaultAsync(p => p.Id == perfumeId);
 
-        if (product == null)
-            return new { Ok = false, Error = "Produit introuvable" };
+        if (perfume == null)
+            return new { Ok = false, Error = "Parfum introuvable" };
 
-        if (product.Stock < quantity)
-        {
-            return new
-            {
-                Ok = false,
-                Error = $"Stock insuffisant ({product.Stock} dispo)",
-                Stock = product.Stock
-            };
-        }
-
+        // For perfumes, we don't track stock - always available
         for (int i = 0; i < quantity; i++)
         {
             await _cartService.AddToCartAsync(new ViewModels.CartItemVM
             {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                Price = product.Price,
-                Quantity = 1
+                ProductId = (int)(perfumeId.GetHashCode() & 0x7FFFFFFF), // Convert Guid to int for cart
+                ProductName = $"{perfume.Brand.Name} - {perfume.Name}",
+                Price = 0, // Price to be determined
+                Quantity = 1,
+                ImageUrl = perfume.ImageUrl ?? ""
             });
         }
 
         return new
         {
             Ok = true,
-            Added = $"{quantity}x {product.Name}",
-            Prix = product.Price * quantity
+            Added = $"{quantity}x {perfume.Brand.Name} - {perfume.Name}"
         };
     }
 
@@ -214,92 +234,98 @@ public sealed class RagToolDispatcher
         return new { Ok = true };
     }
 
-    // NEW: Smart cart analysis
     private async Task<object> HandleAnalyzeCartAsync()
     {
         var cart = await _cartService.GetCartAsync();
 
         if (!cart.Any())
-            return new { Empty = true, Conseil = "Découvrez nos parfums avec recommend_products!" };
+            return new { Empty = true, Conseil = "Découvrez nos parfums avec recommend_perfumes!" };
 
-        var total = cart.Sum(i => i.Price * i.Quantity);
         var itemCount = cart.Sum(i => i.Quantity);
-
-        // Check stock for each item
-        var stockWarnings = new List<string>();
-        foreach (var item in cart)
-        {
-            var product = await _productService.GetProductByIdAsync(item.ProductId);
-            if (product != null && product.Stock < item.Quantity)
-            {
-                stockWarnings.Add($"{item.ProductName}: seulement {product.Stock} en stock");
-            }
-        }
-
-        // Smart suggestions
-        var suggestions = new List<string>();
-        if (total < 500)
-            suggestions.Add("Ajoutez 1 article pour livraison gratuite (>500 MAD)");
-        if (itemCount == 1)
-            suggestions.Add("Découvrez nos coffrets pour économiser!");
 
         return new
         {
             Articles = itemCount,
-            Total = $"{total:N0} MAD",
-            Alertes = stockWarnings.Any() ? stockWarnings : null,
-            Conseils = suggestions.Any() ? suggestions : null,
-            PretPourCommande = !stockWarnings.Any()
+            Items = cart.Select(i => i.ProductName).ToList(),
+            Conseil = "Contactez-nous pour un devis personnalisé"
         };
     }
 
-    // NEW: Product comparison
-    private async Task<object> HandleCompareProductsAsync(Dictionary<string, object> args)
+    private async Task<object> HandleComparePerfumesAsync(Dictionary<string, object> args)
     {
-        var idsObj = args["productIds"];
-        var ids = new List<int>();
+        var idsObj = args["perfumeIds"];
+        var ids = new List<Guid>();
 
         if (idsObj is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
         {
             foreach (var el in jsonElement.EnumerateArray())
             {
-                ids.Add(el.GetInt32());
+                if (Guid.TryParse(el.GetString(), out var id))
+                    ids.Add(id);
             }
         }
 
         if (ids.Count < 2)
-            return new { Error = "Fournissez au moins 2 IDs de produits" };
+            return new { Error = "Fournissez au moins 2 IDs de parfums" };
 
-        var products = new List<object>();
-        foreach (var id in ids.Take(3))
-        {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product != null)
+        var perfumes = await _db.Perfumes
+            .Include(p => p.Brand)
+            .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
+            .Where(p => ids.Contains(p.Id))
+            .Take(3)
+            .Select(p => new
             {
-                products.Add(new
-                {
-                    product.Id,
-                    product.Name,
-                    product.Price,
-                    product.Stock,
-                    Dispo = product.Stock > 0
-                });
-            }
-        }
+                p.Id,
+                p.Name,
+                Brand = p.Brand.Name,
+                Gender = p.GenderProfile,
+                Intensity = p.Intensity,
+                Longevity = p.Longevity,
+                Families = p.PerfumeFamilies.Select(pf => pf.Family.Name).ToList()
+            })
+            .ToListAsync();
 
-        if (products.Count < 2)
-            return new { Error = "Produits introuvables" };
-
-        // Find best value
-        var sorted = products.OrderBy(p => ((dynamic)p).Price).ToList();
-        var cheapest = ((dynamic)sorted.First()).Name;
+        if (perfumes.Count < 2)
+            return new { Error = "Parfums introuvables" };
 
         return new
         {
-            Produits = products,
-            MoinsCher = cheapest,
-            Conseil = $"{cheapest} offre le meilleur rapport qualité-prix"
+            Parfums = perfumes,
+            Conseil = "Chaque parfum a ses propres caractéristiques uniques!"
         };
+    }
+
+    private async Task<object> HandleGetBrandsAsync()
+    {
+        var brands = await _db.Brands
+            .Select(b => new
+            {
+                b.Id,
+                b.Name,
+                PerfumeCount = b.Perfumes.Count
+            })
+            .OrderByDescending(b => b.PerfumeCount)
+            .Take(10)
+            .ToListAsync();
+
+        return new { Brands = brands };
+    }
+
+    private async Task<object> HandleGetFamiliesAsync()
+    {
+        var families = await _db.Families
+            .Select(f => new
+            {
+                f.Id,
+                f.Name,
+                f.Description,
+                PerfumeCount = f.PerfumeFamilies.Count
+            })
+            .OrderByDescending(f => f.PerfumeCount)
+            .Take(10)
+            .ToListAsync();
+
+        return new { Families = families };
     }
 
     private static int GetInt32(object value)
@@ -307,5 +333,12 @@ public sealed class RagToolDispatcher
         if (value is JsonElement element)
             return element.GetInt32();
         return Convert.ToInt32(value);
+    }
+
+    private static Guid GetGuid(object value)
+    {
+        if (value is JsonElement element)
+            return Guid.Parse(element.GetString() ?? string.Empty);
+        return Guid.Parse(value.ToString() ?? string.Empty);
     }
 }
