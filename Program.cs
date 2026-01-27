@@ -13,6 +13,7 @@ using ALOud.Services.Accord;
 using ALOud.Services.Tag;
 using ALOud.Services.Season;
 using ALOud.Services.Occasion;
+using ALOud.Services.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -211,6 +212,9 @@ using (var scope = app.Services.CreateScope())
             throw new Exception("Database not reachable");
 
         logger.LogInformation("[+] SQL Server connection OK");
+
+        // Seed perfume data if database is empty
+        await PerfumeSeeder.SeedAsync(db);
     }
     catch (Exception ex)
     {

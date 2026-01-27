@@ -1,11 +1,12 @@
 {
     "name": "scrapers",
     "version": "1.0.0",
-    "description": "",
+    "description": "Perfume data scrapers for ALOud application",
     "main": "index.js",
     "scripts": {
         "build": "tsc",
         "scrape:men": "ts-node src/men-perfume-scraper.ts",
+        "scrape:perfumes": "ts-node src/fragrantica-scraper.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],
@@ -13,10 +14,12 @@
     "license": "ISC",
     "dependencies": {
         "axios": "^1.13.2",
-        "cheerio": "^1.1.2"
+        "cheerio": "^1.1.2",
+        "uuid": "^11.0.0"
     },
     "devDependencies": {
         "@types/node": "^25.0.3",
+        "@types/uuid": "^10.0.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
     }
