@@ -1,0 +1,44 @@
+@model ALOud.DTOs.Tags.UpdateTagDto
+@{
+    ViewData["Title"] = "Edit Tag";
+}
+
+<div class="admin-page">
+    <div class="admin-header">
+        <div class="header-content">
+            <a href="@Url.Action("Tags")" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Back to Tags
+            </a>
+            <h1 class="admin-title">Edit Tag</h1>
+        </div>
+    </div>
+
+    <div class="admin-form-container">
+        <form asp-action="EditTag" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="form-group">
+                <label asp-for="Name" class="form-label required">Tag Name</label>
+                <input asp-for="Name" class="form-input" placeholder="e.g., Signature scent, Date night" />
+                <span asp-validation-for="Name" class="form-error"></span>
+            </div>
+            
+            <div class="form-actions">
+                <a href="@Url.Action("Tags")" class="btn btn-cancel">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Tag</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" />
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

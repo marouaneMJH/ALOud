@@ -5,6 +5,14 @@ using ALOud.Services;
 using ALOud.Services.Security;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Models;
+using ALOud.Services.Brand;
+using ALOud.Services.Perfume;
+using ALOud.Services.Family;
+using ALOud.Services.Note;
+using ALOud.Services.Accord;
+using ALOud.Services.Tag;
+using ALOud.Services.Season;
+using ALOud.Services.Occasion;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -130,6 +138,16 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<LLMConfigService>();
+
+// Perfume domain services
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IPerfumeService, PerfumeService>();
+builder.Services.AddScoped<IFamilyService, FamilyService>();
+builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<IAccordService, AccordService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<ISeasonService, SeasonService>();
+builder.Services.AddScoped<IOccasionService, OccasionService>();
 
 // Cart (Redis + cookies)
 builder.Services.AddScoped<CartService>();

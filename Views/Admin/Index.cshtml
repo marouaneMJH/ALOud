@@ -233,14 +233,31 @@
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="admin-title">Dashboard</h1>
             <div class="admin-nav">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Perfume Catalog
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" asp-action="Perfumes">Perfumes</a></li>
+                        <li><a class="dropdown-item" asp-action="Brands">Brands</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" asp-action="Families">Families</a></li>
+                        <li><a class="dropdown-item" asp-action="Notes">Notes</a></li>
+                        <li><a class="dropdown-item" asp-action="Accords">Accords</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" asp-action="Tags">Tags</a></li>
+                        <li><a class="dropdown-item" asp-action="Seasons">Seasons</a></li>
+                        <li><a class="dropdown-item" asp-action="Occasions">Occasions</a></li>
+                    </ul>
+                </div>
                 <a asp-action="Products" class="btn btn-primary">
-                    Manage Products
+                    Products
                 </a>
                 <a asp-action="Categories" class="btn btn-secondary">
-                    Manage Categories
+                    Categories
                 </a>
                 <a asp-action="LLMConfig" class="btn btn-outline-primary">
-                    <i class="bi bi-cpu"></i> LLM Configuration
+                    <i class="bi bi-cpu"></i> LLM Config
                 </a>
             </div>
         </div>
