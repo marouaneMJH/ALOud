@@ -11,7 +11,7 @@ public class DashboardStatsDto
     public int TotalTags { get; set; }
     public int TotalSeasons { get; set; }
     public int TotalOccasions { get; set; }
-    
+
     public List<BrandStatsDto> TopBrands { get; set; } = new();
     public List<FamilyStatsDto> TopFamilies { get; set; } = new();
     public List<RecentPerfumeDto> RecentPerfumes { get; set; } = new();

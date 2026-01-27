@@ -79,7 +79,7 @@ public sealed class RagToolDispatcher
     private async Task<object> HandleGetPerfumeDetailsAsync(Dictionary<string, object> args)
     {
         var perfumeId = GetGuid(args["perfumeId"]);
-        
+
         var perfume = await _db.Perfumes
             .Include(p => p.Brand)
             .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
