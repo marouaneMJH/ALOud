@@ -83,8 +83,8 @@
                     <th>Perfume</th>
                     <th>Brand</th>
                     <th>Gender</th>
+                    <th>Price</th>
                     <th>Intensity</th>
-                    <th>Price Range</th>
                     <th style="width: 150px; text-align: center;">Actions</th>
                 </tr>
             </thead>
@@ -108,7 +108,7 @@
                                             }
                                             <strong>@perfume.Name</strong>
                                         </div>
-                                        </td>
+                            </td>
                             <td>@perfume.BrandName</td>
                             <td>
                                 @if (!string.IsNullOrEmpty(perfume.GenderProfile))
@@ -120,8 +120,8 @@
                                     <span class="text-muted">-</span>
                                 }
                             </td>
+                            <td>@(perfume.Price > 0 ? perfume.Price.ToString("C") : "-")</td>
                             <td>@(perfume.Intensity ?? "-")</td>
-                            <td>@(perfume.PriceRange ?? "-")</td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="@Url.Action("PerfumeDetails", new { id = perfume.Id })" class="btn-action btn-view" title="View Details">

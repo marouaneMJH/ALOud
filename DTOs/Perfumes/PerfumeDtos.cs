@@ -23,6 +23,15 @@ namespace ALOud.DTOs.Perfumes
         [MaxLength(100)]
         public string? PriceRange { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value")]
+        public decimal Price { get; set; }
+
+        [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+        public string? Description { get; set; }
+
+        [MaxLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
+        public string? ImageUrl { get; set; }
+
         [Required(ErrorMessage = "Brand is required")]
         public Guid BrandId { get; set; }
 
@@ -57,6 +66,15 @@ namespace ALOud.DTOs.Perfumes
 
         [MaxLength(100)]
         public string? PriceRange { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value")]
+        public decimal Price { get; set; }
+
+        [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+        public string? Description { get; set; }
+
+        [MaxLength(500, ErrorMessage = "Image URL cannot exceed 500 characters")]
+        public string? ImageUrl { get; set; }
 
         [Required(ErrorMessage = "Brand is required")]
         public Guid BrandId { get; set; }

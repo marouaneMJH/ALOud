@@ -156,6 +156,9 @@ namespace ALOud.Services.Perfume
                 Sillage = perfume.Sillage,
                 GenderProfile = perfume.GenderProfile,
                 PriceRange = perfume.PriceRange,
+                Price = perfume.Price,
+                Description = perfume.Description,
+                ImageUrl = perfume.ImageUrl,
                 BrandId = perfume.BrandId,
                 FamilyIds = perfume.PerfumeFamilies.Select(pf => pf.FamilyId).ToList(),
                 NoteSelections = perfume.PerfumeNotes.Select(pn => new PerfumeNoteSelectionDto
@@ -185,6 +188,9 @@ namespace ALOud.Services.Perfume
                 Sillage = dto.Sillage,
                 GenderProfile = dto.GenderProfile,
                 PriceRange = dto.PriceRange,
+                Price = dto.Price,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
                 BrandId = dto.BrandId
             };
 
@@ -250,6 +256,9 @@ namespace ALOud.Services.Perfume
             perfume.Sillage = dto.Sillage;
             perfume.GenderProfile = dto.GenderProfile;
             perfume.PriceRange = dto.PriceRange;
+            perfume.Price = dto.Price;
+            perfume.Description = dto.Description;
+            perfume.ImageUrl = dto.ImageUrl;
             perfume.BrandId = dto.BrandId;
 
             // Update families
