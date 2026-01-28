@@ -219,7 +219,7 @@ public sealed class RagToolDispatcher
         var productIdStr = args["productId"]?.ToString();
         if (!Guid.TryParse(productIdStr, out var productId))
             return new { Ok = false, Error = "Invalid productId" };
-        
+
         await _cartService.RemoveAsync(productId);
         return new { Ok = true, Removed = productId };
     }
@@ -229,7 +229,7 @@ public sealed class RagToolDispatcher
         var productIdStr = args["productId"]?.ToString();
         if (!Guid.TryParse(productIdStr, out var productId))
             return new { Ok = false, Error = "Invalid productId" };
-        
+
         await _cartService.IncreaseAsync(productId);
         return new { Ok = true };
     }
@@ -239,7 +239,7 @@ public sealed class RagToolDispatcher
         var productIdStr = args["productId"]?.ToString();
         if (!Guid.TryParse(productIdStr, out var productId))
             return new { Ok = false, Error = "Invalid productId" };
-        
+
         await _cartService.DecreaseAsync(productId);
         return new { Ok = true };
     }

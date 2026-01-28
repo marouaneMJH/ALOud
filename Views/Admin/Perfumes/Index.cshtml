@@ -1,8 +1,11 @@
 @model ViewModels.PaginatedList<ALOud.DTOs.Perfumes.PerfumeDto>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
 @{
     ViewData["Title"] = "Manage Perfumes";
     var brands = ViewBag.Brands as List<ALOud.DTOs.Brands.BrandSelectDto>;
     var families = ViewBag.Families as List<ALOud.DTOs.Families.FamilySelectDto>;
+        var fallback = Configuration["Images:FallbackUrl"];
 }
 
 <div class="admin-page">
@@ -77,7 +80,7 @@
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Perfume</th>
                     <th>Brand</th>
                     <th>Gender</th>
                     <th>Intensity</th>
@@ -91,12 +94,26 @@
                     @foreach (var perfume in Model.Items)
                     {
                         <tr>
-                            <td><strong>@perfume.Name</strong></td>
+                            <td>
+                                             <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(perfume.ImageUrl))
+                                            {
+                                                <img src="@perfume.ImageUrl" class="perfume-img me-3" alt="@perfume.Name"/>
+                                            }
+                                            else
+                                            {
+                                                <div class="perfume-img me-3 d-flex align-items-center justify-content-center text-white">
+                                                    <i class="bi bi-droplet"></i>
+                                                </div>
+                                            }
+                                            <strong>@perfume.Name</strong>
+                                        </div>
+                                        </td>
                             <td>@perfume.BrandName</td>
                             <td>
                                 @if (!string.IsNullOrEmpty(perfume.GenderProfile))
                                 {
-                                    <span class="badge badge-@perfume.GenderProfile.ToLower()">@perfume.GenderProfile</span>
+                                    <div class="badge badge-@perfume.GenderProfile.ToLower()">@perfume.GenderProfile</div>
                                 }
                                 else
                                 {

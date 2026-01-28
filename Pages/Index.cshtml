@@ -590,10 +590,7 @@
                                 </div>
                             </div>
 
-                            <a asp-page="/Perfume/Details" asp-route-id="@perfume.Id" class="view-details-btn">
-                                Découvrir
-                            </a>
-
+               
                             <form method="post" asp-page-handler="AddToCart" asp-route-id="@perfume.Id">
                                 <button type="submit" 
                                         class="add-to-cart-btn" 
