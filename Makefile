@@ -12,4 +12,13 @@ run:
 	@echo "Running the application..."
 	@dotnet run
 
+start-services:
+	@redis-start
+	@mssql-start
+
+stop-services:
+	@redis-stop
+	@mssql-stop
+
+
 all: help
