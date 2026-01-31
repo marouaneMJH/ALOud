@@ -34,7 +34,7 @@ public sealed class RagToolDispatcher
             "compare_perfumes" => await HandleComparePerfumesAsync(args),
             "get_brands" => await HandleGetBrandsAsync(),
             "get_families" => await HandleGetFamiliesAsync(),
-            _ => new { Error = $"Outil inconnu: {toolName}" }
+            _ => new { Error = $"Unknown tool: {toolName}" }
         };
     }
 
@@ -64,8 +64,8 @@ public sealed class RagToolDispatcher
             return new
             {
                 Found = 0,
-                Message = $"Aucun parfum trouvé pour '{query}'",
-                Suggestion = "Essayez avec des mots-clés comme 'boisé', 'floral', 'Dior', ou 'homme'"
+                Message = $"No perfume found for '{query}'",
+                Suggestion = "Try keywords like 'woody', 'floral', 'Dior', or 'men'"
             };
         }
 
@@ -90,8 +90,8 @@ public sealed class RagToolDispatcher
         if (perfume == null)
             return new
             {
-                Error = "Parfum introuvable",
-                Action = "Utilisez search_perfumes pour trouver le bon ID"
+                Error = "Perfume not found",
+                Action = "Use search_perfumes to find the correct ID"
             };
 
         return new
@@ -166,7 +166,7 @@ public sealed class RagToolDispatcher
         var cart = await _cartService.GetCartAsync();
 
         if (!cart.Any())
-            return new { Empty = true, Message = "Votre panier est vide" };
+            return new { Empty = true, Message = "Your cart is empty" };
 
         return new
         {
@@ -191,7 +191,7 @@ public sealed class RagToolDispatcher
             .FirstOrDefaultAsync(p => p.Id == perfumeId);
 
         if (perfume == null)
-            return new { Ok = false, Error = "Parfum introuvable" };
+            return new { Ok = false, Error = "Perfume not found" };
 
         // For perfumes, we don't track stock - always available
         for (int i = 0; i < quantity; i++)
@@ -249,7 +249,7 @@ public sealed class RagToolDispatcher
         var cart = await _cartService.GetCartAsync();
 
         if (!cart.Any())
-            return new { Empty = true, Conseil = "Découvrez nos parfums avec recommend_perfumes!" };
+            return new { Empty = true, Conseil = "Discover our perfumes with recommend_perfumes!" };
 
         var itemCount = cart.Sum(i => i.Quantity);
 
@@ -257,7 +257,7 @@ public sealed class RagToolDispatcher
         {
             Articles = itemCount,
             Items = cart.Select(i => i.ProductName).ToList(),
-            Conseil = "Contactez-nous pour un devis personnalisé"
+            Conseil = "Contact us for a personalized quote"
         };
     }
 
@@ -276,7 +276,7 @@ public sealed class RagToolDispatcher
         }
 
         if (ids.Count < 2)
-            return new { Error = "Fournissez au moins 2 IDs de parfums" };
+            return new { Error = "Provide at least 2 perfume IDs" };
 
         var perfumes = await _db.Perfumes
             .Include(p => p.Brand)
@@ -296,12 +296,12 @@ public sealed class RagToolDispatcher
             .ToListAsync();
 
         if (perfumes.Count < 2)
-            return new { Error = "Parfums introuvables" };
+            return new { Error = "Perfumes not found" };
 
         return new
         {
             Parfums = perfumes,
-            Conseil = "Chaque parfum a ses propres caractéristiques uniques!"
+            Conseil = "Each perfume has its own unique characteristics!"
         };
     }
 

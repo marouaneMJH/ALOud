@@ -46,7 +46,7 @@ public sealed class AiCartController : ControllerBase
             _logger.LogError(ex, "Error processing AI cart request");
             return StatusCode(500, new RagResponse
             {
-                Answer = "Une erreur s'est produite. Veuillez réessayer.",
+                Answer = "An error occurred. Please try again.",
                 CartSnapshot = null
             });
         }

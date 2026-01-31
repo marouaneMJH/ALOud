@@ -1,6 +1,6 @@
 ﻿@model ALOud.DTOs.LoginDto
 @{
-    ViewData["Title"] = "Connexion";
+    ViewData["Title"] = "Login";
 }
 
 <!-- Auth Container -->
@@ -10,8 +10,8 @@
             <div class="col-md-6 col-lg-5">
                 <!-- Header -->
                 <div class="text-center mb-5">
-                    <h1 class="mb-3">Connexion</h1>
-                    <p class="text-muted">Accédez à votre espace personnel ALOud</p>
+                    <h1 class="mb-3">Login</h1>
+                    <p class="text-muted">Access your personal ALOud space</p>
                 </div>
 
                 <!-- Login Form -->
@@ -27,7 +27,7 @@
                             <input asp-for="Email" 
                                    type="email" 
                                    class="form-control" 
-                                   placeholder="votre@email.com" 
+                                   placeholder="your@email.com" 
                                    autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
@@ -35,11 +35,11 @@
                         <!-- Password Field -->
                         <div class="mb-4">
                             <label asp-for="Password" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Mot de passe</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Password</label>
                             <input asp-for="Password" 
                                    type="password" 
                                    class="form-control" 
-                                   placeholder="Votre mot de passe" 
+                                   placeholder="Your password" 
                                    autocomplete="current-password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
@@ -47,15 +47,15 @@
                         <!-- Submit Button -->
                         <div class="mb-4">
                             <button type="submit" class="btn btn-primary w-100">
-                                Se connecter
+                                Sign in
                             </button>
                         </div>
 
                         <!-- Register Link -->
                         <div class="text-center">
                             <p class="mb-0 text-muted">
-                                Pas encore de compte ? 
-                                <a href="Register" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Créer un compte</a>
+                                Don't have an account? 
+                                <a href="Register" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Create an account</a>
                             </p>
                         </div>
                     </form>

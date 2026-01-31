@@ -242,7 +242,7 @@
             });
 
             if (!response.ok) {
-                throw new Error('Erreur lors de la communication avec l\'assistant');
+                throw new Error('Error communicating with the assistant');
             }
 
             const data = await response.json();
@@ -256,7 +256,7 @@
 
         } catch (error) {
             hideLoading();
-            addMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', false);
+            addMessage('Sorry, an error occurred. Please try again.', false);
             console.error('Error:', error);
         } finally {
             chatInput.disabled = false;
@@ -267,7 +267,7 @@
 
 
 
-    addMessage('Bonjour ! Je suis votre assistant shopping. Je peux vous aider à :\n- Rechercher et recommander des parfums selon vos préférences\n- Vous montrer les détails des produits avec images\n- Ajouter des produits à votre panier\n- Consulter et gérer votre panier\n- Modifier les quantités ou retirer des articles\n\nExemples:\n• "Montre-moi des parfums frais pour l\'été"\n• "J\'aimerais quelque chose de boisé et épicé"\n• "Parle-moi du parfum Dior"\n• "Ajoute 2 parfums vanille à mon panier"', false);
+    addMessage('Hello! I\'m your shopping assistant. I can help you with:\n- Search and recommend perfumes based on your preferences\n- Show you product details with images\n- Add products to your cart\n- View and manage your cart\n- Modify quantities or remove items\n\nExamples:\n• "Show me fresh perfumes for summer"\n• "I\'d like something woody and spicy"\n• "Tell me about the Dior perfume"\n• "Add 2 vanilla perfumes to my cart"', false);
     // Focus input on load
     chatInput.focus();
 </script>

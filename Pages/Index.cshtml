@@ -35,7 +35,7 @@
                        name="query"
                        value="@Model.Search.Query"
                        class="search-input"
-                       placeholder="Rechercher un parfum ou une marque..."
+                       placeholder="Search for a perfume or brand..."
                        onchange="this.form.submit()" />
             </div>
         </form>
@@ -48,14 +48,14 @@
         <div class="filter-row">
             <!-- Brand Filter -->
             <div class="filter-group">
-                <label class="filter-label">Marque</label>
+                <label class="filter-label">Brand</label>
                 <div class="filter-pills">
                     <a class="filter-pill @(Model.SelectedBrandId == null ? "active" : "")" 
                        asp-page="/Index"
                        asp-route-query="@Model.Search.Query"
                        asp-route-familyId="@Model.SelectedFamilyId"
                        asp-route-gender="@Model.SelectedGender">
-                        Toutes
+                        All
                     </a>
                     @foreach (var brand in Model.Brands.Take(10))
                     {
@@ -73,14 +73,14 @@
 
             <!-- Family Filter -->
             <div class="filter-group">
-                <label class="filter-label">Famille Olfactive</label>
+                <label class="filter-label">Olfactory Family</label>
                 <div class="filter-pills">
                     <a class="filter-pill @(Model.SelectedFamilyId == null ? "active" : "")" 
                        asp-page="/Index"
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-gender="@Model.SelectedGender">
-                        Toutes
+                        All
                     </a>
                     @foreach (var family in Model.Families.Take(10))
                     {
@@ -98,14 +98,14 @@
 
             <!-- Gender Filter -->
             <div class="filter-group">
-                <label class="filter-label">Genre</label>
+                <label class="filter-label">Gender</label>
                 <div class="filter-pills">
                     <a class="filter-pill @(string.IsNullOrEmpty(Model.SelectedGender) ? "active" : "")" 
                        asp-page="/Index"
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
-                        Tous
+                        All
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Homme" ? "active" : "")" 
                        asp-page="/Index" 
@@ -113,7 +113,7 @@
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
-                        Homme
+                        Men
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Femme" ? "active" : "")" 
                        asp-page="/Index" 
@@ -121,7 +121,7 @@
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
-                        Femme
+                        Women
                     </a>
                     <a class="filter-pill @(Model.SelectedGender == "Unisexe" ? "active" : "")" 
                        asp-page="/Index" 
@@ -129,7 +129,7 @@
                        asp-route-query="@Model.Search.Query"
                        asp-route-brandId="@Model.SelectedBrandId"
                        asp-route-familyId="@Model.SelectedFamilyId">
-                        Unisexe
+                        Unisex
                     </a>
                 </div>
             </div>
@@ -586,7 +586,7 @@
                             <div class="perfume-footer">
                                 <div class="perfume-price">@perfume.Price.ToString("N0") MAD</div>
                                 <div class="perfume-stock @(perfume.StockQuantity > 0 ? "in-stock" : "out-of-stock")">
-                                    @(perfume.StockQuantity > 0 ? $"En stock ({perfume.StockQuantity})" : "Rupture")
+                                    @(perfume.StockQuantity > 0 ? $"In stock ({perfume.StockQuantity})" : "Out of stock")
                                 </div>
                             </div>
 
@@ -595,7 +595,7 @@
                                 <button type="submit" 
                                         class="add-to-cart-btn" 
                                         @(perfume.StockQuantity <= 0 ? "disabled" : "")>
-                                    @(perfume.StockQuantity > 0 ? "Ajouter au panier" : "Indisponible")
+                                    @(perfume.StockQuantity > 0 ? "Add to cart" : "Unavailable")
                                 </button>
                             </form>
                         </div>
@@ -607,12 +607,12 @@
         {
             <div class="empty-state">
                 <div class="empty-state-icon">🌸</div>
-                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">Aucun parfum trouvé</h3>
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">No perfumes found</h3>
                 <p style="color: var(--color-text-secondary);">
-                    Essayez de modifier vos critères de recherche ou explorez toute notre collection.
+                    Try changing your search criteria or explore our entire collection.
                 </p>
                 <a asp-page="/Index" class="btn btn-primary mt-3">
-                    Voir toute la collection
+                    View full collection
                 </a>
             </div>
         }
@@ -622,7 +622,7 @@
         {
             <div class="pagination-container">
                 <div class="pagination-info">
-                    Page @Model.PageIndex sur @Model.TotalPages (@Model.TotalCount parfums)
+                    Page @Model.PageIndex of @Model.TotalPages (@Model.TotalCount perfumes)
                 </div>
                 <nav class="pagination-nav">
                     @if (Model.HasPreviousPage)
@@ -635,7 +635,7 @@
                            asp-route-brandId="@Model.SelectedBrandId"
                            asp-route-familyId="@Model.SelectedFamilyId"
                            asp-route-gender="@Model.SelectedGender">
-                            ← Précédent
+                            ← Previous
                         </a>
                     }
 
@@ -670,7 +670,7 @@
                            asp-route-brandId="@Model.SelectedBrandId"
                            asp-route-familyId="@Model.SelectedFamilyId"
                            asp-route-gender="@Model.SelectedGender">
-                            Suivant →
+                            Next →
                         </a>
                     }
                 </nav>

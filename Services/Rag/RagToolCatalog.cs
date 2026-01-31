@@ -41,13 +41,13 @@ public static class RagToolCatalog
     private static RagToolDefinition SearchProducts() => new()
     {
         Name = "search_products",
-        Description = "Chercher produits par nom/marque. Retourne max 5 résultats avec Id, Name, Price, ImageUrl.",
+        Description = "Search products by name/brand. Returns max 5 results with Id, Name, Price, ImageUrl.",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                query = new { type = "string", description = "Mots-clés de recherche" }
+                query = new { type = "string", description = "Search keywords" }
             },
             required = new[] { "query" }
         }
@@ -56,7 +56,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetProductDetails() => new()
     {
         Name = "get_product_details",
-        Description = "Détails complets d'un produit par son ID.",
+        Description = "Complete product details by ID.",
         ParametersSchema = new
         {
             type = "object",
@@ -71,13 +71,13 @@ public static class RagToolCatalog
     private static RagToolDefinition RecommendProducts() => new()
     {
         Name = "recommend_products",
-        Description = "Recommander parfums selon préférences (boisé, frais, oriental, floral, épicé).",
+        Description = "Recommend perfumes based on preferences (woody, fresh, oriental, floral, spicy).",
         ParametersSchema = new
         {
             type = "object",
             properties = new
             {
-                preferences = new { type = "string", description = "Type de parfum souhaité" },
+                preferences = new { type = "string", description = "Desired perfume type" },
                 limit = new { type = "integer", minimum = 1, maximum = 5, @default = 3 }
             },
             required = new[] { "preferences" }
@@ -87,7 +87,7 @@ public static class RagToolCatalog
     private static RagToolDefinition GetCart() => new()
     {
         Name = "get_cart",
-        Description = "Voir contenu du panier actuel.",
+        Description = "View current cart contents.",
         ParametersSchema = new
         {
             type = "object",
@@ -99,7 +99,7 @@ public static class RagToolCatalog
     private static RagToolDefinition AddToCart() => new()
     {
         Name = "add_to_cart",
-        Description = "Ajouter produit au panier. Vérifie le stock automatiquement.",
+        Description = "Add product to cart. Automatically checks stock.",
         ParametersSchema = new
         {
             type = "object",
@@ -115,7 +115,7 @@ public static class RagToolCatalog
     private static RagToolDefinition RemoveFromCart() => new()
     {
         Name = "remove_from_cart",
-        Description = "Retirer produit du panier.",
+        Description = "Remove product from cart.",
         ParametersSchema = new
         {
             type = "object",
@@ -130,7 +130,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Increase() => new()
     {
         Name = "increase",
-        Description = "Augmenter quantité de 1.",
+        Description = "Increase quantity by 1.",
         ParametersSchema = new
         {
             type = "object",
@@ -145,7 +145,7 @@ public static class RagToolCatalog
     private static RagToolDefinition Decrease() => new()
     {
         Name = "decrease",
-        Description = "Diminuer quantité de 1.",
+        Description = "Decrease quantity by 1.",
         ParametersSchema = new
         {
             type = "object",
@@ -161,7 +161,7 @@ public static class RagToolCatalog
     private static RagToolDefinition AnalyzeCart() => new()
     {
         Name = "analyze_cart",
-        Description = "Analyse intelligente du panier: total, nombre d'articles, alertes stock, suggestions.",
+        Description = "Smart cart analysis: total, item count, stock alerts, suggestions.",
         ParametersSchema = new
         {
             type = "object",
@@ -174,7 +174,7 @@ public static class RagToolCatalog
     private static RagToolDefinition CompareProducts() => new()
     {
         Name = "compare_products",
-        Description = "Comparer 2-3 produits par prix et caractéristiques.",
+        Description = "Compare 2-3 products by price and features.",
         ParametersSchema = new
         {
             type = "object",

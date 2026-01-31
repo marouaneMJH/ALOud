@@ -1,6 +1,6 @@
 ﻿@model ALOud.DTOs.CreateUserDto
 @{
-    ViewData["Title"] = "Créer un compte";
+    ViewData["Title"] = "Create an account";
 }
 
 <!-- Auth Container -->
@@ -10,8 +10,8 @@
             <div class="col-md-8 col-lg-6">
                 <!-- Header -->
                 <div class="text-center mb-5">
-                    <h1 class="mb-3">Créer un compte</h1>
-                    <p class="text-muted">Rejoignez la communauté ALOud et découvrez nos fragrances exclusives</p>
+                    <h1 class="mb-3">Create an account</h1>
+                    <p class="text-muted">Join the ALOud community and discover our exclusive fragrances</p>
                 </div>
 
                 <!-- Register Form -->
@@ -25,11 +25,11 @@
                             <!-- First Name -->
                             <div class="col-md-6 mb-4">
                                 <label asp-for="FirstName" class="form-label small text-uppercase" 
-                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prénom *</label>
+                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">First Name *</label>
                                 <input asp-for="FirstName" 
                                        type="text" 
                                        class="form-control" 
-                                       placeholder="Votre prénom" 
+                                       placeholder="Your first name" 
                                        autocomplete="given-name" />
                                 <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
@@ -37,11 +37,11 @@
                             <!-- Last Name -->
                             <div class="col-md-6 mb-4">
                                 <label asp-for="LastName" class="form-label small text-uppercase" 
-                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Nom *</label>
+                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Last Name *</label>
                                 <input asp-for="LastName" 
                                        type="text" 
                                        class="form-control" 
-                                       placeholder="Votre nom de famille" 
+                                       placeholder="Your last name" 
                                        autocomplete="family-name" />
                                 <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
@@ -62,11 +62,11 @@
                         <!-- Address Field -->
                         <div class="mb-4">
                             <label asp-for="Address" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Adresse *</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Address *</label>
                             <input asp-for="Address" 
                                    type="text" 
                                    class="form-control" 
-                                   placeholder="Votre adresse complète" 
+                                   placeholder="Your complete address" 
                                    autocomplete="street-address" />
                             <span asp-validation-for="Address" class="text-danger small"></span>
                         </div>
@@ -74,15 +74,15 @@
                         <!-- Password Field -->
                         <div class="mb-4">
                             <label asp-for="Password" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Mot de passe *</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Password *</label>
                             <input asp-for="Password" 
                                    type="password" 
                                    class="form-control" 
-                                   placeholder="Minimum 8 caractères" 
+                                   placeholder="Minimum 8 characters" 
                                    autocomplete="new-password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                             <div class="form-text text-muted small mt-1">
-                                Votre mot de passe doit contenir au minimum 8 caractères
+                                Your password must contain at least 8 characters
                             </div>
                         </div>
 
@@ -91,8 +91,8 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="termsAccepted" required>
                                 <label class="form-check-label text-muted small" for="termsAccepted">
-                                    J'accepte les <a href="#" class="text-decoration-none" style="color: var(--color-accent);">conditions générales</a> 
-                                    et la <a asp-page="/Privacy" class="text-decoration-none" style="color: var(--color-accent);">politique de confidentialité</a>
+                                    I accept the <a href="#" class="text-decoration-none" style="color: var(--color-accent);">terms and conditions</a> 
+                                    and the <a asp-page="/Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a>
                                 </label>
                             </div>
                         </div>
@@ -100,15 +100,15 @@
                         <!-- Submit Button -->
                         <div class="mb-4">
                             <button type="submit" class="btn btn-primary w-100">
-                                Créer mon compte
+                                Create my account
                             </button>
                         </div>
 
                         <!-- Login Link -->
                         <div class="text-center">
                             <p class="mb-0 text-muted">
-                                Déjà un compte ? 
-                                <a asp-action="Login" class="text-decoration-none" style="color: var(--color-accent);">Se connecter</a>
+                                Already have an account? 
+                                <a asp-action="Login" class="text-decoration-none" style="color: var(--color-accent);">Sign in</a>
                             </p>
                         </div>
                     </form>

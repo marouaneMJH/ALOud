@@ -92,7 +92,7 @@ public abstract class BaseLLMClient : IRagLLMClient
             var errorBody = await response.Content.ReadAsStringAsync();
             _logger.LogWarning($"{GetProviderName()} API rate limit exceeded. Response: {errorBody}");
             throw new InvalidOperationException(
-                "Le service d'IA a atteint sa limite de requêtes. Veuillez réessayer dans quelques secondes.");
+                "The AI service has reached its request limit. Please try again in a few seconds.");
         }
 
         // Forbidden
@@ -101,7 +101,7 @@ public abstract class BaseLLMClient : IRagLLMClient
             var errorBody = await response.Content.ReadAsStringAsync();
             _logger.LogError($"{GetProviderName()} API returned 403 Forbidden. Response: {errorBody}");
             throw new InvalidOperationException(
-                $"Accès refusé à l'API {GetProviderName()}. Vérifiez votre clé API.");
+                $"Access denied to {GetProviderName()} API. Please verify your API key.");
         }
 
         // Other errors

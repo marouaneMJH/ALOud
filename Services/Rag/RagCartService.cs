@@ -31,11 +31,11 @@ public sealed class RagCartService
         {
             return new RagResponse
             {
-                Answer = "Bonjour! Je suis l'assistant ALOud. Je peux vous aider à:\n" +
-                         "- Chercher des parfums\n" +
-                         "- Recommander selon vos goûts\n" +
-                         "- Gérer votre panier\n\n" +
-                         "Que puis-je faire pour vous?",
+                Answer = "Hello! I'm the ALOud assistant. I can help you with:\n" +
+                         "- Searching for perfumes\n" +
+                         "- Recommending based on your preferences\n" +
+                         "- Managing your cart\n\n" +
+                         "How can I assist you?",
                 CartSnapshot = null
             };
         }
@@ -66,7 +66,7 @@ public sealed class RagCartService
                 // Final answer → stop
                 if (!llmResult.IsToolCall)
                 {
-                    var answer = llmResult.FinalAnswer ?? "Je n'ai pas pu traiter votre demande.";
+                    var answer = llmResult.FinalAnswer ?? "I couldn't process your request.";
 
                     // Smart fallback: if answer is too generic, provide suggestions
                     if (IsGenericResponse(answer))
@@ -116,7 +116,7 @@ public sealed class RagCartService
         // Max tool calls reached - provide helpful response instead of error
         return new RagResponse
         {
-            Answer = "Je n'ai pas pu compléter toutes les étapes. " + GenerateSmartFallback(userMessage, intent),
+            Answer = "I couldn't complete all the steps. " + GenerateSmartFallback(userMessage, intent),
             CartSnapshot = await _contextBuilder.BuildAsync()
         };
     }
@@ -125,7 +125,7 @@ public sealed class RagCartService
 
     private static bool IsSimpleGreeting(string message)
     {
-        var greetings = new[] { "hi", "hello", "salut", "bonjour", "salam", "hey", "coucou", "bonsoir" };
+        var greetings = new[] { "hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening" };
         var normalized = message.Trim().ToLower();
         return greetings.Any(g => normalized == g || normalized.StartsWith(g + " ") || normalized.StartsWith(g + "!"));
     }
@@ -135,15 +135,15 @@ public sealed class RagCartService
         var lower = message.ToLower();
 
         // Cart operations
-        if (Regex.IsMatch(lower, @"\b(panier|cart|ajoute|retire|supprime|augmente|diminue|quantity|total|vider)\b"))
+        if (Regex.IsMatch(lower, @"\b(cart|add|remove|delete|increase|decrease|quantity|total|clear|checkout)\b"))
             return UserIntent.Cart;
 
         // Recommendations
-        if (Regex.IsMatch(lower, @"\b(recommande|suggère|propose|conseille|idée|goût|préférence|boisé|frais|oriental|floral)\b"))
+        if (Regex.IsMatch(lower, @"\b(recommend|suggest|propose|advise|idea|taste|preference|woody|fresh|oriental|floral)\b"))
             return UserIntent.Recommend;
 
         // Search
-        if (Regex.IsMatch(lower, @"\b(cherche|trouve|search|où|avez.vous|dispo|stock|prix|quel)\b"))
+        if (Regex.IsMatch(lower, @"\b(search|find|look|where|available|stock|price|which|show)\b"))
             return UserIntent.Search;
 
         return UserIntent.General;
@@ -174,8 +174,8 @@ public sealed class RagCartService
     private static bool IsGenericResponse(string answer)
     {
         var genericPhrases = new[] {
-            "désolé", "sorry", "je ne peux pas", "i can't", "impossible",
-            "erreur", "error", "pas disponible", "unavailable"
+            "sorry", "i can't", "impossible", "unable",
+            "error", "unavailable", "not found"
         };
         var lower = answer.ToLower();
         return genericPhrases.Any(p => lower.Contains(p));
@@ -186,29 +186,29 @@ public sealed class RagCartService
         return intent switch
         {
             UserIntent.Cart =>
-                "Pour gérer votre panier, vous pouvez:\n" +
-                "- \"Voir mon panier\"\n" +
-                "- \"Ajouter [nom du produit]\"\n" +
-                "- \"Analyser mon panier\" pour un résumé complet",
+                "To manage your cart, you can:\n" +
+                "- \"View my cart\"\n" +
+                "- \"Add [product name]\"\n" +
+                "- \"Analyze my cart\" for a complete summary",
 
             UserIntent.Search =>
-                "Pour trouver un parfum, essayez:\n" +
-                "- \"Cherche Dior Sauvage\"\n" +
-                "- \"Parfums boisés pour homme\"\n" +
-                "- \"Quels parfums avez-vous?\"",
+                "To find a perfume, try:\n" +
+                "- \"Search for Dior Sauvage\"\n" +
+                "- \"Woody perfumes for men\"\n" +
+                "- \"What perfumes do you have?\"",
 
             UserIntent.Recommend =>
-                "Pour des recommandations, dites-moi:\n" +
-                "- Votre style préféré (frais, boisé, oriental...)\n" +
-                "- L'occasion (quotidien, soirée...)\n" +
-                "- Votre budget",
+                "For recommendations, tell me:\n" +
+                "- Your preferred style (fresh, woody, oriental...)\n" +
+                "- The occasion (daily, evening...)\n" +
+                "- Your budget",
 
             _ =>
-                "Je suis votre assistant parfumerie ALOud. Je peux:\n" +
-                "- Chercher des parfums\n" +
-                "- Faire des recommandations\n" +
-                "- Gérer votre panier\n\n" +
-                "Comment puis-je vous aider?"
+                "I'm your ALOud perfumery assistant. I can:\n" +
+                "- Search for perfumes\n" +
+                "- Make recommendations\n" +
+                "- Manage your cart\n\n" +
+                "How can I help you?"
         };
     }
 }

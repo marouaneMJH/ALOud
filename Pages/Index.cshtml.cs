@@ -147,7 +147,7 @@ namespace Pages
                 ImageUrl = perfume.ImageUrl ?? ""
             });
 
-            TempData["Success"] = $"{perfume.Name} ajouté au panier";
+            TempData["Success"] = $"{perfume.Name} added to cart";
             return RedirectToPage();
         }
     }

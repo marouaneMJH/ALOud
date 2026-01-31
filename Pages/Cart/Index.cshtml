@@ -1,10 +1,8 @@
-﻿
-
-@page
+﻿@page
 @model Pages.Cart.IndexModel
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
-    ViewData["Title"] = "Panier";
+    ViewData["Title"] = "Cart";
     var fallback = Configuration["Images:FallbackUrl"];
 }
 
@@ -12,11 +10,11 @@
     <div class="container">
         <!-- Header -->
         <div class="text-center mb-5">
-            <h1 class="display-2 mb-3">Votre Panier</h1>
+            <h1 class="display-2 mb-3">Your Cart</h1>
             @if (Model.Items.Any())
             {
                 <p style="color: var(--color-text-secondary);">
-                    @Model.Items.Count @(Model.Items.Count > 1 ? "articles" : "article") dans votre sélection
+                    @Model.Items.Count @(Model.Items.Count > 1 ? "items" : "item") in your selection
                 </p>
             }
         </div>
@@ -30,12 +28,12 @@
                         <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.1 16.4H17M17 13V17A2 2 0 0 1 15 19H9A2 2 0 0 1 7 17V13M17 13H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
-                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">Votre panier est vide</h3>
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">Your cart is empty</h3>
                 <p class="mb-4" style="color: var(--color-text-secondary);">
-                    Découvrez notre collection de parfums authentiques et ajoutez vos favoris.
+                    Discover our collection of authentic perfumes and add your favorites.
                 </p>
                 <a asp-page="/Index" class="btn btn-primary">
-                    Découvrir la collection
+                    Discover the collection
                 </a>
             </div>
         }
@@ -49,9 +47,9 @@
                         <table class="cart-table">
                             <thead>
                                 <tr>
-                                    <th>Produit</th>
-                                    <th class="text-center">Quantité</th>
-                                    <th class="text-end">Prix</th>
+                                    <th>Product</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price</th>
                                     <th class="text-end">Total</th>
                                     <th></th>
                                 </tr>
@@ -103,7 +101,7 @@
                                                 <button asp-page-handler="Remove" 
                                                         class="btn btn-minimal p-2"
                                                         style="color: var(--color-text-secondary);"
-                                                        title="Supprimer">
+                                                        title="Remove">
                                                     ✕
                                                 </button>
                                             </form>
@@ -118,16 +116,16 @@
                 <!-- Cart Summary -->
                 <div class="col-lg-4">
                     <div class="p-4" style="background: var(--color-white); border: 1px solid var(--color-border);">
-                        <h3 class="h5 mb-4">Résumé de commande</h3>
+                        <h3 class="h5 mb-4">Order Summary</h3>
                         
                         <div class="d-flex justify-content-between mb-3">
-                            <span>Sous-total</span>
+                            <span>Subtotal</span>
                             <span style="color: var(--color-text-secondary);">@Model.Items.Sum(i => i.Total).ToString("N0") MAD</span>
                         </div>
                         
                         <div class="d-flex justify-content-between mb-3">
-                            <span>Livraison</span>
-                            <span style="color: var(--color-text-secondary);">Gratuite</span>
+                            <span>Shipping</span>
+                            <span style="color: var(--color-text-secondary);">Free</span>
                         </div>
                         
                         <hr class="my-3" style="border-color: var(--color-border);">
@@ -140,12 +138,12 @@
                         </div>
                         
                         <button class="btn btn-primary w-100 py-3">
-                            Procéder au paiement
+                            Proceed to checkout
                         </button>
                         
                         <div class="text-center mt-3">
                             <a asp-page="/Index" class="btn btn-minimal">
-                                Continuer mes achats
+                                Continue shopping
                             </a>
                         </div>
                     </div>

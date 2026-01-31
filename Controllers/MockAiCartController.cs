@@ -16,18 +16,18 @@ public sealed class MockAiCartController : ControllerBase
         ["recommendations"] = new RagResponse
         {
             Answer = """
-            Basé sur vos préférences, voici mes recommandations:
+            Based on your preferences, here are my recommendations:
             ✨ **RawChemistry For Him, Pheromone Infused Cologne** [image:https://m.media-amazon.com/images/I/71DNQEfCz1L._AC_UL320_.jpg]
             Intense and captivating with pepper and incense
-            Prix: 336.90 MAD - En stock
+            Price: 336.90 MAD - In stock
 
             ✨ **Gucci Guilty by Gucci for Men** [image:https://m.media-amazon.com/images/I/51N3JuhLs8L._AC_UL320_.jpg]
             Bold masculine fragrance with leather and tobacco accords
-            Prix: 1645.00 MAD - En stock
+            Price: 1645.00 MAD - In stock
 
             ✨ **Lattafa Asad Bourbon Unisex** [image:https://m.media-amazon.com/images/I/71nuj0MY91L._AC_UL320_.jpg]
             A sophisticated blend with woody and spicy notes
-            Prix: 2380.00 MAD - Stock limité
+            Price: 2380.00 MAD - Limited stock
             """,
             CartSnapshot = null
         },
@@ -35,27 +35,26 @@ public sealed class MockAiCartController : ControllerBase
         ["multiple"] = new RagResponse
         {
             Answer = """
-            Voici des parfums frais pour l'été:
+            Here are fresh perfumes for summer:
 
             1. **Nautica Voyage Eau De Toilette** [image:https://m.media-amazon.com/images/I/51S3W4tnDbL._AC_UL320_.jpg]
             Timeless elegance with cedar and vetiver
-            Prix: 250.00 MAD
+            Price: 250.00 MAD
 
             2. **Gucci Guilty for Men** [image:https://m.media-amazon.com/images/I/510Da6RztXL._AC_UL320_.jpg]
-            Fresh and energetic with citrus and aquatic notes            Fresh and energetic with citrus and aquatic notes Fresh and energetic with citrus and aquatic notes            Fresh and energetic with citrus and aquatic notes
-
-            Prix: 863.10 MAD
+            Fresh and energetic with citrus and aquatic notes
+            Price: 863.10 MAD
 
             3. **GUESS Seductive Homme Blue** [image:https://m.media-amazon.com/images/I/71F4MviMigL._AC_UL320_.jpg]
             Fresh and energetic with citrus and aquatic notes
-            Prix: 2518.00 MAD
+            Price: 2518.00 MAD
             """,
             CartSnapshot = null
         },
 
         ["cart"] = new RagResponse
         {
-            Answer = "J'ai ajouté 2 x Viktor&Rolf Spicebomb Extreme à votre panier.",
+            Answer = "I've added 2 x Viktor&Rolf Spicebomb Extreme to your cart.",
             CartSnapshot = new
             {
                 items = new[]
@@ -72,20 +71,20 @@ public sealed class MockAiCartController : ControllerBase
 
         ["error"] = new RagResponse
         {
-            Answer = "Désolé, je n'ai pas trouvé de produit avec l'ID 999. Essayez de rechercher des produits similaires.",
+            Answer = "Sorry, I couldn't find a product with ID 999. Try searching for similar products.",
             CartSnapshot = null
         },
 
         ["single"] = new RagResponse
         {
             Answer = """
-            Voici le parfum Viktor&Rolf Spicebomb Extreme:
+            Here is the Viktor&Rolf Spicebomb Extreme perfume:
 
             **Viktor&Rolf - Spicebomb Extreme Eau de Parfum** [image:https://m.media-amazon.com/images/I/61SGjKNZT0L._AC_UL320_.jpg]
 
             Description: Dynamic blend of grapefruit and woody notes
-            Prix: 1264.00 MAD
-            Stock: 46 unités disponibles
+            Price: 1264.00 MAD
+            Stock: 46 units available
             """,
             CartSnapshot = null
         },
@@ -97,13 +96,13 @@ public sealed class MockAiCartController : ControllerBase
             **Description:**
             Woody & Spicy cologne for men with notes of amber and vanilla. Dynamic blend of grapefruit and woody notes, perfect for the modern gentleman.
 
-            **Détails:**
-            • Prix: 1264.00 MAD
-            • Stock: 46 unités disponibles
+            **Details:**
+            • Price: 1264.00 MAD
+            • Stock: 46 units available
             • Type: Eau de Parfum
-            • Notes: Ambre, vanille, bois, épices
+            • Notes: Amber, vanilla, wood, spices
 
-            ✅ En stock - Livraison rapide disponible
+            ✅ In stock - Fast delivery available
             """,
             CartSnapshot = null
         }
@@ -124,13 +123,13 @@ public sealed class MockAiCartController : ControllerBase
         if (message.Contains("recommand") || message.Contains("suggest") || message.Contains("propose"))
             return Ok(MockResponses["recommendations"]);
 
-        if (message.Contains("cart") || message.Contains("panier") || message.Contains("add") || message.Contains("ajout"))
+        if (message.Contains("cart") || message.Contains("add") || message.Contains("remove"))
             return Ok(MockResponses["cart"]);
 
-        if (message.Contains("error") || message.Contains("erreur"))
+        if (message.Contains("error") || message.Contains("not found"))
             return Ok(MockResponses["error"]);
 
-        if (message.Contains("summer") || message.Contains("été") || message.Contains("fresh") || message.Contains("list"))
+        if (message.Contains("summer") || message.Contains("fresh") || message.Contains("list"))
             return Ok(MockResponses["multiple"]);
 
         // Default to single product response
