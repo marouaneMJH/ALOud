@@ -157,7 +157,25 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<RagContextBuilder>();
 builder.Services.AddScoped<RagToolDispatcher>();
 builder.Services.AddScoped<RagCartService>();
+
+// =====================
+// RAG – Indexing pipeline
+// =====================
+builder.Services.AddScoped<IProductDataExtractor, ProductDataExtractor>();
+builder.Services.AddScoped<IDocumentBuilderService, DocumentBuilderService>();
+builder.Services.AddScoped<IChunkingService, ChunkingService>();
+builder.Services.AddScoped<IEmbeddingIndexService, EmbeddingIndexService>();
+builder.Services.AddScoped<IVectorIndexService, VectorIndexService>();
+
+// =====================
+// RAG – Runtime (Chat)
+// =====================
 builder.Services.AddScoped<IQueryEmbeddingService, QueryEmbeddingService>();
+builder.Services.AddScoped<IRetrievalService, RetrievalService>();
+builder.Services.AddScoped<IContextBuilderService, ContextBuilderService>();
+builder.Services.AddScoped<ILlmGenerationService, LlmGenerationService>();
+builder.Services.AddScoped<IChatOrchestratorService, ChatOrchestratorService>();
+
 
 // =====================================================
 // LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)

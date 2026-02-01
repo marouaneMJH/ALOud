@@ -1,5 +1,7 @@
 using ALOud.Services.Rag.Models;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using ALOud.Services.Rag.Clients;
 
 namespace ALOud.Services.Rag;
 
@@ -119,6 +121,42 @@ public sealed class RagCartService
             Answer = "I couldn't complete all the steps. " + GenerateSmartFallback(userMessage, intent),
             CartSnapshot = await _contextBuilder.BuildAsync()
         };
+    }
+
+    public async Task<string?> BuildCartContextAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Reuse existing cart context builder
+            var cartContext = JsonSerializer.Serialize(await _contextBuilder.BuildAsync());
+            ;
+
+            if (string.IsNullOrWhiteSpace(cartContext))
+                return null;
+
+            return NormalizeCartContext(cartContext);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to build cart context for user {UserId}", userId);
+            return null;
+        }
+    }
+
+
+    private static string NormalizeCartContext(string rawContext)
+    {
+        return
+    $"""
+    USER CART SUMMARY:
+    {rawContext.Trim()}
+
+    Rules:
+    - Prices and availability are informational only
+    - Cart data reflects the current session
+    """;
     }
 
     private enum UserIntent { Search, Cart, Recommend, General }

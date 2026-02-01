@@ -1,0 +1,78 @@
+// Orchestrate the entire RAG runtime flow from user message -> final answer.
+/*
+User message
+   ↓
+ChatOrchestratorService
+   ├─ QueryEmbeddingService
+   ├─ RetrievalService
+   ├─ RagCartService (live data)
+   ├─ ContextBuilderService
+   └─ LlmGenerationService
+   ↓
+Final answer
+
+*/
+using ALOud.Services.Rag;
+
+public class ChatOrchestratorService : IChatOrchestratorService
+{
+    private readonly IQueryEmbeddingService _queryEmbeddingService;
+    private readonly IRetrievalService _retrievalService;
+    private readonly IContextBuilderService _contextBuilderService;
+    private readonly ILlmGenerationService _llmGenerationService;
+    private readonly RagCartService _ragCartService;
+
+    public ChatOrchestratorService(
+        IQueryEmbeddingService queryEmbeddingService,
+        IRetrievalService retrievalService,
+        IContextBuilderService contextBuilderService,
+        ILlmGenerationService llmGenerationService,
+        RagCartService ragCartService)
+    {
+        _queryEmbeddingService = queryEmbeddingService;
+        _retrievalService = retrievalService;
+        _contextBuilderService = contextBuilderService;
+        _llmGenerationService = llmGenerationService;
+        _ragCartService = ragCartService;
+    }
+
+    public async Task<string> HandleAsync(
+        Guid userId,
+        string message,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            throw new ArgumentException("Message cannot be empty", nameof(message));
+
+        // 1. Embed user query
+        var queryVector = await _queryEmbeddingService.EmbedAsync(
+            message,
+            cancellationToken
+        );
+
+        // 2. Retrieve static knowledge
+        var retrievedChunks = await _retrievalService.RetrieveAsync(
+            queryVector,
+            topK: 5,
+            cancellationToken: cancellationToken
+        );
+
+        // 3. Fetch live cart context
+        var liveCartContext = await _ragCartService
+            .BuildCartContextAsync(userId, cancellationToken);
+
+        // 4. Build final context
+        var contextPayload = _contextBuilderService.Build(
+            userQuery: message,
+            retrievedChunks: retrievedChunks,
+            liveContext: liveCartContext
+        );
+
+        // 5. Generate final answer
+        return await _llmGenerationService.GenerateAsync(
+            contextPayload,
+            message,
+            cancellationToken
+        );
+    }
+}
