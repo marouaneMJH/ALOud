@@ -176,6 +176,9 @@ builder.Services.AddScoped<IRetrievalService, RetrievalService>();
 builder.Services.AddScoped<IContextBuilderService, ContextBuilderService>();
 builder.Services.AddScoped<ILlmGenerationService, LlmGenerationService>();
 builder.Services.AddScoped<IChatOrchestratorService, ChatOrchestratorService>();
+builder.Services.AddHttpClient<OllamaEmbeddingClient>();
+builder.Services.AddScoped<IEmbeddingClient, OllamaEmbeddingClient>();
+
 
 
 // =====================================================
