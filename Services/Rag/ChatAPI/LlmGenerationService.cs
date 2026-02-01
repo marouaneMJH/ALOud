@@ -3,13 +3,13 @@ using System.Text;
 using ALOud.Services.Rag.Clients;
 using ALOud.Services.Rag.Models;
 
-public class LlmGenerationService : ILlmGenerationService
+public sealed class LlmGenerationService : ILlmGenerationService
 {
-    private readonly ILlmClient _llmClient;
+    private readonly IRagLLMClient _llm;
 
-    public LlmGenerationService(ILlmClient llmClient)
+    public LlmGenerationService(IRagLLMClient llm)
     {
-        _llmClient = llmClient;
+        _llm = llm;
     }
 
     public async Task<string> GenerateAsync(
@@ -17,33 +17,18 @@ public class LlmGenerationService : ILlmGenerationService
         string userQuery,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(userQuery))
-            throw new ArgumentException("User query cannot be empty", nameof(userQuery));
+        var result = await _llm.ExecuteAsync(new RagLLMRequest
+        {
+            SystemPrompt = context.SystemContext,
+            UserMessage = userQuery,
+            Context = new
+            {
+                knowledge = context.KnowledgeContext,
+                live = context.LiveContext
+            }
+        });
 
-        var userPrompt = BuildUserPrompt(userQuery, context);
-
-        return await _llmClient.GenerateAsync(
-            systemPrompt: context.SystemContext,
-            userPrompt: userPrompt,
-            cancellationToken: cancellationToken
-        );
-    }
-
-    private static string BuildUserPrompt(
-        string userQuery,
-        RagContextPayload context)
-    {
-        var sb = new StringBuilder();
-
-        sb.AppendLine("USER QUESTION:");
-        sb.AppendLine(userQuery.Trim());
-        sb.AppendLine();
-
-        sb.AppendLine("CONTEXT:");
-        sb.AppendLine(context.KnowledgeContext);
-        sb.AppendLine();
-        sb.AppendLine(context.LiveContext);
-
-        return sb.ToString().Trim();
+        return result.FinalAnswer
+            ?? "I couldn’t generate an answer based on the provided context.";
     }
 }

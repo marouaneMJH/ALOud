@@ -15,6 +15,7 @@ using ALOud.Services.Season;
 using ALOud.Services.Occasion;
 using ALOud.Services.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -180,7 +181,12 @@ builder.Services.AddScoped<IChatOrchestratorService, ChatOrchestratorService>();
 // =====================================================
 // LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)
 // =====================================================
-builder.Services.AddHttpClient("LLMClient");
+builder.Services.AddHttpClient("LLMClient")
+    .ConfigurePrimaryHttpMessageHandler(() =>
+        new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All
+        });
 builder.Services.AddScoped<LLMClientFactory>();
 builder.Services.AddScoped<IRagLLMClient>(sp =>
 {
