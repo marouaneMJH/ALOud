@@ -1,7 +1,7 @@
 using System.Text.Json;
 using ALOud.Services.Rag.Models;
 
-namespace ALOud.Services.Rag;
+namespace ALOud.Services.Rag.Clients;
 
 public sealed class GroqLLMClient : BaseLLMClient
 {

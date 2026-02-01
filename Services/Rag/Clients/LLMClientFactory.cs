@@ -1,6 +1,6 @@
 using ALOud.Services.Rag.Models;
 
-namespace ALOud.Services.Rag;
+namespace ALOud.Services.Rag.Clients;
 
 /// <summary>
 /// Factory for creating LLM clients based on environment configuration

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using ALOud.Services.Rag.Models;
 
-namespace ALOud.Services.Rag;
+namespace ALOud.Services.Rag.Clients;
 
 /// <summary>
 /// Base abstract class for all LLM clients providing common functionality
