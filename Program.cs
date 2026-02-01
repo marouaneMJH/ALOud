@@ -4,7 +4,7 @@ using ALOud.Data;
 using ALOud.Services;
 using ALOud.Services.Security;
 using ALOud.Services.Rag;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Rag.Clients;
 using ALOud.Services.Brand;
 using ALOud.Services.Perfume;
 using ALOud.Services.Family;
@@ -157,6 +157,7 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<RagContextBuilder>();
 builder.Services.AddScoped<RagToolDispatcher>();
 builder.Services.AddScoped<RagCartService>();
+builder.Services.AddScoped<IQueryEmbeddingService, QueryEmbeddingService>();
 
 // =====================================================
 // LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)
