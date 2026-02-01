@@ -74,3 +74,18 @@ public class GrokSettings
         ApiKeyEnvVar = "GROK_API_KEY";
     }
 }
+public class QdrantSettings
+{
+    public string BaseUrl { get; }
+    public string Collection { get; }
+    public int VectorSize { get; }
+
+    public QdrantSettings()
+    {
+        BaseUrl = Environment.GetEnvironmentVariable("QDRANT_BASE_URL") ?? "http://localhost:6333";
+        Collection = Environment.GetEnvironmentVariable("QDRANT_COLLECTION") ?? "perfumes";
+        VectorSize = 768;
+    }
+}
+
+

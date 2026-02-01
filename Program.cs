@@ -16,6 +16,7 @@ using ALOud.Services.Occasion;
 using ALOud.Services.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net;
+using ALOud.Services.Rag.IndexingJob;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -167,6 +168,9 @@ builder.Services.AddScoped<IDocumentBuilderService, DocumentBuilderService>();
 builder.Services.AddScoped<IChunkingService, ChunkingService>();
 builder.Services.AddScoped<IEmbeddingIndexService, EmbeddingIndexService>();
 builder.Services.AddScoped<IVectorIndexService, VectorIndexService>();
+builder.Services.AddHttpClient<QdrantBootstrapService>();
+builder.Services.AddScoped<QdrantBootstrapService>();
+
 
 // =====================
 // RAG – Runtime (Chat)
@@ -263,6 +267,12 @@ using (var scope = app.Services.CreateScope())
         logger.LogCritical(ex, "[-] Redis startup check failed");
         throw;
     }
+
+    //  EnsureCollectionExistsAsync
+    var bootstrap = scope.ServiceProvider
+        .GetRequiredService<QdrantBootstrapService>();
+    await bootstrap.EnsureCollectionExistsAsync();
+
 }
 
 // =====================================================
