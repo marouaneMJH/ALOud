@@ -17,6 +17,8 @@ using ALOud.Services.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net;
 using ALOud.Services.Rag.IndexingJob;
+using Microsoft.Extensions.Options;
+using ALOud.Services.Rag.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -168,9 +170,32 @@ builder.Services.AddScoped<IDocumentBuilderService, DocumentBuilderService>();
 builder.Services.AddScoped<IChunkingService, ChunkingService>();
 builder.Services.AddScoped<IEmbeddingIndexService, EmbeddingIndexService>();
 builder.Services.AddScoped<IVectorIndexService, VectorIndexService>();
+
+// --------------------
+// Qdrant settings
+// --------------------
+builder.Services.Configure<QdrantSettings>(
+    builder.Configuration.GetSection("Qdrant"));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<QdrantSettings>>().Value);
+
+// --------------------
+// Qdrant clients
+// --------------------
+builder.Services.AddHttpClient<QdrantVectorDbClient>();
+builder.Services.AddScoped<IVectorDbClient, QdrantVectorDbClient>();
+
+builder.Services.AddHttpClient<QdrantVectorSearchClient>();
+builder.Services.AddScoped<IVectorSearchClient, QdrantVectorSearchClient>();
+
+// --------------------
+// Qdrant bootstrap
+// --------------------
 builder.Services.AddHttpClient<QdrantBootstrapService>();
 builder.Services.AddScoped<QdrantBootstrapService>();
 
+builder.Services.AddHostedService<RagIndexingHostedService>();
 
 // =====================
 // RAG – Runtime (Chat)
@@ -182,8 +207,6 @@ builder.Services.AddScoped<ILlmGenerationService, LlmGenerationService>();
 builder.Services.AddScoped<IChatOrchestratorService, ChatOrchestratorService>();
 builder.Services.AddHttpClient<OllamaEmbeddingClient>();
 builder.Services.AddScoped<IEmbeddingClient, OllamaEmbeddingClient>();
-
-
 
 // =====================================================
 // LLM CLIENT (FACTORY PATTERN - ENV CONFIGURED)
@@ -272,7 +295,6 @@ using (var scope = app.Services.CreateScope())
     var bootstrap = scope.ServiceProvider
         .GetRequiredService<QdrantBootstrapService>();
     await bootstrap.EnsureCollectionExistsAsync();
-
 }
 
 // =====================================================

@@ -1,3 +1,4 @@
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 .PHONY:  help dev run all
 help:
 	@echo "	make help: to see make options"
@@ -18,10 +19,13 @@ build:
 start-services:
 	@redis-start
 	@mssql-start
+	@docker start qdrant
 
 stop-services:
 	@redis-stop
 	@mssql-stop
+	@docker stop qdrant
+
 
 
 all: help
