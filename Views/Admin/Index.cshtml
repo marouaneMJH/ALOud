@@ -1,150 +1,19 @@
 @model ALOud.DTOs.Admin.DashboardStatsDto
 @{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = null;
+    ViewData["ActiveNav"] = "Dashboard";
+    ViewData["TotalPerfumes"] = Model.TotalPerfumes;
+    ViewData["TotalBrands"] = Model.TotalBrands;
+    ViewData["TotalFamilies"] = Model.TotalFamilies;
+    ViewData["TotalNotes"] = Model.TotalNotes;
+    ViewData["TotalAccords"] = Model.TotalAccords;
+    ViewData["TotalTags"] = Model.TotalTags;
+    ViewData["TotalSeasons"] = Model.TotalSeasons;
+    ViewData["TotalOccasions"] = Model.TotalOccasions;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ALOud Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+@section Styles {
     <style>
-        :root {
-            --sidebar-width: 260px;
-            --sidebar-bg: #0b0b0b;
-            --sidebar-hover: #1a1a1a;
-            --accent-color: #c9a24d;
-            --accent-light: #d4b366;
-            --accent-dark: #a8873e;
-            --text-muted: #6b6b6b;
-            --card-bg: #ffffff;
-            --body-bg: #f7f7f5;
-            --color-primary: #0b0b0b;
-            --color-border: #e5e5e3;
-            --font-heading: "Playfair Display", serif;
-            --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background: var(--body-bg);
-            min-height: 100vh;
-            color: var(--color-primary);
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: var(--sidebar-bg);
-            padding: 1.5rem 0;
-            overflow-y: auto;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-brand {
-            padding: 0 1.5rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-brand h2 {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: var(--font-heading);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .sidebar-brand h2 i {
-            color: var(--accent-color);
-        }
-
-        .sidebar-brand span {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
-            display: block;
-            margin-top: 0.25rem;
-        }
-
-        .nav-section {
-            padding: 0.5rem 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-section-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-        }
-
-        .nav-link:hover {
-            background: var(--sidebar-hover);
-            color: #fff;
-        }
-
-        .nav-link.active {
-            background: var(--accent-color);
-            color: var(--color-primary);
-        }
-
-        .nav-link i {
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .nav-link .badge {
-            margin-left: auto;
-            background: rgba(255,255,255,0.15);
-            font-size: 0.7rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        .nav-link.active .badge {
-            background: rgba(0,0,0,0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -366,39 +235,6 @@
             text-align: center;
         }
 
-        /* Mobile Toggle */
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: var(--sidebar-bg);
-            color: #fff;
-            border: none;
-            padding: 0.75rem;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        @@media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .mobile-toggle {
-                display: block;
-            }
-        }
-
         /* Perfume Image Placeholder */
         .perfume-img {
             width: 50px;
@@ -407,133 +243,10 @@
             object-fit: cover;
             background: var(--color-primary);
         }
-
-        /* Button Styles */
-        .btn-outline-primary {
-            color: var(--color-primary);
-            border-color: var(--color-primary);
-        }
-
-        .btn-outline-primary:hover {
-            background: var(--color-primary);
-            border-color: var(--color-primary);
-            color: #fff;
-        }
-
-        .btn-primary {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-            color: var(--color-primary);
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-dark);
-            border-color: var(--accent-dark);
-            color: var(--color-primary);
-        }
-
-        .badge.bg-secondary {
-            background: var(--color-primary) !important;
-            color: #fff;
-        }
     </style>
-</head>
-<body>
-    <!-- Mobile Toggle Button -->
-    <button class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="bi bi-list"></i>
-    </button>
+}
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <h2><i class="bi bi-droplet-fill"></i> ALOud</h2>
-            <span>Perfume Admin Panel</span>
-        </div>
-
-        <nav>
-            <!-- Overview -->
-            <div class="nav-section">
-                <div class="nav-section-title">Overview</div>
-                <a href="@Url.Action("Index", "Admin")" class="nav-link active">
-                    <i class="bi bi-grid-1x2-fill"></i>
-                    Dashboard
-                </a>
-            </div>
-
-            <!-- Catalog -->
-            <div class="nav-section">
-                <div class="nav-section-title">Catalog</div>
-                <a href="@Url.Action("Perfumes", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-droplet"></i>
-                    Perfumes
-                    <span class="badge">@Model.TotalPerfumes</span>
-                </a>
-                <a href="@Url.Action("Brands", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-building"></i>
-                    Brands
-                    <span class="badge">@Model.TotalBrands</span>
-                </a>
-            </div>
-
-            <!-- Classifications -->
-            <div class="nav-section">
-                <div class="nav-section-title">Classifications</div>
-                <a href="@Url.Action("Families", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-diagram-3"></i>
-                    Families
-                    <span class="badge">@Model.TotalFamilies</span>
-                </a>
-                <a href="@Url.Action("Notes", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-music-note-beamed"></i>
-                    Notes
-                    <span class="badge">@Model.TotalNotes</span>
-                </a>
-                <a href="@Url.Action("Accords", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-palette"></i>
-                    Accords
-                    <span class="badge">@Model.TotalAccords</span>
-                </a>
-            </div>
-
-            <!-- Attributes -->
-            <div class="nav-section">
-                <div class="nav-section-title">Attributes</div>
-                <a href="@Url.Action("Tags", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-tags"></i>
-                    Tags
-                    <span class="badge">@Model.TotalTags</span>
-                </a>
-                <a href="@Url.Action("Seasons", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-sun"></i>
-                    Seasons
-                    <span class="badge">@Model.TotalSeasons</span>
-                </a>
-                <a href="@Url.Action("Occasions", "PerfumeAdmin")" class="nav-link">
-                    <i class="bi bi-calendar-event"></i>
-                    Occasions
-                    <span class="badge">@Model.TotalOccasions</span>
-                </a>
-            </div>
-
-            <!-- Settings -->
-            <div class="nav-section">
-                <div class="nav-section-title">Settings</div>
-                <a href="@Url.Action("LLMConfig", "Admin")" class="nav-link">
-                    <i class="bi bi-robot"></i>
-                    LLM Configuration
-                </a>
-                <a href="@Url.Action("Index", "Home")" class="nav-link">
-                    <i class="bi bi-box-arrow-left"></i>
-                    Back to Store
-                </a>
-            </div>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="page-header">
+<div class="page-header">
             <div>
                 <h1>Dashboard</h1>
                 <span class="breadcrumb">Welcome back, Admin</span>
@@ -765,24 +478,4 @@
                 </div>
             </div>
         </div>
-    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(e) {
-            const sidebar = document.getElementById('sidebar');
-            const toggle = document.querySelector('.mobile-toggle');
-            if (window.innerWidth <= 992) {
-                if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
-    </script>
-</body>
-</html>
