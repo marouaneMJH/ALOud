@@ -10,11 +10,11 @@ public sealed class AiCartController : ControllerBase
 {
     private readonly RagCartService _ragCartService;
     private readonly ILogger<AiCartController> _logger;
-    private readonly ChatOrchestratorService _chatOrchestratorService;
+    private readonly IChatOrchestratorService _chatOrchestratorService;
 
     public AiCartController(
         RagCartService ragCartService,
-        ChatOrchestratorService chatOrchestratorService,
+        IChatOrchestratorService chatOrchestratorService,
         ILogger<AiCartController> logger)
     {
         _chatOrchestratorService = chatOrchestratorService;
@@ -57,11 +57,14 @@ public sealed class AiCartController : ControllerBase
 
 
     [HttpPost("chat")]
-    public async Task<IActionResult> Chat([FromBody] string message)
+    public async Task<IActionResult> Chat([FromBody] RagRequest request)
+
     {
-        var userId = new Guid(); // GetCurrentUserId(); // from auth
+
+        _logger.LogDebug("The Message {message} ", request.Message);
+        var userId = Guid.NewGuid(); // todo: for new just add random uid after  GetCurrentUserId(); // from auth
         var response = await _chatOrchestratorService
-            .HandleAsync(userId, message);
+            .HandleAsync(userId, request.Message);
 
         return Ok(response);
     }

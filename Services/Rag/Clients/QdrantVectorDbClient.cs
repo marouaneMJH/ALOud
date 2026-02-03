@@ -33,9 +33,10 @@ public sealed class QdrantVectorDbClient : IVectorDbClient
             {
                 id = r.Id,
                 vector = r.Vector,
-                payload = r.Metadata.Append(
-                    new KeyValuePair<string, object>("content", r.Content)
-                ).ToDictionary(k => k.Key, v => v.Value)
+                payload = new Dictionary<string, object>(r.Metadata)
+                {
+                    ["content"] = r.Content
+                }
             })
         };
         // fix: Bas request ?
@@ -43,6 +44,12 @@ public sealed class QdrantVectorDbClient : IVectorDbClient
             $"collections/{_settings.Collection}/points",
             payload,
             cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Qdrant upsert failed: {Body}", body);
+        }
 
         response.EnsureSuccessStatusCode();
 

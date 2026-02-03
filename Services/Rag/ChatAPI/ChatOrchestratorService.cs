@@ -13,6 +13,7 @@ Final answer
 
 */
 using ALOud.Services.Rag;
+using ALOud.Services.Rag.Models;
 
 public class ChatOrchestratorService : IChatOrchestratorService
 {
@@ -75,4 +76,47 @@ public class ChatOrchestratorService : IChatOrchestratorService
             cancellationToken
         );
     }
+
+
+    public async Task<RagDebugResult> HandleWithDebugAsync(
+    Guid userId,
+    string message,
+    CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            throw new ArgumentException("Message cannot be empty", nameof(message));
+
+        // 1. Embed query
+        var queryVector = await _queryEmbeddingService
+            .EmbedAsync(message, cancellationToken);
+
+        // 2. Retrieve
+        var retrievedChunks = await _retrievalService
+            .RetrieveAsync(queryVector, topK: 5, cancellationToken: cancellationToken);
+
+        // 3. Live cart context
+        var liveCartContext = await _ragCartService
+            .BuildCartContextAsync(userId, cancellationToken);
+
+        // 4. Build context
+        var contextPayload = _contextBuilderService.Build(
+            userQuery: message,
+            retrievedChunks: retrievedChunks,
+            liveContext: liveCartContext
+        );
+
+        // 5. Generate answer
+        var answer = await _llmGenerationService.GenerateAsync(
+            contextPayload,
+            message,
+            cancellationToken
+        );
+
+        return new RagDebugResult
+        {
+            Answer = answer,
+            RetrievedChunks = retrievedChunks
+        };
+    }
+
 }

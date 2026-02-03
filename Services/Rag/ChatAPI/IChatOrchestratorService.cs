@@ -1,3 +1,7 @@
+
+
+using ALOud.Services.Rag.Models;
+
 public interface IChatOrchestratorService
 {
     Task<string> HandleAsync(
@@ -5,4 +9,10 @@ public interface IChatOrchestratorService
         string message,
         CancellationToken cancellationToken = default
     );
+
+    Task<RagDebugResult> HandleWithDebugAsync(
+         Guid userId,
+         string message,
+         CancellationToken cancellationToken = default
+     );
 }

@@ -26,7 +26,7 @@ public class EmbeddingIndexService : IEmbeddingIndexService
 
             results.Add(new VectorRecord
             {
-                Id = $"{chunk.SourceId}_{chunk.ChunkIndex}",
+                Id = chunk.SourceId.ToString(),
                 Vector = vector,
                 Content = chunk.Content,
                 Metadata = BuildMetadata(chunk)
@@ -42,6 +42,7 @@ public class EmbeddingIndexService : IEmbeddingIndexService
         return new Dictionary<string, object>
         {
             ["sourceId"] = chunk.SourceId.ToString(),
+            ["chunkIndex"] = chunk.ChunkIndex,
             ["brand"] = chunk.Brand ?? string.Empty,
             ["genderProfile"] = chunk.GenderProfile ?? string.Empty,
             ["priceRange"] = chunk.PriceRange ?? string.Empty
