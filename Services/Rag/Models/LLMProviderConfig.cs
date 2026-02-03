@@ -80,6 +80,7 @@ public class QdrantSettings
     public string Collection { get; }
     public int VectorSize { get; }
 
+
     public QdrantSettings()
     {
         BaseUrl = Environment.GetEnvironmentVariable("QDRANT_BASE_URL") ?? "http://localhost:6333";
