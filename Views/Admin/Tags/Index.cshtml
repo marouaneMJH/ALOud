@@ -1,7 +1,7 @@
 @model ViewModels.PaginatedList<ALOud.DTOs.Tags.TagDto>
 @{
     ViewData["Title"] = "Manage Tags";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+        ViewData["ActiveNav"] = "Tags";
 }
 
 <div class="admin-page">
@@ -114,6 +114,3 @@
 
 @await Html.PartialAsync("Components/_AdminDeleteModal")
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin.css" />
-}

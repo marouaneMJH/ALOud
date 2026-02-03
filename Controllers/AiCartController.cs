@@ -10,11 +10,14 @@ public sealed class AiCartController : ControllerBase
 {
     private readonly RagCartService _ragCartService;
     private readonly ILogger<AiCartController> _logger;
+    private readonly ChatOrchestratorService _chatOrchestratorService;
 
     public AiCartController(
         RagCartService ragCartService,
+        ChatOrchestratorService chatOrchestratorService,
         ILogger<AiCartController> logger)
     {
+        _chatOrchestratorService = chatOrchestratorService;
         _ragCartService = ragCartService;
         _logger = logger;
     }
@@ -50,5 +53,16 @@ public sealed class AiCartController : ControllerBase
                 CartSnapshot = null
             });
         }
+    }
+
+
+    [HttpPost("chat")]
+    public async Task<IActionResult> Chat([FromBody] string message)
+    {
+        var userId = new Guid(); // GetCurrentUserId(); // from auth
+        var response = await _chatOrchestratorService
+            .HandleAsync(userId, message);
+
+        return Ok(response);
     }
 }

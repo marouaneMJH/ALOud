@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Manage Perfumes";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
     var brands = ViewBag.Brands as List<ALOud.DTOs.Brands.BrandSelectDto>;
     var families = ViewBag.Families as List<ALOud.DTOs.Families.FamilySelectDto>;
@@ -188,6 +187,3 @@
 
 @await Html.PartialAsync("Components/_AdminDeleteModal")
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin.css" />
-}

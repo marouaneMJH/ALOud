@@ -1,4 +1,3 @@
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 .PHONY:  help dev run all
 help:
 	@echo "	make help: to see make options"

@@ -1,7 +1,6 @@
 @model ViewModels.PaginatedList<ALOud.DTOs.Brands.BrandDto>
 @{
     ViewData["Title"] = "Manage Brands";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="admin-page">
@@ -119,6 +118,3 @@
 
 @await Html.PartialAsync("Components/_AdminDeleteModal")
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin.css" />
-}

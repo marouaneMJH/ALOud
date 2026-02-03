@@ -1,7 +1,6 @@
 @model ViewModels.PaginatedList<ALOud.DTOs.Accords.AccordDto>
 @{
     ViewData["Title"] = "Manage Accords";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
 }
 
@@ -115,6 +114,3 @@
 
 @await Html.PartialAsync("Components/_AdminDeleteModal")
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin.css" />
-}
