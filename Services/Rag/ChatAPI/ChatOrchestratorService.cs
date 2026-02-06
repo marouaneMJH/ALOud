@@ -23,7 +23,6 @@ public class ChatOrchestratorService : IChatOrchestratorService
     private readonly IRetrievalService _retrievalService;
     private readonly IContextBuilderService _contextBuilderService;
     private readonly ILlmGenerationService _llmGenerationService;
-    private readonly RagCartService _ragCartService;
     private readonly CartContextBuilder _cartContextBuilder;
 
 
@@ -31,14 +30,13 @@ public class ChatOrchestratorService : IChatOrchestratorService
         IQueryEmbeddingService queryEmbeddingService,
         IRetrievalService retrievalService,
         IContextBuilderService contextBuilderService,
-        ILlmGenerationService llmGenerationService,
-        RagCartService ragCartService)
+        ILlmGenerationService llmGenerationService
+       )
     {
         _queryEmbeddingService = queryEmbeddingService;
         _retrievalService = retrievalService;
         _contextBuilderService = contextBuilderService;
         _llmGenerationService = llmGenerationService;
-        _ragCartService = ragCartService;
     }
 
     public async Task<string> HandleAsync(

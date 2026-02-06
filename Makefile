@@ -25,6 +25,7 @@ stop-services:
 	@mssql-stop
 	@docker stop qdrant
 
-
+qdrant-dashboard:
+	@xdg-open http://localhost:6333/dashboard#/collections/perfumes
 
 all: help

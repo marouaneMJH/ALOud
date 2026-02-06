@@ -14,6 +14,8 @@ using ALOud.Services.Tag;
 using ALOud.Services.Season;
 using ALOud.Services.Occasion;
 using ALOud.Services.Data;
+using ALOud.Services.Cart;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net;
 using ALOud.Services.Rag.IndexingJob;
@@ -141,6 +143,10 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 // Admin / domain services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<LLMConfigService>();
+
+// Cart
+builder.Services.AddScoped<ICartContextBuilder, CartContextBuilder>();
+
 
 // Perfume domain services
 builder.Services.AddScoped<IBrandService, BrandService>();
