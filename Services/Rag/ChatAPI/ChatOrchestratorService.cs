@@ -12,6 +12,8 @@ ChatOrchestratorService
 Final answer
 
 */
+using System.Text.Json;
+using ALOud.Services.Cart;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Models;
 
@@ -22,6 +24,8 @@ public class ChatOrchestratorService : IChatOrchestratorService
     private readonly IContextBuilderService _contextBuilderService;
     private readonly ILlmGenerationService _llmGenerationService;
     private readonly RagCartService _ragCartService;
+    private readonly CartContextBuilder _cartContextBuilder;
+
 
     public ChatOrchestratorService(
         IQueryEmbeddingService queryEmbeddingService,
@@ -59,8 +63,11 @@ public class ChatOrchestratorService : IChatOrchestratorService
         );
 
         // 3. Fetch live cart context
-        var liveCartContext = await _ragCartService
-            .BuildCartContextAsync(userId, cancellationToken);
+
+        var liveCartContext = $"""
+            CURRENT CART:
+            {JsonSerializer.Serialize(await _cartContextBuilder.BuildAsync(userId))}
+        """;
 
         // 4. Build final context
         var contextPayload = _contextBuilderService.Build(
@@ -95,8 +102,7 @@ public class ChatOrchestratorService : IChatOrchestratorService
             .RetrieveAsync(queryVector, topK: 5, cancellationToken: cancellationToken);
 
         // 3. Live cart context
-        var liveCartContext = await _ragCartService
-            .BuildCartContextAsync(userId, cancellationToken);
+        var liveCartContext = await BuildLiveContextAsync(userId);
 
         // 4. Build context
         var contextPayload = _contextBuilderService.Build(
@@ -119,4 +125,12 @@ public class ChatOrchestratorService : IChatOrchestratorService
         };
     }
 
+
+    async private Task<String> BuildLiveContextAsync(Guid userId)
+    {
+        return $"""
+            CURRENT CART:
+            {JsonSerializer.Serialize(await _cartContextBuilder.BuildAsync(userId))}
+        """;
+    }
 }

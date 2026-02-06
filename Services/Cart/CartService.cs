@@ -27,6 +27,7 @@ namespace ALOud.Services
         }
         // Async: retrieve current user's cart from cache (or empty list).
 
+        // Fix: Get cart by userId, where the user is is the cash key
         public List<CartItemVM> GetCart()
         {
             return GetCartAsync().Result;

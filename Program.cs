@@ -158,7 +158,7 @@ builder.Services.AddScoped<CartService>();
 // =====================================================
 // RAG – CORE
 // =====================================================
-builder.Services.AddScoped<RagContextBuilder>();
+builder.Services.AddScoped<IRagAnswerService, RagAnswerService>();
 builder.Services.AddScoped<RagToolDispatcher>();
 builder.Services.AddScoped<RagCartService>();
 
