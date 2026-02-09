@@ -29,7 +29,9 @@ public sealed class ExpertSystemChatController : ControllerBase
         var profile = new UserProfile
         {
             Climate = EClimate.Hot,
-            Occasion = EOccasion.Office
+            Occasion = EOccasion.Gym,
+            SkinType = ESkinType.Oily,
+            Compliment = EComplimentDesire.Neutral,
         };
 
         var result = _expert.Evaluate(profile);

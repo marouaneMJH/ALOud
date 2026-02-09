@@ -1,6 +1,8 @@
 using NRules.Fluent.Dsl;
 
-public class HotClimateRule : Rule
+namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.ClimateRules;
+
+public class HotClimateAvoidRule : Rule
 {
     public override void Define()
     {
@@ -12,7 +14,7 @@ public class HotClimateRule : Rule
             .Match(() => rec);
 
         Then()
-            .Do(ctx => Apply(rec));
+            .Do(_ => Apply(rec));
     }
 
     private static void Apply(Recommendation rec)
@@ -24,17 +26,6 @@ public class HotClimateRule : Rule
             "sweet_high"
         });
 
-        rec.Prefer.UnionWith(new[]
-        {
-            "citrus",
-            "aquatic",
-            "green",
-            "light_musk"
-        });
-
-        rec.Sillage = "moderate_or_intimate";
-        rec.Longevity = ">= medium";
-
-        rec.Reasons.Add("Hot climate → fresh and light perfumes preferred");
+        rec.Reasons.Add("Hot climate → avoid heavy oriental, gourmand and sweet fragrances");
     }
 }

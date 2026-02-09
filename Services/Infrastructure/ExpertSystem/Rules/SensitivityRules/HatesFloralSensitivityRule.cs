@@ -1,0 +1,31 @@
+using NRules.Fluent.Dsl;
+
+namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.SensitivityRules;
+
+public class HatesFloralSensitivityRule : Rule
+{
+    public override void Define()
+    {
+        UserProfile user = null!;
+        Recommendation rec = null!;
+
+        When()
+            .Match(() => user, u => u.Sensitivity == ESensitivity.HatesFloral)
+            .Match(() => rec);
+
+        Then()
+            .Do(_ => Apply(rec));
+    }
+
+    private static void Apply(Recommendation rec)
+    {
+        rec.Avoid.UnionWith(new[]
+        {
+            "rose",
+            "jasmine",
+            "lily"
+        });
+
+        rec.Reasons.Add("Hates floral → avoid rose, jasmine and lily notes");
+    }
+}

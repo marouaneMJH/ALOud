@@ -1,0 +1,32 @@
+using NRules.Fluent.Dsl;
+
+namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.SensitivityRules;
+
+public class MigraineSensitivityRule : Rule
+{
+    public override void Define()
+    {
+        UserProfile user = null!;
+        Recommendation rec = null!;
+
+        When()
+            .Match(() => user, u => u.Sensitivity == ESensitivity.Migraine)
+            .Match(() => rec);
+
+        Then()
+            .Do(_ => Apply(rec));
+    }
+
+    private static void Apply(Recommendation rec)
+    {
+        rec.Avoid.UnionWith(new[]
+        {
+            "oud",
+            "amber_heavy",
+            "animalic",
+            "incense_heavy"
+        });
+
+        rec.Reasons.Add("Migraine sensitivity → avoid oud, heavy amber, animalic and heavy incense");
+    }
+}

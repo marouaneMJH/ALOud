@@ -4,9 +4,9 @@ public class UserProfile
     public EOccasion Occasion { get; set; }
     public ESkinType SkinType { get; set; }
     public EComplimentDesire Compliment { get; set; }
+    public ESeasonPreference SeasonPreference { get; set; }
+    public EPersona Persona { get; set; }
+    public ESensitivity Sensitivity { get; set; }
 
     public bool WantsLongPerformance { get; set; }
-
-    public string Persona { get; set; }
-    public string Sensitivity { get; set; }
 }
