@@ -62,5 +62,16 @@ namespace ALOud.Controllers
 
             return RedirectToAction(nameof(LLMConfig));
         }
+
+        // =====================================================
+        // EXPERT SYSTEM
+        // =====================================================
+
+        public IActionResult ExpertSystem()
+        {
+            // Pass enum values to the view for dropdowns
+            // This ensures UI always matches server-side enums
+            return View();
+        }
     }
 }
