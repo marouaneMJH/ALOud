@@ -5,9 +5,12 @@
         Perfume Name
         Brand
         Category / Gender
+        Price: MAD
 
         Olfactory Profile
         Usage & Performance
+
+    
 
         Notes
         Accords

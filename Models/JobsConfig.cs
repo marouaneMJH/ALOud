@@ -11,7 +11,7 @@ public class JobsConfig
 
         public IndexingJobConfig()
         {
-            OnStartIndexing = false;
+            OnStartIndexing = true;
             DelaySeconds = 5;
         }
     }

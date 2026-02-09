@@ -37,11 +37,16 @@ public class ProductDataExtractor : IProductDataExtractor
             Name = p.Name,
             Brand = p.Brand.Name,
 
+
             Intensity = p.Intensity,
             Longevity = p.Longevity,
             Sillage = p.Sillage,
             GenderProfile = p.GenderProfile,
+            
             PriceRange = p.PriceRange,
+            Price= p.Price,
+
+            Description = p.Description,
 
             Families = p.PerfumeFamilies
                 .Select(f => f.Family.Name)
