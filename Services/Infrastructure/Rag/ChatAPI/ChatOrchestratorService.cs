@@ -62,10 +62,8 @@ public class ChatOrchestratorService : IChatOrchestratorService
 
         // 3. Fetch live cart context
 
-        var liveCartContext = $"""
-            CURRENT CART:
-            {JsonSerializer.Serialize(await _cartContextBuilder.BuildAsync(userId))}
-        """;
+        // 3. Live cart context
+        var liveCartContext = await BuildLiveContextAsync(userId);
 
         // 4. Build final context
         var contextPayload = _contextBuilderService.Build(
@@ -124,7 +122,7 @@ public class ChatOrchestratorService : IChatOrchestratorService
     }
 
 
-    async private Task<String> BuildLiveContextAsync(Guid userId)
+    async private Task<string> BuildLiveContextAsync(Guid userId)
     {
         return $"""
             CURRENT CART:
