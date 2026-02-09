@@ -13,6 +13,7 @@
 
     /* Layout */
     --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
     --sidebar-bg: #0b0b0b;
     --sidebar-hover: #1a1a1a;
 
@@ -54,8 +55,83 @@ body {
     background: var(--sidebar-bg);
     padding: 1.5rem 0;
     overflow-y: auto;
+    overflow-x: hidden;
     z-index: 1000;
-    transition: transform 0.3s ease;
+    transition:
+        width 0.3s ease,
+        transform 0.3s ease;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: absolute;
+    top: 1rem;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background: var(--accent-color);
+    border: 2px solid var(--sidebar-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1001;
+    color: var(--color-primary);
+}
+
+.sidebar-toggle:hover {
+    background: var(--accent-light);
+    transform: scale(1.1);
+}
+
+.sidebar-toggle i {
+    font-size: 1rem;
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .sidebar-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-brand h2 {
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-brand .sidebar-subtitle {
+    display: none;
+}
+
+.sidebar.collapsed .nav-section {
+    padding: 0.5rem 0;
+}
+
+.sidebar.collapsed .nav-section-title {
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 0.75rem 0;
+}
+
+.sidebar.collapsed .nav-link i {
+    margin: 0;
+}
+
+.sidebar.collapsed .badge {
+    display: none;
 }
 
 .sidebar-brand {
@@ -110,6 +186,13 @@ body {
     margin-bottom: 0.25rem;
     transition: all 0.2s ease;
     font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.sidebar .nav-link .sidebar-text {
+    transition:
+        opacity 0.2s ease,
+        width 0.3s ease;
 }
 
 .sidebar .nav-link:hover {
@@ -144,6 +227,11 @@ body {
     margin-left: var(--sidebar-width);
     padding: 2rem;
     min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: var(--sidebar-collapsed-width);
 }
 
 /* Mobile Toggle */
