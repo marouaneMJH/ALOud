@@ -2,9 +2,7 @@ using NRules.Fluent.Dsl;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
 
-namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.PerformanceRules;
-
-public class MuskAmberVanillaBaseRule : Rule
+public class HumidClimateRule : Rule
 {
     public override void Define()
     {
@@ -12,7 +10,7 @@ public class MuskAmberVanillaBaseRule : Rule
         Recommendation rec = null!;
 
         When()
-            .Match(() => user)
+            .Match(() => user, u => u.Climate == EClimate.Humid)
             .Match(() => rec);
 
         Then()
@@ -21,7 +19,13 @@ public class MuskAmberVanillaBaseRule : Rule
 
     private static void Apply(Recommendation rec)
     {
-        rec.Prefer.Add("musk_amber_vanilla_base_boost");
-        rec.Reasons.Add("Base notes of musk, amber and vanilla → longevity index boosted");
+        rec.Prefer.UnionWith(new[]
+        {
+            "aromatic",
+            "woody",
+            "iso_e_super"
+        });
+
+        rec.Reasons.Add("Humid climate → aromatic and woody perform better");
     }
 }

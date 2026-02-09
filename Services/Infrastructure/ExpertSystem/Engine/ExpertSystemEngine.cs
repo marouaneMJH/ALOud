@@ -1,5 +1,6 @@
 using NRules;
 using NRules.Fluent;
+using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
 public class ExpertSystemEngine
 {

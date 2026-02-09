@@ -21,6 +21,7 @@ using System.Net;
 using ALOud.Services.Rag.IndexingJob;
 using Microsoft.Extensions.Options;
 using ALOud.Services.Rag.Models;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -253,10 +254,23 @@ builder.Services.AddDbContext<ALOudDbContext>(options =>
 });
 
 // =====================================================
+// Auto Mapper - String to Enum
+// =====================================================
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+        );
+    });
+
+
+// =====================================================
 // MVC / RAZOR
 // =====================================================
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
 
 // =====================================================
 // BUILD APPLICATION

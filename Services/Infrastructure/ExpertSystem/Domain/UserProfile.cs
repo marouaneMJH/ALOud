@@ -1,3 +1,5 @@
+namespace ALOud.Services.Infrastructure.ExpertSystem.Domain;
+
 public class UserProfile
 {
     public EClimate Climate { get; set; }

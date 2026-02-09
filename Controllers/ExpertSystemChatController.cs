@@ -1,3 +1,4 @@
+using ALOud.DTOs.ExpertSystem;
 using ALOud.DTOs.Rag;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Models;
@@ -21,20 +22,11 @@ public sealed class ExpertSystemChatController : ControllerBase
     }
 
 
-
-
-    [HttpGet("expert-test")]
-    public IActionResult Test()
+    [HttpPost("expert-test")]
+    public IActionResult Test([FromBody] UserProfileDto userProfileDto)
     {
-        var profile = new UserProfile
-        {
-            Climate = EClimate.Hot,
-            Occasion = EOccasion.Gym,
-            SkinType = ESkinType.Oily,
-            Compliment = EComplimentDesire.Neutral,
-        };
 
-        var result = _expert.Evaluate(profile);
+        var result = _expert.Evaluate(userProfileDto);
         return Ok(result);
     }
 

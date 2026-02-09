@@ -1,3 +1,5 @@
+namespace ALOud.Services.Infrastructure.ExpertSystem.Domain;
+
 public class Recommendation
 {
     public HashSet<string> Prefer { get; } = new();

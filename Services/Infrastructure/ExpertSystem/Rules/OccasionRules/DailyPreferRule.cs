@@ -1,6 +1,10 @@
 using NRules.Fluent.Dsl;
+using ALOud.Services.Infrastructure.ExpertSystem.Domain;
+
 
 namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.OccasionRules;
+
+using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
 public class DailyPreferRule : Rule
 {

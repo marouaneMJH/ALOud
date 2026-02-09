@@ -1,4 +1,6 @@
 using NRules.Fluent.Dsl;
+using ALOud.Services.Infrastructure.ExpertSystem.Domain;
+
 
 namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.PersonaRules;
 
