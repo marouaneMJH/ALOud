@@ -30,6 +30,28 @@
     /* Typography */
     --font-heading: "Playfair Display", serif;
     --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --navy-900: #0b1d3a; /* deep navy */
+    --navy-700: #163a6b; /* primary navy */
+    --navy-500: #2f5fa3; /* accent navy */
+    --navy-100: #e8eef9; /* soft background */
+
+    /* Core system colors */
+    --color-white: #ffffff;
+    --color-bg: #faf9f7;
+    --color-hover: rgba(201, 162, 77, 0.05);
+    --color-text-secondary: #6b7280;
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+
+    /* Generic spacing aliases (used with fallbacks in layout) */
+    --spacing-xs: var(--admin-spacing-xs);
+    --spacing-sm: var(--admin-spacing-sm);
+    --spacing-md: var(--admin-spacing-md);
+    --spacing-lg: var(--admin-spacing-lg);
+    --spacing-xl: var(--admin-spacing-xl);
+    --spacing-2xl: var(--admin-spacing-2xl);
 }
 
 * {
@@ -793,33 +815,35 @@ body {
     transition: all var(--transition-fast);
 }
 
+/* Base badges */
 .badge-male {
-    background: var(--color-primary);
-    color: var(--color-white);
+    background: var(--navy-700);
+    color: #ffffff;
 }
 
 .badge-female {
-    background: var(--color-accent);
-    color: var(--color-primary);
+    background: var(--navy-100);
+    color: var(--navy-900);
+    border: 1px solid var(--navy-500);
 }
 
 .badge-unisex {
-    background: navy;
+    background: var(--navy-900);
+    color: #ffffff;
 }
 
-/* Hover states for interactive badges */
+/* Hover states */
 .badge-male:hover {
-    background: var(--color-accent);
-    color: var(--color-primary);
+    background: var(--navy-500);
 }
 
 .badge-female:hover {
-    background: var(--color-primary);
-    color: var(--color-white);
+    background: var(--navy-500);
+    color: #ffffff;
 }
 
 .badge-unisex:hover {
-    background: var(--color-background);
+    background: var(--navy-700);
 }
 
 /* ==========================================================================

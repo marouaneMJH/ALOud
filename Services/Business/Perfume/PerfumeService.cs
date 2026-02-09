@@ -63,7 +63,10 @@ namespace ALOud.Services.Perfume
                     GenderProfile = p.GenderProfile,
                     PriceRange = p.PriceRange,
                     BrandId = p.BrandId,
-                    BrandName = p.Brand.Name
+                    BrandName = p.Brand.Name,
+                    Price = p.Price,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl
                 })
                 .ToListAsync();
 
@@ -84,6 +87,9 @@ namespace ALOud.Services.Perfume
                     Sillage = p.Sillage,
                     GenderProfile = p.GenderProfile,
                     PriceRange = p.PriceRange,
+                    Price = p.Price,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
                     BrandId = p.BrandId,
                     BrandName = p.Brand.Name
                 })

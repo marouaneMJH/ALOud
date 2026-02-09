@@ -123,7 +123,7 @@
                                     <span class="text-muted">-</span>
                                 }
                             </td>
-                            <td>@(perfume.Price > 0 ? perfume.Price.ToString("C") : "-")</td>
+                            <td>@(perfume.Price > 0 ? $"{perfume.Price.ToString("F2")} MAD " : "-")</td>
                             <td>@(perfume.Intensity ?? "-")</td>
                             <td>
                                 <div class="action-buttons">
