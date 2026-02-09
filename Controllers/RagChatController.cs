@@ -31,7 +31,7 @@ public sealed class RagChatController : ControllerBase
 
         try
         {
-            // 🔍 DEBUG MODE
+            //  DEBUG MODE
             if (request.Debug)
             {
                 var debugResult = await _chatOrchestrator

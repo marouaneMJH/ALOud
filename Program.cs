@@ -162,6 +162,12 @@ builder.Services.AddScoped<IOccasionService, OccasionService>();
 builder.Services.AddScoped<CartService>();
 
 // =====================================================
+// Expert System – CORE
+// =====================================================
+builder.Services.AddSingleton<IExpertSystemService, ExpertSystemService>();
+
+
+// =====================================================
 // RAG – CORE
 // =====================================================
 builder.Services.AddScoped<IRagAnswerService, RagAnswerService>();
