@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.22">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="NRules" Version="1.0.4" />
+    <PackageReference Include="NRules.Fluent" Version="1.0.4" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
     <PackageReference Include="System.Net.Http.Json" Version="10.0.2" />
   </ItemGroup>
