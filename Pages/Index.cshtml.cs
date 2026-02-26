@@ -59,7 +59,7 @@ namespace Pages
             string key = $"perfumes:list:q={query ?? ""}:brand={brandId?.ToString() ?? ""}:family={familyId?.ToString() ?? ""}:gender={gender ?? ""}:p={pageIndex}:ps={pageSize}";
 
             var cached = await _cache.GetAsync<(List<PerfumeDto>, int)>(key);
-            if (cached.Item1 != null)
+            if (cached.Item1 is not null)
             {
                 Perfumes = cached.Item1;
                 TotalCount = cached.Item2;

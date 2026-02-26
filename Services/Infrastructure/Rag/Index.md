@@ -1,14 +1,14 @@
 ## Offline / Background services (Indexing pipeline)
 
 1. Data Extraction Service : Read raw data from SQL (Products, Categories, Descriptions)
-   Raw SQL -> Domain objects (ProductDTO)
+    - Raw SQL -> Domain objects (ProductDTO)
 2. Document Builder Service: Convert domain data → semantic text documents
-   DTOs -> Human readable docs
+    - DTOs -> Human readable docs
 3. Chunking service: Split document to chunks
-   configuration: - Size: - Overlap
-   Documents text -> list of text chunks
+    - configuration: - Size: - Overlap
+    - Documents text -> list of text chunks
 4. Embedding Service (Indexing): Convert chunks to vectors
-   chunks -> Embeddings + metadata
+    - chunks -> Embeddings + metadata
 5. Vector Index service: Store embeddings in vector database, Handle upserts and deletes
 
 ## Runtime Services (Query pipeline)
@@ -25,7 +25,7 @@
     - Responsibility
         - Convert user message → embedding
     - Input
-        - User query
+        - User query<!--  -->
     - Output
         - Query vector
 

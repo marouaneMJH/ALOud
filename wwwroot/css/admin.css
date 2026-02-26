@@ -66,6 +66,10 @@ body {
     min-height: 100vh;
     color: var(--color-primary);
 }
+.sidebar::-webkit-scrollbar {
+    /* For Chrome, Safari, and Opera */
+    display: none;
+}
 
 /* Sidebar Styles */
 .sidebar {
@@ -82,13 +86,17 @@ body {
     transition:
         width 0.3s ease,
         transform 0.3s ease;
+
+    -ms-overflow-style: none;
+    /* For Firefox */
+    scrollbar-width: none;
 }
 
 /* Sidebar Toggle Button */
 .sidebar-toggle {
     position: absolute;
     top: 1rem;
-    right: -15px;
+    right: 0.5rem;
     width: 30px;
     height: 30px;
     background: var(--accent-color);

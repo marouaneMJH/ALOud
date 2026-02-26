@@ -8,9 +8,6 @@ public static class RagToolCatalog
 {
     // Full catalog for general queries
     public static readonly IReadOnlyList<RagToolDefinition> All = [
-        SearchProducts(),
-        GetProductDetails(),
-        RecommendProducts(),
         GetCart(),
         AddToCart(),
         RemoveFromCart(),
@@ -31,58 +28,9 @@ public static class RagToolCatalog
     ];
 
     public static readonly IReadOnlyList<RagToolDefinition> SearchTools = [
-        SearchProducts(),
-        GetProductDetails(),
-        RecommendProducts(),
         CompareProducts(),
     ];
 
-
-    private static RagToolDefinition SearchProducts() => new()
-    {
-        Name = "search_products",
-        Description = "Search products by name/brand. Returns max 5 results with Id, Name, Price, ImageUrl.",
-        ParametersSchema = new
-        {
-            type = "object",
-            properties = new
-            {
-                query = new { type = "string", description = "Search keywords" }
-            },
-            required = new[] { "query" }
-        }
-    };
-
-    private static RagToolDefinition GetProductDetails() => new()
-    {
-        Name = "get_product_details",
-        Description = "Complete product details by ID.",
-        ParametersSchema = new
-        {
-            type = "object",
-            properties = new
-            {
-                productId = new { type = "integer" }
-            },
-            required = new[] { "productId" }
-        }
-    };
-
-    private static RagToolDefinition RecommendProducts() => new()
-    {
-        Name = "recommend_products",
-        Description = "Recommend perfumes based on preferences (woody, fresh, oriental, floral, spicy).",
-        ParametersSchema = new
-        {
-            type = "object",
-            properties = new
-            {
-                preferences = new { type = "string", description = "Desired perfume type" },
-                limit = new { type = "integer", minimum = 1, maximum = 5, @default = 3 }
-            },
-            required = new[] { "preferences" }
-        }
-    };
 
     private static RagToolDefinition GetCart() => new()
     {

@@ -16,6 +16,7 @@ using ALOud.DTOs.Accords;
 using ALOud.DTOs.Tags;
 using ALOud.DTOs.Seasons;
 using ALOud.DTOs.Occasions;
+using ALOud.Services;
 
 namespace ALOud.Controllers
 {
@@ -31,10 +32,14 @@ namespace ALOud.Controllers
         private readonly ITagService _tagService;
         private readonly ISeasonService _seasonService;
         private readonly IOccasionService _occasionService;
+
+        private IDashboardService _dashboardService;
+
         private readonly ILogger<PerfumeAdminController> _logger;
 
         public PerfumeAdminController(
             IBrandService brandService,
+            IDashboardService dashboardService,
             IPerfumeService perfumeService,
             IFamilyService familyService,
             INoteService noteService,
@@ -52,8 +57,23 @@ namespace ALOud.Controllers
             _tagService = tagService;
             _seasonService = seasonService;
             _occasionService = occasionService;
+            _dashboardService = dashboardService;
             _logger = logger;
         }
+
+        private async Task PopulateStateViewBag()
+        {
+            var stats = await _dashboardService.GetDashboardStatsAsync();
+            ViewBag.ModelState = stats;
+            ViewBag.Brands = await _brandService.GetAllBrandsForSelectAsync();
+            ViewBag.Families = await _familyService.GetAllFamiliesForSelectAsync();
+            ViewBag.Notes = await _noteService.GetAllNotesForSelectAsync();
+            ViewBag.Accords = await _accordService.GetAllAccordsForSelectAsync();
+            ViewBag.Tags = await _tagService.GetAllTagsForSelectAsync();
+            ViewBag.Seasons = await _seasonService.GetAllSeasonsForSelectAsync();
+            ViewBag.Occasions = await _occasionService.GetAllOccasionsForSelectAsync();
+        }
+
 
         // =====================================================
         // BRANDS MANAGEMENT
@@ -63,6 +83,7 @@ namespace ALOud.Controllers
         {
             var brands = await _brandService.GetAllBrandsAsync(pageIndex, pageSize, searchTerm);
             ViewBag.SearchTerm = searchTerm;
+
             return View("~/Views/Admin/Brands/Index.cshtml", brands);
         }
 
@@ -238,6 +259,7 @@ namespace ALOud.Controllers
             ViewBag.Seasons = await _seasonService.GetAllSeasonsForSelectAsync();
             ViewBag.Occasions = await _occasionService.GetAllOccasionsForSelectAsync();
         }
+
 
         // =====================================================
         // FAMILIES MANAGEMENT
@@ -718,5 +740,8 @@ namespace ALOud.Controllers
             TempData["Success"] = "Occasion deleted successfully";
             return RedirectToAction(nameof(Occasions));
         }
+
+
+
     }
 }
