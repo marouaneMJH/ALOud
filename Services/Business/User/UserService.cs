@@ -56,14 +56,18 @@ public class UserService : IUserService
 
             _logger.LogInformation("User successfully saved to database");
 
-            // TODO Send Activation Email
             // TODO Send Welcome Email
 
             return user;
         }
+        catch (DbUpdateException dbEx)
+        {
+            _logger.LogError(dbEx, "Database error during user creation");
+            throw new InvalidOperationException("Failed to create user: database error", dbEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred during user creation");
+            _logger.LogError(ex, "Unexpected error during user creation");
             throw;
         }
     }
@@ -110,9 +114,14 @@ public class UserService : IUserService
 
             return isValid ? user : null;
         }
+        catch (DbUpdateException dbEx)
+        {
+            _logger.LogError(dbEx, "Database error during authentication for email: {Email}", dto.Email);
+            throw new InvalidOperationException("Authentication failed: database error", dbEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred during authentication");
+            _logger.LogError(ex, "Unexpected error during authentication for email: {Email}", dto.Email);
             throw;
         }
     }
@@ -123,9 +132,14 @@ public class UserService : IUserService
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.IsActive);
         }
+        catch (DbUpdateException dbEx)
+        {
+            _logger.LogError(dbEx, "Database error fetching user by id: {UserId}", id);
+            throw new InvalidOperationException("Failed to fetch user: database error", dbEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred while fetching user by id");
+            _logger.LogError(ex, "Unexpected error fetching user by id: {UserId}", id);
             throw;
         }
     }
@@ -136,9 +150,14 @@ public class UserService : IUserService
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+        catch (DbUpdateException dbEx)
+        {
+            _logger.LogError(dbEx, "Database error fetching user by email: {Email}", email);
+            throw new InvalidOperationException("Failed to fetch user: database error", dbEx);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred while fetching user by email");
+            _logger.LogError(ex, "Unexpected error fetching user by email: {Email}", email);
             throw;
         }
     }

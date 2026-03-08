@@ -41,7 +41,7 @@ public class SmtpEmailService : IEmailService
         message.Body = htmlBody;
         message.IsBodyHtml = true;
 
-        using var client = new SmtpClient("smtp.gmail.com", 587)
+        using var client = new SmtpClient(_smtpOptions.Host, _smtpOptions.Port)
         {
             EnableSsl = true,
             Credentials = new NetworkCredential(_smtpOptions.User, _smtpOptions.Password)

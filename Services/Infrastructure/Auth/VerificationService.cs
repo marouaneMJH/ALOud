@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using ALOud.Data;
 using ALOud.Models;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,7 @@ public class VerificationService : IVerificationService
 
     public async Task SendVerificationAsync(User user)
     {
-        var code = new Random().Next(100000, 999999).ToString();
+        var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
         var expires = DateTime.UtcNow.AddMinutes(15);
 
         var verification = new EmailVerification

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -41,9 +42,12 @@ namespace ALOud.Controllers.Api.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<RagResponse>> Handle([FromBody] RagRequest request)
+        public async Task<ActionResult<RagResponse>> Handle([FromBody] RagRequest? request)
         {
-            if (string.IsNullOrWhiteSpace(request?.Message))
+            if (request == null)
+                return BadRequest(new { error = "Request body is required." });
+
+            if (string.IsNullOrWhiteSpace(request.Message))
                 return BadRequest(new { error = "Message is required." });
 
             _logger.LogInformation("AI Cart request: {Message}", request.Message);
@@ -91,7 +95,12 @@ namespace ALOud.Controllers.Api.v1
 
             try
             {
-                var userId = Guid.NewGuid(); // TODO: Get from authenticated user context
+                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+                {
+                    return Unauthorized(new { error = "User must be authenticated." });
+                }
+                
                 var response = await _chatOrchestratorService.HandleAsync(userId, request.Message);
                 return Ok(response);
             }

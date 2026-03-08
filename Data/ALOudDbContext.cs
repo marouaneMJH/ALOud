@@ -37,9 +37,12 @@ namespace ALOud.Data
             base.OnModelCreating(modelBuilder);
 
             // Configure User Entity
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(u => u.Email).IsUnique();
+                entity.Property(u => u.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+            });
 
             // =====================================================
             // PERFUME DOMAIN CONFIGURATION
@@ -65,6 +68,8 @@ namespace ALOud.Data
                 entity.Property(e => e.PriceRange).HasMaxLength(100);
                 entity.Property(e => e.Price).HasPrecision(10, 2);
                 entity.Property(e => e.Description).HasMaxLength(2000);
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(p => p.Brand)
                       .WithMany(b => b.Perfumes)

@@ -33,7 +33,7 @@ namespace ALOud.Controllers.Api.v1
                 return Ok(new
                 {
                     status = "ok",
-                    timestamp = DateTime.Now.ToShortDateString(),
+                    timestamp = DateTime.UtcNow.ToString("o"),
                     service = "aloud-store"
                 });
             }

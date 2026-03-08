@@ -35,7 +35,7 @@ namespace ALOud.Models
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         // Foreign key to Brand
         public Guid BrandId { get; set; }
