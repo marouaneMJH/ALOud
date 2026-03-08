@@ -16,12 +16,12 @@
             <p><strong>Member since:</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
 
             <div class="mt-3 d-flex gap-2">
-                <form asp-controller="Account" asp-action="Logout" method="post">
+                <form asp-route="MvcAccountLogoutPost" method="post">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-outline-danger">Logout</button>
                 </form>
 
-                <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Back to Home</a>
+                <a class="btn btn-secondary" asp-controller="Perfume" asp-action="Index">Back to Home</a>
             </div>
         </div>
     </div>

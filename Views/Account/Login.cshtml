@@ -16,7 +16,7 @@
 
                 <!-- Login Form -->
                 <div class="auth-card">
-                    <form asp-action="Login" method="post" novalidate>
+                    <form asp-route="MvcAccountLoginPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -55,7 +55,7 @@
                         <div class="text-center">
                             <p class="mb-0 text-muted">
                                 Don't have an account? 
-                                <a href="Register" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Create an account</a>
+                                <a asp-route="MvcAccountRegisterGet" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Create an account</a>
                             </p>
                         </div>
                     </form>

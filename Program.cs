@@ -15,6 +15,7 @@ using ALOud.Services.Season;
 using ALOud.Services.Occasion;
 using ALOud.Services.Data;
 using ALOud.Services.Cart;
+using ALOud.Repositories;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net;
@@ -256,6 +257,18 @@ builder.Services.AddDbContext<ALOudDbContext>(options =>
                 errorNumbersToAdd: null);
         });
 });
+
+// =====================================================
+// REPOSITORY LAYER (DATA ACCESS ABSTRACTION)
+// =====================================================
+// Generic repository
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Specific repositories
+builder.Services.AddScoped<IPerfumeRepository, PerfumeRepository>();
+
+// Unit of Work pattern
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // =====================================================
 // Auto Mapper - String to Enum

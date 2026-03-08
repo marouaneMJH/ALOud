@@ -589,7 +589,7 @@
                     <button type="button" class="btn-expert-submit" id="viewFullRecommendationBtn" style="background: var(--accent-color);">
                         <i class="bi bi-arrow-right" style="margin-right: 0.5rem;"></i> View Full AI Recommendation
                     </button>
-                    <form id="hiddenRecommendationForm" style="display: none;" method="POST" action="/expert/hybrid-recommendation">
+                    <form id="hiddenRecommendationForm" style="display: none;" method="POST" action="/Expert/HybridRecommendation">
                         <input type="hidden" id="recommendationDataInput" name="recommendationJson">
                     </form>
                 </div>
@@ -623,7 +623,7 @@
         const resultsCard = document.getElementById('resultsCard');
 
         // API Configuration
-        const API_ENDPOINT = '/api/ai/expert-system/expert-test';
+        const API_ENDPOINT = '/api/v1/ai/expert-system/test';
 
         /**
          * Collect form data into a properly structured DTO

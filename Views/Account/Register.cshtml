@@ -16,7 +16,7 @@
 
                 <!-- Register Form -->
                 <div class="auth-card">
-                    <form asp-action="Register" method="post" novalidate>
+                    <form asp-route="MvcAccountRegisterPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -92,7 +92,7 @@
                                 <input class="form-check-input" type="checkbox" id="termsAccepted" required>
                                 <label class="form-check-label text-muted small" for="termsAccepted">
                                     I accept the <a href="#" class="text-decoration-none" style="color: var(--color-accent);">terms and conditions</a> 
-                                    and the <a asp-page="/Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a>
+                                    and the <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a>
                                 </label>
                             </div>
                         </div>
@@ -108,7 +108,7 @@
                         <div class="text-center">
                             <p class="mb-0 text-muted">
                                 Already have an account? 
-                                <a asp-action="Login" class="text-decoration-none" style="color: var(--color-accent);">Sign in</a>
+                                <a asp-route="MvcAccountLoginGet" class="text-decoration-none" style="color: var(--color-accent);">Sign in</a>
                             </p>
                         </div>
                     </form>

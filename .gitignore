@@ -373,3 +373,4 @@ raw-data/scrapers/src/*.ts
 
 /.private/
 /.vscode/
+/backups/

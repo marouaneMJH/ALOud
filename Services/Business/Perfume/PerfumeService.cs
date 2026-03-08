@@ -3,18 +3,59 @@ using ALOud.Data;
 using ALOud.DTOs.Perfumes;
 using ViewModels;
 using ALOud.Models;
+using System.Linq.Expressions;
+using ALOud.Repositories;
 
 namespace ALOud.Services.Perfume
 {
+    /// <summary>
+    /// Service layer for perfume business logic and orchestration
+    /// </summary>
     public class PerfumeService : IPerfumeService
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ALOudDbContext _context;
 
-        public PerfumeService(ALOudDbContext context)
+        private static readonly Expression<Func<Models.Perfume, PerfumeDto>> PerfumeDtoProjection = p => new PerfumeDto
         {
+            Id = p.Id,
+            Name = p.Name,
+            Intensity = p.Intensity,
+            Longevity = p.Longevity,
+            Sillage = p.Sillage,
+            GenderProfile = p.GenderProfile,
+            PriceRange = p.PriceRange,
+            Price = p.Price,
+            StockQuantity = p.StockQuantity,
+            Description = p.Description,
+            ImageUrl = p.ImageUrl,
+            BrandId = p.BrandId,
+            BrandName = p.Brand.Name,
+            Families = p.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
+            CreatedAt = p.CreatedAt
+        };
+
+        /// <summary>
+        /// Initializes a new instance of the PerfumeService class
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work for data access</param>
+        /// <param name="context">The database context for complex operations</param>
+        public PerfumeService(IUnitOfWork unitOfWork, ALOudDbContext context)
+        {
+            _unitOfWork = unitOfWork;
             _context = context;
         }
 
+        /// <summary>
+        /// Gets a paginated list of perfumes with optional filtering
+        /// </summary>
+        /// <param name="pageIndex">The page number (1-based)</param>
+        /// <param name="pageSize">The number of items per page</param>
+        /// <param name="searchTerm">Optional search term for name/brand</param>
+        /// <param name="brandId">Optional brand filter</param>
+        /// <param name="familyId">Optional family filter</param>
+        /// <param name="genderProfile">Optional gender profile filter</param>
+        /// <returns>Paginated list of perfume DTOs</returns>
         public async Task<PaginatedList<PerfumeDto>> GetAllPerfumesAsync(
             int pageIndex = 1,
             int pageSize = 10,
@@ -23,8 +64,9 @@ namespace ALOud.Services.Perfume
             Guid? familyId = null,
             string? genderProfile = null)
         {
-            var query = _context.Perfumes
+            var query = _unitOfWork.Perfumes.GetQueryable()
                 .Include(p => p.Brand)
+                .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -53,114 +95,47 @@ namespace ALOud.Services.Perfume
                 .OrderBy(p => p.Name)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
-                .Select(p => new PerfumeDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Intensity = p.Intensity,
-                    Longevity = p.Longevity,
-                    Sillage = p.Sillage,
-                    GenderProfile = p.GenderProfile,
-                    PriceRange = p.PriceRange,
-                    BrandId = p.BrandId,
-                    BrandName = p.Brand.Name,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    Description = p.Description,
-                    ImageUrl = p.ImageUrl,
-                    Families = p.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
-                    CreatedAt = p.CreatedAt
-                })
+                .Select(PerfumeDtoProjection)
                 .ToListAsync();
 
             return new PaginatedList<PerfumeDto>(perfumes, totalCount, pageIndex, pageSize);
         }
 
+        /// <summary>
+        /// Gets a perfume by its identifier
+        /// </summary>
+        /// <param name="id">The perfume identifier</param>
+        /// <returns>The perfume DTO if found, null otherwise</returns>
         public async Task<PerfumeDto?> GetPerfumeByIdAsync(Guid id)
         {
-            return await _context.Perfumes
+            return await _unitOfWork.Perfumes.GetQueryable()
                 .Include(p => p.Brand)
+                .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
                 .Where(p => p.Id == id)
-                .Select(p => new PerfumeDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Intensity = p.Intensity,
-                    Longevity = p.Longevity,
-                    Sillage = p.Sillage,
-                    GenderProfile = p.GenderProfile,
-                    PriceRange = p.PriceRange,
-                    Price = p.Price,
-                    StockQuantity = p.StockQuantity,
-                    Description = p.Description,
-                    ImageUrl = p.ImageUrl,
-                    BrandId = p.BrandId,
-                    BrandName = p.Brand.Name,
-                    CreatedAt = p.CreatedAt
-                })
+                .Select(PerfumeDtoProjection)
                 .FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Gets detailed perfume information including all related entities
+        /// </summary>
+        /// <param name="id">The perfume identifier</param>
+        /// <returns>The detailed perfume DTO if found, null otherwise</returns>
         public async Task<PerfumeDetailsDto?> GetPerfumeDetailsAsync(Guid id)
         {
-            var perfume = await _context.Perfumes
-                .Include(p => p.Brand)
-                .Include(p => p.PerfumeFamilies).ThenInclude(pf => pf.Family)
-                .Include(p => p.PerfumeNotes).ThenInclude(pn => pn.Note)
-                .Include(p => p.PerfumeAccords).ThenInclude(pa => pa.Accord)
-                .Include(p => p.PerfumeTags).ThenInclude(pt => pt.Tag)
-                .Include(p => p.PerfumeSeasons).ThenInclude(ps => ps.Season)
-                .Include(p => p.PerfumeOccasions).ThenInclude(po => po.Occasion)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var perfume = await _unitOfWork.Perfumes.GetWithDetailsAsync(id);
             if (perfume == null) return null;
-
-            return new PerfumeDetailsDto
-            {
-                Id = perfume.Id,
-                Name = perfume.Name,
-                Intensity = perfume.Intensity,
-                Longevity = perfume.Longevity,
-                Sillage = perfume.Sillage,
-                GenderProfile = perfume.GenderProfile,
-                PriceRange = perfume.PriceRange,
-                Price = perfume.Price,
-                StockQuantity = perfume.StockQuantity,
-                Description = perfume.Description,
-                ImageUrl = perfume.ImageUrl,
-                CreatedAt = perfume.CreatedAt,
-                BrandId = perfume.BrandId,
-                BrandName = perfume.Brand.Name,
-                Families = perfume.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
-                Notes = perfume.PerfumeNotes.Select(pn => new PerfumeNoteDto
-                {
-                    NoteId = pn.NoteId,
-                    NoteName = pn.Note.Name,
-                    NoteLevel = pn.NoteLevel
-                }).ToList(),
-                Accords = perfume.PerfumeAccords.Select(pa => new PerfumeAccordDto
-                {
-                    AccordId = pa.AccordId,
-                    AccordName = pa.Accord.Name,
-                    Intensity = pa.Intensity
-                }).ToList(),
-                Tags = perfume.PerfumeTags.Select(pt => pt.Tag.Name).ToList(),
-                Seasons = perfume.PerfumeSeasons.Select(ps => ps.Season.Name).ToList(),
-                Occasions = perfume.PerfumeOccasions.Select(po => po.Occasion.Name).ToList()
-            };
+            return MapToPerfumeDetailsDto(perfume);
         }
 
+        /// <summary>
+        /// Gets perfume data formatted for editing
+        /// </summary>
+        /// <param name="id">The perfume identifier</param>
+        /// <returns>The update perfume DTO if found, null otherwise</returns>
         public async Task<UpdatePerfumeDto?> GetPerfumeForEditAsync(Guid id)
         {
-            var perfume = await _context.Perfumes
-                .Include(p => p.PerfumeFamilies)
-                .Include(p => p.PerfumeNotes)
-                .Include(p => p.PerfumeAccords)
-                .Include(p => p.PerfumeTags)
-                .Include(p => p.PerfumeSeasons)
-                .Include(p => p.PerfumeOccasions)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var perfume = await _unitOfWork.Perfumes.GetWithDetailsAsync(id);
             if (perfume == null) return null;
 
             return new UpdatePerfumeDto
@@ -193,6 +168,11 @@ namespace ALOud.Services.Perfume
             };
         }
 
+        /// <summary>
+        /// Creates a new perfume with related entities
+        /// </summary>
+        /// <param name="dto">The perfume creation data</param>
+        /// <returns>The identifier of the created perfume</returns>
         public async Task<Guid> CreatePerfumeAsync(CreatePerfumeDto dto)
         {
             var perfume = new Models.Perfume
@@ -211,7 +191,7 @@ namespace ALOud.Services.Perfume
                 BrandId = dto.BrandId
             };
 
-            _context.Perfumes.Add(perfume);
+            await _unitOfWork.Perfumes.AddAsync(perfume);
 
             // Add families
             foreach (var familyId in dto.FamilyIds)
@@ -249,21 +229,18 @@ namespace ALOud.Services.Perfume
                 _context.PerfumeOccasions.Add(new PerfumeOccasion { PerfumeId = perfume.Id, OccasionId = occasionId });
             }
 
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             return perfume.Id;
         }
 
+        /// <summary>
+        /// Updates an existing perfume and its related entities
+        /// </summary>
+        /// <param name="dto">The perfume update data</param>
+        /// <returns>True if the perfume was updated, false if not found</returns>
         public async Task<bool> UpdatePerfumeAsync(UpdatePerfumeDto dto)
         {
-            var perfume = await _context.Perfumes
-                .Include(p => p.PerfumeFamilies)
-                .Include(p => p.PerfumeNotes)
-                .Include(p => p.PerfumeAccords)
-                .Include(p => p.PerfumeTags)
-                .Include(p => p.PerfumeSeasons)
-                .Include(p => p.PerfumeOccasions)
-                .FirstOrDefaultAsync(p => p.Id == dto.Id);
-
+            var perfume = await _unitOfWork.Perfumes.GetWithDetailsAsync(dto.Id);
             if (perfume == null) return false;
 
             // Update basic properties
@@ -321,19 +298,66 @@ namespace ALOud.Services.Perfume
                 _context.PerfumeOccasions.Add(new PerfumeOccasion { PerfumeId = perfume.Id, OccasionId = occasionId });
             }
 
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
+        /// <summary>
+        /// Deletes a perfume by its identifier
+        /// </summary>
+        /// <param name="id">The perfume identifier</param>
+        /// <returns>True if the perfume was deleted, false if not found</returns>
         public async Task<bool> DeletePerfumeAsync(Guid id)
         {
-            var perfume = await _context.Perfumes.FindAsync(id);
+            var perfume = await _unitOfWork.Perfumes.GetByIdAsync(id);
             if (perfume == null) return false;
 
-            _context.Perfumes.Remove(perfume);
-            await _context.SaveChangesAsync();
+            _unitOfWork.Perfumes.Remove(perfume);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        /// <summary>
+        /// Maps a Perfume entity to a PerfumeDetailsDto
+        /// </summary>
+        /// <param name="perfume">The perfume entity</param>
+        /// <returns>The mapped perfume details DTO</returns>
+        private static PerfumeDetailsDto MapToPerfumeDetailsDto(Models.Perfume perfume)
+        {
+            return new PerfumeDetailsDto
+            {
+                Id = perfume.Id,
+                Name = perfume.Name,
+                Intensity = perfume.Intensity,
+                Longevity = perfume.Longevity,
+                Sillage = perfume.Sillage,
+                GenderProfile = perfume.GenderProfile,
+                PriceRange = perfume.PriceRange,
+                Price = perfume.Price,
+                StockQuantity = perfume.StockQuantity,
+                Description = perfume.Description,
+                ImageUrl = perfume.ImageUrl,
+                CreatedAt = perfume.CreatedAt,
+                BrandId = perfume.BrandId,
+                BrandName = perfume.Brand.Name,
+                Families = perfume.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
+                Notes = perfume.PerfumeNotes.Select(pn => new PerfumeNoteDto
+                {
+                    NoteId = pn.NoteId,
+                    NoteName = pn.Note.Name,
+                    NoteLevel = pn.NoteLevel
+                }).ToList(),
+                Accords = perfume.PerfumeAccords.Select(pa => new PerfumeAccordDto
+                {
+                    AccordId = pa.AccordId,
+                    AccordName = pa.Accord.Name,
+                    Intensity = pa.Intensity
+                }).ToList(),
+                Tags = perfume.PerfumeTags.Select(pt => pt.Tag.Name).ToList(),
+                Seasons = perfume.PerfumeSeasons.Select(ps => ps.Season.Name).ToList(),
+                Occasions = perfume.PerfumeOccasions.Select(po => po.Occasion.Name).ToList()
+            };
         }
     }
 }

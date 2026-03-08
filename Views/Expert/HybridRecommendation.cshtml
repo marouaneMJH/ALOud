@@ -1,4 +1,4 @@
-@using ALOud.Controllers
+@using ALOud.Controllers.MVC
 @model HybridRecommendationViewModel
 
 @{
@@ -302,7 +302,7 @@
         <!-- Action Buttons -->
         <div class="recommendation-card">
             <div class="action-buttons">
-                <a href="/admin/expert-system" class="btn btn-secondary">
+                <a href="/Admin/ExpertSystem" class="btn btn-secondary">
                     <i class="bi bi-arrow-left" style="margin-right: 0.5rem;"></i> Back to Expert System
                 </a>
                 <button class="btn btn-primary" onclick="window.print()">
@@ -315,7 +315,7 @@
     {
         <div class="recommendation-card" style="text-align: center; padding: 3rem;">
             <p style="color: var(--text-muted); font-size: 1rem;">
-                No recommendation data available. Please start from the <a href="/admin/expert-system">Expert System</a>.
+                No recommendation data available. Please start from the <a href="/Admin/ExpertSystem">Expert System</a>.
             </p>
         </div>
     }
