@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "computer-scientist-analyst": {
+      "source": "rysweet/amplihack",
+      "sourceType": "github",
+      "computedHash": "766dcc857b0330c8f6ec04756ffa597d40082e8161628c048f21cf5d2c6ad0fb"
+    }
+  }
+}

@@ -4,9 +4,9 @@ namespace ALOud.Services.Cart;
 
 public sealed class CartContextBuilder : ICartContextBuilder
 {
-    private readonly CartService _cartService;
+    private readonly ICartService _cartService;
 
-    public CartContextBuilder(CartService cartService)
+    public CartContextBuilder(ICartService cartService)
     {
         _cartService = cartService;
     }

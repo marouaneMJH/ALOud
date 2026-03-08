@@ -370,3 +370,6 @@ FodyWeavers.xsd
 
 
 raw-data/scrapers/src/*.ts
+
+/.private/
+/.vscode/

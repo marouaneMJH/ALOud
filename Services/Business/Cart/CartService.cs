@@ -4,7 +4,7 @@ using ViewModels;
 namespace ALOud.Services
 {
     // Service: manages shopping cart persisted via cache and cookies.
-    public class CartService
+    public class CartService : ICartService
     {
         private readonly ICacheService _cache;
         private readonly IHttpContextAccessor _accessor;
@@ -27,13 +27,6 @@ namespace ALOud.Services
         }
         // Async: retrieve current user's cart from cache (or empty list).
 
-        // Fix: Get cart by userId, where the user is is the cash key
-        public List<CartItemVM> GetCart()
-        {
-            return GetCartAsync().Result;
-        }
-        // Sync wrapper for GetCartAsync.
-
         public async Task SaveCartAsync(List<CartItemVM> cart)
         {
             var cartKey = GetCartKey();
@@ -43,12 +36,6 @@ namespace ALOud.Services
             await _cache.SetAsync(cartKey, cart, TimeSpan.FromDays(7));
         }
         // Persist cart to cache with 7-day expiry.
-
-        public void SaveCart(List<CartItemVM> cart)
-        {
-            SaveCartAsync(cart).Wait();
-        }
-        // Sync wrapper for SaveCartAsync.
 
         public async Task AddToCartAsync(CartItemVM item)
         {
@@ -64,12 +51,6 @@ namespace ALOud.Services
         }
         // Add item to cart (async), increment quantity if exists.
 
-        public void AddToCart(CartItemVM item)
-        {
-            AddToCartAsync(item).Wait();
-        }
-        // Sync wrapper for AddToCartAsync.
-
         public async Task RemoveAsync(Guid productId)
         {
             var cart = await GetCartAsync();
@@ -77,12 +58,6 @@ namespace ALOud.Services
             await SaveCartAsync(cart);
         }
         // Remove all entries for a product id from the cart (async).
-
-        public void Remove(Guid productId)
-        {
-            RemoveAsync(productId).Wait();
-        }
-        // Sync wrapper for RemoveAsync.
 
         public async Task IncreaseAsync(Guid productId)
         {
@@ -92,12 +67,6 @@ namespace ALOud.Services
             await SaveCartAsync(cart);
         }
         // Increase quantity for a product in the cart (async).
-
-        public void Increase(Guid productId)
-        {
-            IncreaseAsync(productId).Wait();
-        }
-        // Sync wrapper for IncreaseAsync.
 
         public async Task DecreaseAsync(Guid productId)
         {
@@ -113,23 +82,12 @@ namespace ALOud.Services
         }
         // Decrease quantity for a product; remove if quantity <= 0 (async).
 
-        public void Decrease(Guid productId)
-        {
-            DecreaseAsync(productId).Wait();
-        }
-        // Sync wrapper for DecreaseAsync.
-
         public async Task<int> GetCartItemCountAsync()
         {
             var cart = await GetCartAsync();
             return cart.Sum(item => item.Quantity);
         }
         // Return total number of items in cart (async).
-
-        public int GetCartItemCount()
-        {
-            return GetCartItemCountAsync().Result;
-        }
 
         // Get the Cart key from the cookie
         private string GetCartKey()

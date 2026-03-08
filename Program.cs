@@ -160,7 +160,7 @@ builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IOccasionService, OccasionService>();
 
 // Cart (Redis + cookies)
-builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // =====================================================
 // Expert System – CORE

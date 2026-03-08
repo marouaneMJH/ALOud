@@ -7,11 +7,11 @@ namespace ALOud.Services.Rag;
 
 public sealed class RagToolDispatcher
 {
-    private readonly CartService _cartService;
+    private readonly ICartService _cartService;
     private readonly ALOudDbContext _db;
 
     public RagToolDispatcher(
-        CartService cartService,
+        ICartService cartService,
         ALOudDbContext db)
     {
         _cartService = cartService;

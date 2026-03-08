@@ -1,14 +1,14 @@
-@model ViewModels.PaginatedList<ALOud.DTOs.Perfumes.PerfumeDto>
+@model ViewModels.PerfumeCatalogViewModel
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Collection";
     var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
-    var searchQuery = ViewBag.SearchQuery as string ?? "";
-    var selectedBrandId = ViewBag.SelectedBrandId as Guid?;
-    var selectedFamilyId = ViewBag.SelectedFamilyId as Guid?;
-    var selectedGender = ViewBag.SelectedGender as string ?? "";
-    var brands = ViewBag.Brands as List<dynamic> ?? new();
-    var families = ViewBag.Families as List<dynamic> ?? new();
+    var searchQuery = Model.SearchQuery ?? "";
+    var selectedBrandId = Model.SelectedBrandId;
+    var selectedFamilyId = Model.SelectedFamilyId;
+    var selectedGender = Model.SelectedGender ?? "";
+    var brands = Model.Brands;
+    var families = Model.Families;
 }
 
 @if (TempData["Success"] != null)
