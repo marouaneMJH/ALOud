@@ -13,15 +13,18 @@ public class UserService : IUserService
     // User service: create users, authenticate, and lookup helper methods.
     private readonly ALOudDbContext _db;
     private readonly PasswordHasherService _passwordHasher;
+    private readonly IEmailService _emailService;
     private readonly ILogger<UserService> _logger;
 
     public UserService(
         ALOudDbContext db,
         PasswordHasherService passwordHasher,
+        IEmailService emailService,
         ILogger<UserService> logger)
     {
         _db = db;
         _passwordHasher = passwordHasher;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -56,7 +59,7 @@ public class UserService : IUserService
 
             _logger.LogInformation("User successfully saved to database");
 
-            // TODO Send Welcome Email
+            await SendWelcomeEmailAsync(user);
 
             return user;
         }
@@ -159,6 +162,22 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Unexpected error fetching user by email: {Email}", email);
             throw;
+        }
+    }
+
+    private async Task SendWelcomeEmailAsync(User user)
+    {
+        var subject = "Welcome to ALOud";
+        var body = $"<p>Hello {user.FirstName},</p><p>Welcome to ALOud! Your account has been created successfully.</p>";
+
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+            _logger.LogInformation("Welcome email sent to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send welcome email to {Email}", user.Email);
         }
     }
 
