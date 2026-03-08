@@ -1,0 +1,322 @@
+@using ALOud.Controllers
+@model HybridRecommendationViewModel
+
+@{
+    ViewData["Title"] = "AI Perfume Recommendation";
+}
+
+<style>
+    .recommendation-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .recommendation-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .recommendation-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .recommendation-header p {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 300;
+    }
+
+    .recommendation-card {
+        background: var(--card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        margin-top: 0;
+        color: var(--color-primary);
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 1rem;
+    }
+
+    .recommendation-section {
+        margin-bottom: 2rem;
+    }
+
+    .recommendation-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .subsection-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.375rem 0.875rem;
+        font-size: 0.875rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .tag-prefer {
+        background: rgba(34, 197, 94, 0.1);
+        color: #15803d;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .tag-avoid {
+        background: rgba(239, 68, 68, 0.1);
+        color: #991b1b;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .performance-item {
+        padding: 0.75rem;
+        background: #fafafa;
+        border-left: 3px solid var(--accent-color);
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+    }
+
+    .performance-item-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    .performance-item-value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--color-primary);
+        margin-top: 0.25rem;
+    }
+
+    .llm-response {
+        background: #fafafa;
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        border-radius: 6px;
+        line-height: 1.6;
+        font-size: 1rem;
+        color: var(--color-primary);
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .reasons-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .reasons-list li {
+        padding: 0.625rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        color: var(--color-primary);
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+
+    .reasons-list li:before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-color);
+        font-weight: bold;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .btn {
+        flex: 1;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-primary {
+        background: var(--color-primary);
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: var(--color-primary);
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+        transform: translateY(-1px);
+    }
+
+    @@media (max-width: 768px) {
+        .recommendation-container {
+            padding: 1rem;
+        }
+
+        .recommendation-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="recommendation-container">
+    <!-- Header -->
+    <div class="recommendation-header">
+        <h1><i class="bi bi-sparkles"></i> Your Personalized Recommendation</h1>
+        <p>Based on your preferences, here's what our AI system recommends</p>
+    </div>
+
+    @if (Model?.Recommendation != null)
+    {
+        <!-- Profile Summary Card -->
+        <div class="recommendation-card">
+            <h2 class="section-title">Your Preference Profile</h2>
+
+            @if (Model.Recommendation.Prefer?.Any() == true)
+            {
+                <div class="recommendation-section">
+                    <p class="subsection-title">Recommended Notes & Characteristics</p>
+                    <div class="tag-list">
+                        @foreach (var item in Model.Recommendation.Prefer)
+                        {
+                            <span class="tag tag-prefer">@item.Replace("_", " ")</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.Recommendation.Avoid?.Any() == true)
+            {
+                <div class="recommendation-section">
+                    <p class="subsection-title">Notes to Avoid</p>
+                    <div class="tag-list">
+                        @foreach (var item in Model.Recommendation.Avoid)
+                        {
+                            <span class="tag tag-avoid">@item.Replace("_", " ")</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Recommendation.Sillage) || !string.IsNullOrWhiteSpace(Model.Recommendation.Longevity))
+            {
+                <div class="recommendation-section">
+                    <p class="subsection-title">Performance Characteristics</p>
+                    @if (!string.IsNullOrWhiteSpace(Model.Recommendation.Sillage))
+                    {
+                        <div class="performance-item">
+                            <div class="performance-item-label">Sillage (Projection)</div>
+                            <div class="performance-item-value">@Model.Recommendation.Sillage</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Recommendation.Longevity))
+                    {
+                        <div class="performance-item">
+                            <div class="performance-item-label">Longevity (Durability)</div>
+                            <div class="performance-item-value">@Model.Recommendation.Longevity</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- AI Analysis Card -->
+        <div class="recommendation-card">
+            <h2 class="section-title"><i class="bi bi-robot"></i> AI Analysis & Recommendation</h2>
+
+            @if (!string.IsNullOrWhiteSpace(Model.LlmGeneratedResponse))
+            {
+                <div class="recommendation-section">
+                    <p class="subsection-title">Detailed Analysis</p>
+                    <div class="llm-response">@Html.Raw(System.Net.WebUtility.HtmlEncode(Model.LlmGeneratedResponse).Replace("\n", "<br/>"))</div>
+                </div>
+            }
+
+            @if (Model.Recommendation.Reasons?.Any() == true)
+            {
+                <div class="recommendation-section">
+                    <p class="subsection-title">Why This Recommendation?</p>
+                    <ul class="reasons-list">
+                        @foreach (var reason in Model.Recommendation.Reasons)
+                        {
+                            <li>@reason</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="recommendation-card">
+            <div class="action-buttons">
+                <a href="/admin/expert-system" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left" style="margin-right: 0.5rem;"></i> Back to Expert System
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="bi bi-printer" style="margin-right: 0.5rem;"></i> Print Recommendation
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="recommendation-card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--text-muted); font-size: 1rem;">
+                No recommendation data available. Please start from the <a href="/admin/expert-system">Expert System</a>.
+            </p>
+        </div>
+    }
+</div>

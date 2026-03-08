@@ -572,10 +572,26 @@
                     <div id="performanceAttributes"></div>
                 </div>
 
+                <!-- LLM Generated Answer  -->
+                <div class="results-section">
+                    <h4>LLM Explaination</h4>
+                    <div id="llmAnswer"></div>
+                </div>
+
                 <!-- Reasons (Explainability) -->
                 <div class="results-section">
                     <h4>Why This Recommendation?</h4>
                     <ul class="reasons-list" id="reasonsList"></ul>
+                </div>
+
+                <!-- View Full AI Recommendation Button -->
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
+                    <button type="button" class="btn-expert-submit" id="viewFullRecommendationBtn" style="background: var(--accent-color);">
+                        <i class="bi bi-arrow-right" style="margin-right: 0.5rem;"></i> View Full AI Recommendation
+                    </button>
+                    <form id="hiddenRecommendationForm" style="display: none;" method="POST" action="/expert/hybrid-recommendation">
+                        <input type="hidden" id="recommendationDataInput" name="recommendationJson">
+                    </form>
                 </div>
             </div>
         </div>
@@ -663,6 +679,7 @@
          * @@param {Object} recommendation - Server response
          */
         function renderResults(recommendation) {
+            
             // Prefer tags
             const preferList = document.getElementById('preferList');
             preferList.innerHTML = '';
@@ -730,6 +747,13 @@
                 reasonsList.innerHTML = '<li style="list-style: none; padding-left: 0;">No specific reasoning provided</li>';
             }
 
+
+            const llmAnswer = document.getElementById('llmAnswer');
+            reasonsList.innerHTML = `<li style="list-style: none; padding-left: 0;">${recommendation.result}</li>`;
+
+            // Store recommendation data for later use
+            window.currentRecommendation = recommendation;
+
             // Show results card
             resultsPlaceholder.style.display = 'none';
             resultsCard.style.display = 'block';
@@ -765,6 +789,9 @@
                 }
 
                 const recommendation = await response.json();
+
+
+
                 renderResults(recommendation);
 
             } catch (error) {
@@ -781,6 +808,17 @@
 
         // Hide error when user starts typing
         form.addEventListener('input', hideError);
+
+        // View Full Recommendation Button
+        const viewFullRecommendationBtn = document.getElementById('viewFullRecommendationBtn');
+        viewFullRecommendationBtn.addEventListener('click', function() {
+            if (window.currentRecommendation) {
+                const form = document.getElementById('hiddenRecommendationForm');
+                const input = document.getElementById('recommendationDataInput');
+                input.value = JSON.stringify(window.currentRecommendation);
+                form.submit();
+            }
+        });
 
     })();
 </script>

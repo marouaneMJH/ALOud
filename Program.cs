@@ -166,6 +166,7 @@ builder.Services.AddScoped<CartService>();
 // Expert System – CORE
 // =====================================================
 builder.Services.AddSingleton<IExpertSystemService, ExpertSystemService>();
+builder.Services.AddScoped<IHybridExpertSystemService, HybridExpertSystemService>();
 
 
 // =====================================================
@@ -201,6 +202,9 @@ builder.Services.AddScoped<IVectorDbClient, QdrantVectorDbClient>();
 
 builder.Services.AddHttpClient<QdrantVectorSearchClient>();
 builder.Services.AddScoped<IVectorSearchClient, QdrantVectorSearchClient>();
+
+builder.Services.AddHttpClient<QdrantPayloadSearchClient>();
+builder.Services.AddScoped<IPayloadSearchClient, QdrantPayloadSearchClient>();
 
 // --------------------
 // Qdrant bootstrap
