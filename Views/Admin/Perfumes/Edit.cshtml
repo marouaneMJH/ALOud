@@ -85,6 +85,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label asp-for="StockQuantity" class="form-label">Stock Quantity</label>
+                        <input asp-for="StockQuantity" type="number" min="0" class="form-input" placeholder="Enter stock quantity" />
+                        <span asp-validation-for="StockQuantity" class="form-error"></span>
+                    </div>
+
+                    <div class="form-group">
                         <label asp-for="ImageUrl" class="form-label">Image URL</label>
                         <input asp-for="ImageUrl" class="form-input" placeholder="Enter image URL" />
                         <span asp-validation-for="ImageUrl" class="form-error"></span>

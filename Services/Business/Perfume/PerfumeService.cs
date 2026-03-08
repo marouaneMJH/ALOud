@@ -65,8 +65,11 @@ namespace ALOud.Services.Perfume
                     BrandId = p.BrandId,
                     BrandName = p.Brand.Name,
                     Price = p.Price,
+                    StockQuantity = p.StockQuantity,
                     Description = p.Description,
-                    ImageUrl = p.ImageUrl
+                    ImageUrl = p.ImageUrl,
+                    Families = p.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
+                    CreatedAt = p.CreatedAt
                 })
                 .ToListAsync();
 
@@ -88,10 +91,12 @@ namespace ALOud.Services.Perfume
                     GenderProfile = p.GenderProfile,
                     PriceRange = p.PriceRange,
                     Price = p.Price,
+                    StockQuantity = p.StockQuantity,
                     Description = p.Description,
                     ImageUrl = p.ImageUrl,
                     BrandId = p.BrandId,
-                    BrandName = p.Brand.Name
+                    BrandName = p.Brand.Name,
+                    CreatedAt = p.CreatedAt
                 })
                 .FirstOrDefaultAsync();
         }
@@ -119,6 +124,11 @@ namespace ALOud.Services.Perfume
                 Sillage = perfume.Sillage,
                 GenderProfile = perfume.GenderProfile,
                 PriceRange = perfume.PriceRange,
+                Price = perfume.Price,
+                StockQuantity = perfume.StockQuantity,
+                Description = perfume.Description,
+                ImageUrl = perfume.ImageUrl,
+                CreatedAt = perfume.CreatedAt,
                 BrandId = perfume.BrandId,
                 BrandName = perfume.Brand.Name,
                 Families = perfume.PerfumeFamilies.Select(pf => pf.Family.Name).ToList(),
@@ -195,6 +205,7 @@ namespace ALOud.Services.Perfume
                 GenderProfile = dto.GenderProfile,
                 PriceRange = dto.PriceRange,
                 Price = dto.Price,
+                StockQuantity = dto.StockQuantity,
                 Description = dto.Description,
                 ImageUrl = dto.ImageUrl,
                 BrandId = dto.BrandId
@@ -263,6 +274,7 @@ namespace ALOud.Services.Perfume
             perfume.GenderProfile = dto.GenderProfile;
             perfume.PriceRange = dto.PriceRange;
             perfume.Price = dto.Price;
+            perfume.StockQuantity = dto.StockQuantity;
             perfume.Description = dto.Description;
             perfume.ImageUrl = dto.ImageUrl;
             perfume.BrandId = dto.BrandId;

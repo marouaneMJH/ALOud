@@ -26,6 +26,9 @@ namespace ALOud.DTOs.Perfumes
         [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value")]
         public decimal Price { get; set; }
 
+        [Range(0, int.MaxValue, ErrorMessage = "Stock quantity must be zero or greater")]
+        public int StockQuantity { get; set; }
+
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? Description { get; set; }
 
@@ -69,6 +72,9 @@ namespace ALOud.DTOs.Perfumes
 
         [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value")]
         public decimal Price { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Stock quantity must be zero or greater")]
+        public int StockQuantity { get; set; }
 
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? Description { get; set; }
