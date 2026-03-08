@@ -1,9 +1,14 @@
-@page
-@model Pages.IndexModel
+@model ViewModels.PaginatedList<ALOud.DTOs.Perfumes.PerfumeDto>
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Collection";
     var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+    var searchQuery = ViewBag.SearchQuery as string ?? "";
+    var selectedBrandId = ViewBag.SelectedBrandId as Guid?;
+    var selectedFamilyId = ViewBag.SelectedFamilyId as Guid?;
+    var selectedGender = ViewBag.SelectedGender as string ?? "";
+    var brands = ViewBag.Brands as List<dynamic> ?? new();
+    var families = ViewBag.Families as List<dynamic> ?? new();
 }
 
 @if (TempData["Success"] != null)
@@ -33,7 +38,7 @@
                 <input type="text"
                        id="query"
                        name="query"
-                       value="@Model.Search.Query"
+                       value="@searchQuery"
                        class="search-input"
                        placeholder="Search for a perfume or brand..."
                        onchange="this.form.submit()" />
@@ -50,23 +55,29 @@
             <div class="filter-group">
                 <label class="filter-label">Brand</label>
                 <div class="filter-pills">
-                    <a class="filter-pill @(Model.SelectedBrandId == null ? "active" : "")" 
-                       asp-page="/Index"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-familyId="@Model.SelectedFamilyId"
-                       asp-route-gender="@Model.SelectedGender">
+                    <a class="filter-pill @(selectedBrandId == null ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-familyId="@selectedFamilyId"
+                       asp-route-gender="@selectedGender">
                         All
                     </a>
-                    @foreach (var brand in Model.Brands.Take(10))
+                    @if (brands != null)
                     {
-                        <a class="filter-pill @(Model.SelectedBrandId == brand.Id ? "active" : "")" 
-                           asp-page="/Index" 
-                           asp-route-brandId="@brand.Id"
-                           asp-route-query="@Model.Search.Query"
-                           asp-route-familyId="@Model.SelectedFamilyId"
-                           asp-route-gender="@Model.SelectedGender">
-                            @brand.Name
-                        </a>
+                        @foreach (var brand in brands.Take(10))
+                        {
+                            var brandId = brand.Id;
+                            <a class="filter-pill @(selectedBrandId == brandId ? "active" : "")" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
+                               asp-route-brandId="@brandId"
+                               asp-route-query="@searchQuery"
+                               asp-route-familyId="@selectedFamilyId"
+                               asp-route-gender="@selectedGender">
+                                @brand.Name
+                            </a>
+                        }
                     }
                 </div>
             </div>
@@ -75,23 +86,29 @@
             <div class="filter-group">
                 <label class="filter-label">Olfactory Family</label>
                 <div class="filter-pills">
-                    <a class="filter-pill @(Model.SelectedFamilyId == null ? "active" : "")" 
-                       asp-page="/Index"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-brandId="@Model.SelectedBrandId"
-                       asp-route-gender="@Model.SelectedGender">
+                    <a class="filter-pill @(selectedFamilyId == null ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-gender="@selectedGender">
                         All
                     </a>
-                    @foreach (var family in Model.Families.Take(10))
+                    @if (families != null)
                     {
-                        <a class="filter-pill @(Model.SelectedFamilyId == family.Id ? "active" : "")" 
-                           asp-page="/Index" 
-                           asp-route-familyId="@family.Id"
-                           asp-route-query="@Model.Search.Query"
-                           asp-route-brandId="@Model.SelectedBrandId"
-                           asp-route-gender="@Model.SelectedGender">
-                            @family.Name
-                        </a>
+                        @foreach (var family in families.Take(10))
+                        {
+                            var familyId = family.Id;
+                            <a class="filter-pill @(selectedFamilyId == familyId ? "active" : "")" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
+                               asp-route-familyId="@familyId"
+                               asp-route-query="@searchQuery"
+                               asp-route-brandId="@selectedBrandId"
+                               asp-route-gender="@selectedGender">
+                                @family.Name
+                            </a>
+                        }
                     }
                 </div>
             </div>
@@ -100,35 +117,39 @@
             <div class="filter-group">
                 <label class="filter-label">Gender</label>
                 <div class="filter-pills">
-                    <a class="filter-pill @(string.IsNullOrEmpty(Model.SelectedGender) ? "active" : "")" 
-                       asp-page="/Index"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-brandId="@Model.SelectedBrandId"
-                       asp-route-familyId="@Model.SelectedFamilyId">
+                    <a class="filter-pill @(string.IsNullOrEmpty(selectedGender) ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
                         All
                     </a>
-                    <a class="filter-pill @(Model.SelectedGender == "Homme" ? "active" : "")" 
-                       asp-page="/Index" 
+                    <a class="filter-pill @(selectedGender == "Male" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
                        asp-route-gender="Male"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-brandId="@Model.SelectedBrandId"
-                       asp-route-familyId="@Model.SelectedFamilyId">
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
                         Men
                     </a>
-                    <a class="filter-pill @(Model.SelectedGender == "Femme" ? "active" : "")" 
-                       asp-page="/Index" 
+                    <a class="filter-pill @(selectedGender == "Female" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
                        asp-route-gender="Female"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-brandId="@Model.SelectedBrandId"
-                       asp-route-familyId="@Model.SelectedFamilyId">
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
                         Women
                     </a>
-                    <a class="filter-pill @(Model.SelectedGender == "Unisexe" ? "active" : "")" 
-                       asp-page="/Index" 
+                    <a class="filter-pill @(selectedGender == "Unisex" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
                        asp-route-gender="Unisex"
-                       asp-route-query="@Model.Search.Query"
-                       asp-route-brandId="@Model.SelectedBrandId"
-                       asp-route-familyId="@Model.SelectedFamilyId">
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
                         Unisex
                     </a>
                 </div>
@@ -174,25 +195,6 @@
             transform: translateX(0);
             opacity: 1;
         }
-    }
-
-    .hero-section {
-        text-align: center;
-        padding: var(--spacing-3xl) 0 var(--spacing-xl);
-    }
-
-    .hero-title {
-        font-family: var(--font-heading);
-        font-size: 2.5rem;
-        font-weight: 400;
-        color: var(--color-primary);
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .hero-subtitle {
-        font-size: 1.1rem;
-        color: var(--color-text-secondary);
-        font-weight: 300;
     }
 
     .premium-search-form {
@@ -366,20 +368,6 @@
         line-height: 1.3;
     }
 
-    .perfume-meta {
-        display: flex;
-        gap: var(--spacing-md);
-        margin-bottom: var(--spacing-md);
-        font-size: 0.8rem;
-        color: var(--color-text-secondary);
-    }
-
-    .perfume-meta-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
     .perfume-price {
         font-size: 1.1rem;
         font-weight: 600;
@@ -525,10 +513,6 @@
     }
 
     @@media (max-width: 768px) {
-        .hero-title {
-            font-size: 2rem;
-        }
-
         .search-input {
             font-size: 1rem;
             padding: var(--spacing-sm) 0 var(--spacing-sm) 2.5rem;
@@ -544,14 +528,17 @@
 <!-- Perfumes Grid -->
 <section>
     <div class="container">
-        @if (Model.Perfumes.Any())
+        @if (Model.Items.Any())
         {
             <div class="perfume-grid">
-                @foreach (var perfume in Model.Perfumes)
+                @foreach (var perfume in Model.Items)
                 {
                     <article class="perfume-card">
                         <!-- Perfume Image -->
-                        <a asp-page="/Perfume/Details" asp-route-id="@perfume.Id" class="text-decoration-none">
+                        <a asp-action="Details" 
+                           asp-controller="Perfume" 
+                           asp-route-id="@perfume.Id" 
+                           class="text-decoration-none">
                             <div class="perfume-image-container">
                                 @if (!string.IsNullOrEmpty(perfume.GenderProfile))
                                 {
@@ -567,7 +554,10 @@
                         <!-- Perfume Info -->
                         <div class="perfume-info">
                             <div class="perfume-brand">@perfume.BrandName</div>
-                            <a asp-page="/Perfume/Details" asp-route-id="@perfume.Id" class="text-decoration-none">
+                           <a asp-action="Details" 
+                               asp-controller="Perfume" 
+                               asp-route-id="@perfume.Id" 
+                               class="text-decoration-none">
                                 <h3 class="perfume-name">@perfume.Name</h3>
                             </a>
                             
@@ -590,8 +580,7 @@
                                 </div>
                             </div>
 
-               
-                            <form method="post" asp-page-handler="AddToCart" asp-route-id="@perfume.Id">
+                            <form method="post" asp-action="AddToCart" asp-controller="Perfume" asp-route-id="@perfume.Id">
                                 <button type="submit" 
                                         class="add-to-cart-btn" 
                                         @(perfume.StockQuantity <= 0 ? "disabled" : "")>
@@ -611,7 +600,7 @@
                 <p style="color: var(--color-text-secondary);">
                     Try changing your search criteria or explore our entire collection.
                 </p>
-                <a asp-page="/Index" class="btn btn-primary mt-3">
+                <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary mt-3">
                     View full collection
                 </a>
             </div>
@@ -628,13 +617,14 @@
                     @if (Model.HasPreviousPage)
                     {
                         <a class="pagination-link" 
-                           asp-page="/Index" 
+                           asp-action="Index"
+                           asp-controller="Perfume"
                            asp-route-pageIndex="@(Model.PageIndex - 1)"
                            asp-route-pageSize="@Model.PageSize"
-                           asp-route-query="@Model.Search.Query"
-                           asp-route-brandId="@Model.SelectedBrandId"
-                           asp-route-familyId="@Model.SelectedFamilyId"
-                           asp-route-gender="@Model.SelectedGender">
+                           asp-route-query="@searchQuery"
+                           asp-route-brandId="@selectedBrandId"
+                           asp-route-familyId="@selectedFamilyId"
+                           asp-route-gender="@selectedGender">
                             ← Previous
                         </a>
                     }
@@ -648,13 +638,14 @@
                         else
                         {
                             <a class="pagination-link" 
-                               asp-page="/Index" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
                                asp-route-pageIndex="@i"
                                asp-route-pageSize="@Model.PageSize"
-                               asp-route-query="@Model.Search.Query"
-                               asp-route-brandId="@Model.SelectedBrandId"
-                               asp-route-familyId="@Model.SelectedFamilyId"
-                               asp-route-gender="@Model.SelectedGender">
+                               asp-route-query="@searchQuery"
+                               asp-route-brandId="@selectedBrandId"
+                               asp-route-familyId="@selectedFamilyId"
+                               asp-route-gender="@selectedGender">
                                 @i
                             </a>
                         }
@@ -663,13 +654,14 @@
                     @if (Model.HasNextPage)
                     {
                         <a class="pagination-link" 
-                           asp-page="/Index" 
+                           asp-action="Index"
+                           asp-controller="Perfume"
                            asp-route-pageIndex="@(Model.PageIndex + 1)"
                            asp-route-pageSize="@Model.PageSize"
-                           asp-route-query="@Model.Search.Query"
-                           asp-route-brandId="@Model.SelectedBrandId"
-                           asp-route-familyId="@Model.SelectedFamilyId"
-                           asp-route-gender="@Model.SelectedGender">
+                           asp-route-query="@searchQuery"
+                           asp-route-brandId="@selectedBrandId"
+                           asp-route-familyId="@selectedFamilyId"
+                           asp-route-gender="@selectedGender">
                             Next →
                         </a>
                     }

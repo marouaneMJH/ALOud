@@ -343,11 +343,16 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Configure routing for MVC and Razor Pages
+// MVC routes for controllers
+app.MapControllerRoute(
+    name: "perfumeDetails",
+    pattern: "Perfume/Details/{id:guid}",
+    defaults: new { controller = "Perfume", action = "Details" });
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.MapRazorPages();
+    pattern: "{controller=Perfume}/{action=Index}/{id?}");
 
 // =====================================================
 // RUN

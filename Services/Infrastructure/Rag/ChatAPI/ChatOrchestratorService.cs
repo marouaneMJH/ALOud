@@ -62,8 +62,6 @@ public class ChatOrchestratorService : IChatOrchestratorService
             cancellationToken: cancellationToken
         );
 
-        // 3. Fetch live cart context
-
         // 3. Live cart context
         var liveCartContext = await BuildLiveContextAsync(userId);
 

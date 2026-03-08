@@ -1,14 +1,13 @@
-@page "{id:guid}"
-@model Pages.Perfume.DetailsModel
+@model ALOud.DTOs.Perfumes.PerfumeDetailsDto
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
-    ViewData["Title"] = $"{Model.Perfume.Name} - {Model.Perfume.BrandName}";
+    ViewData["Title"] = $"{Model.Name} - {Model.BrandName}";
     var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
     
-    var topNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Top").ToList();
-    var middleNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Middle" || n.NoteLevel == "Heart").ToList();
-    var baseNotes = Model.Perfume.Notes.Where(n => n.NoteLevel == "Base").ToList();
-    var otherNotes = Model.Perfume.Notes.Where(n => string.IsNullOrEmpty(n.NoteLevel) || 
+    var topNotes = Model.Notes.Where(n => n.NoteLevel == "Top").ToList();
+    var middleNotes = Model.Notes.Where(n => n.NoteLevel == "Middle" || n.NoteLevel == "Heart").ToList();
+    var baseNotes = Model.Notes.Where(n => n.NoteLevel == "Base").ToList();
+    var otherNotes = Model.Notes.Where(n => string.IsNullOrEmpty(n.NoteLevel) || 
         (n.NoteLevel != "Top" && n.NoteLevel != "Middle" && n.NoteLevel != "Heart" && n.NoteLevel != "Base")).ToList();
 }
 
@@ -644,7 +643,7 @@
     <div class="container">
         <!-- Breadcrumb -->
         <nav class="breadcrumb-nav">
-            <a asp-page="/Index">← Back to collection</a>
+            <a asp-action="Index" asp-controller="Perfume">← Back to collection</a>
         </nav>
 
         <!-- Main Detail Grid -->
@@ -652,8 +651,8 @@
             <!-- Image Section -->
             <div class="perfume-image-section">
                 <div class="perfume-main-image">
-                    <img src="@(Model.Perfume.ImageUrl ?? fallback)" 
-                         alt="@Model.Perfume.Name"
+                    <img src="@(Model.ImageUrl ?? fallback)" 
+                         alt="@Model.Name"
                          onerror="this.onerror=null;this.src='@fallback';" />
                 </div>
             </div>
@@ -662,44 +661,44 @@
             <div class="perfume-info-section">
                 <!-- Header -->
                 <div class="perfume-header">
-                    <h1 class="perfume-title">@Model.Perfume.Name</h1>
+                    <h1 class="perfume-title">@Model.Name</h1>
                     <div class="perfume-brand-name-by">
-                        By <span class="perfume-brand-name">@Model.Perfume.BrandName</span>
+                        By <span class="perfume-brand-name">@Model.BrandName</span>
                     </div>
                 </div>
 
                 <!-- Badges -->
                 <div class="perfume-badges">
-                    @if (!string.IsNullOrEmpty(Model.Perfume.GenderProfile))
+                    @if (!string.IsNullOrEmpty(Model.GenderProfile))
                     {
-                        <span class="perfume-badge">@Model.Perfume.GenderProfile</span>
+                        <span class="perfume-badge">@Model.GenderProfile</span>
                     }
-                    @foreach (var family in Model.Perfume.Families.Take(2))
+                    @foreach (var family in Model.Families.Take(2))
                     {
                         <span class="perfume-badge accent">@family</span>
                     }
                 </div>
 
                 <!-- Description -->
-                @if (!string.IsNullOrEmpty(Model.Perfume.Description))
+                @if (!string.IsNullOrEmpty(Model.Description))
                 {
                     <div class="perfume-description">
-                        @Model.Perfume.Description
+                        @Model.Description
                     </div>
                 }
 
                 <!-- Price and Stock -->
                 <div class="price-stock-section">
                     <div class="perfume-price-label">Price</div>
-                    <div class="price-large">@Model.Perfume.Price.ToString("N0") MAD</div>
+                    <div class="price-large">@Model.Price.ToString("N0") MAD</div>
                     @{
-                        var stockClass = Model.Perfume.StockQuantity > 10 ? "in-stock" 
-                            : Model.Perfume.StockQuantity > 0 ? "low-stock" 
+                        var stockClass = Model.StockQuantity > 10 ? "in-stock" 
+                            : Model.StockQuantity > 0 ? "low-stock" 
                             : "out-of-stock";
-                        var stockText = Model.Perfume.StockQuantity > 10 
-                            ? $"In stock ({Model.Perfume.StockQuantity} available)"
-                            : Model.Perfume.StockQuantity > 0 
-                                ? $"Limited stock ({Model.Perfume.StockQuantity} remaining)"
+                        var stockText = Model.StockQuantity > 10 
+                            ? $"In stock ({Model.StockQuantity} available)"
+                            : Model.StockQuantity > 0 
+                                ? $"Limited stock ({Model.StockQuantity} remaining)"
                                 : "Out of stock";
                     }
                     <div class="stock-status @stockClass">
@@ -722,49 +721,49 @@
                         </div>
                     }
                     
-                    <form method="post" asp-page-handler="AddToCart" asp-route-id="@Model.Perfume.Id">
+                    <form method="post" asp-action="AddToCart" asp-controller="Perfume" asp-route-id="@Model.Id">
                         <div class="quantity-selector">
                             <span class="quantity-label">Quantity</span>
                             <div class="quantity-controls">
                                 <button type="button" class="quantity-btn" onclick="decreaseQuantity()">−</button>
-                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="@Model.Perfume.StockQuantity" class="quantity-input" />
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="@Model.StockQuantity" class="quantity-input" />
                                 <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
                             </div>
                         </div>
                         <button type="submit" 
                                 class="add-to-cart-btn"
-                                @(Model.Perfume.StockQuantity <= 0 ? "disabled" : "")>
-                            @(Model.Perfume.StockQuantity > 0 ? "Add to cart" : "Unavailable")
+                                @(Model.StockQuantity <= 0 ? "disabled" : "")>
+                            @(Model.StockQuantity > 0 ? "Add to cart" : "Unavailable")
                         </button>
                     </form>
                 </div>
 
                 <!-- Characteristics -->
-                @if (!string.IsNullOrEmpty(Model.Perfume.Intensity) || 
-                     !string.IsNullOrEmpty(Model.Perfume.Longevity) || 
-                     !string.IsNullOrEmpty(Model.Perfume.Sillage))
+                @if (!string.IsNullOrEmpty(Model.Intensity) || 
+                     !string.IsNullOrEmpty(Model.Longevity) || 
+                     !string.IsNullOrEmpty(Model.Sillage))
                 {
                     <div class="characteristics-section">
                         <div class="characteristics-grid">
-                            @if (!string.IsNullOrEmpty(Model.Perfume.Intensity))
+                            @if (!string.IsNullOrEmpty(Model.Intensity))
                             {
                                 <div class="characteristic-item">
                                     <div class="characteristic-label">Intensity</div>
-                                    <div class="characteristic-value">@Model.Perfume.Intensity</div>
+                                    <div class="characteristic-value">@Model.Intensity</div>
                                 </div>
                             }
-                            @if (!string.IsNullOrEmpty(Model.Perfume.Longevity))
+                            @if (!string.IsNullOrEmpty(Model.Longevity))
                             {
                                 <div class="characteristic-item">
                                     <div class="characteristic-label">Longevity</div>
-                                    <div class="characteristic-value">@Model.Perfume.Longevity</div>
+                                    <div class="characteristic-value">@Model.Longevity</div>
                                 </div>
                             }
-                            @if (!string.IsNullOrEmpty(Model.Perfume.Sillage))
+                            @if (!string.IsNullOrEmpty(Model.Sillage))
                             {
                                 <div class="characteristic-item">
                                     <div class="characteristic-label">Sillage</div>
-                                    <div class="characteristic-value">@Model.Perfume.Sillage</div>
+                                    <div class="characteristic-value">@Model.Sillage</div>
                                 </div>
                             }
                         </div>
@@ -772,12 +771,12 @@
                 }
 
                 <!-- Families -->
-                @if (Model.Perfume.Families.Any())
+                @if (Model.Families.Any())
                 {
                     <div class="families-section">
                         <div class="section-subtitle">Olfactory Families</div>
                         <div class="families-list">
-                            @foreach (var family in Model.Perfume.Families)
+                            @foreach (var family in Model.Families)
                             {
                                 <span class="family-badge">@family</span>
                             }
@@ -786,27 +785,27 @@
                 }
 
                 <!-- Seasons & Occasions - Compact Layout -->
-                @if (Model.Perfume.Seasons.Any() || Model.Perfume.Occasions.Any())
+                @if (Model.Seasons.Any() || Model.Occasions.Any())
                 {
                     <div class="tags-compact">
-                        @if (Model.Perfume.Seasons.Any())
+                        @if (Model.Seasons.Any())
                         {
                             <div class="tag-group">
                                 <div class="tag-group-title">Seasons</div>
                                 <div class="tag-list">
-                                    @foreach (var season in Model.Perfume.Seasons)
+                                    @foreach (var season in Model.Seasons)
                                     {
                                         <span class="tag-item gold">@season</span>
                                     }
                                 </div>
                             </div>
                         }
-                        @if (Model.Perfume.Occasions.Any())
+                        @if (Model.Occasions.Any())
                         {
                             <div class="tag-group">
                                 <div class="tag-group-title">Occasions</div>
                                 <div class="tag-list">
-                                    @foreach (var occasion in Model.Perfume.Occasions)
+                                    @foreach (var occasion in Model.Occasions)
                                     {
                                         <span class="tag-item">@occasion</span>
                                     }
@@ -819,7 +818,7 @@
         </div>
 
         <!-- Notes Pyramid Section -->
-        @if (Model.Perfume.Notes.Any())
+        @if (Model.Notes.Any())
         {
             <section class="notes-section">
                 <div class="container">
@@ -879,13 +878,13 @@
         }
 
         <!-- Accords Section -->
-        @if (Model.Perfume.Accords.Any())
+        @if (Model.Accords.Any())
         {
             <section class="accords-section">
                 <div class="container">
                     <h2 class="section-title">Accords</h2>
                     <div class="accords-grid">
-                        @foreach (var accord in Model.Perfume.Accords)
+                        @foreach (var accord in Model.Accords)
                         {
                             <div class="accord-item">
                                 <span class="accord-name">@accord.AccordName</span>
@@ -901,14 +900,14 @@
         }
 
         <!-- Tags Section -->
-        @if (Model.Perfume.Tags.Any())
+        @if (Model.Tags.Any())
         {
             <section class="tags-section">
                 <div class="container">
                     <h2 class="section-title">Tags</h2>
                     <div class="tags-display">
                         <div class="tag-list">
-                            @foreach (var tag in Model.Perfume.Tags)
+                            @foreach (var tag in Model.Tags)
                             {
                                 <span class="note-tag">@tag</span>
                             }
@@ -921,7 +920,7 @@
 </section>
 
 <script>
-    const maxStock = @Model.Perfume.StockQuantity;
+    const maxStock = @Model.StockQuantity;
     
     function increaseQuantity() {
         const input = document.getElementById('quantity');
