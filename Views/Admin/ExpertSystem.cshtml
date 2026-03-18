@@ -750,7 +750,7 @@
 
 
             const llmAnswer = document.getElementById('llmAnswer');
-            reasonsList.innerHTML = `<li style="list-style: none; padding-left: 0;">${recommendation.result}</li>`;
+            llmAnswer.innerHTML = `<p style="margin: 0; line-height: 1.6;">${recommendation.result}</p>`;
 
             // Store recommendation data for later use
             window.currentRecommendation = recommendation;
@@ -791,7 +791,8 @@
 
                 const recommendation = await response.json();
 
-
+                // Debug: Log the API response to console
+                console.log('API Response:', recommendation);
 
                 renderResults(recommendation);
 
@@ -813,11 +814,18 @@
         // View Full Recommendation Button
         const viewFullRecommendationBtn = document.getElementById('viewFullRecommendationBtn');
         viewFullRecommendationBtn.addEventListener('click', function() {
+            console.log('View Full Recommendation clicked');
+            console.log('window.currentRecommendation:', window.currentRecommendation);
             if (window.currentRecommendation) {
                 const form = document.getElementById('hiddenRecommendationForm');
                 const input = document.getElementById('recommendationDataInput');
-                input.value = JSON.stringify(window.currentRecommendation);
+                const jsonData = JSON.stringify(window.currentRecommendation);
+                console.log('Sending JSON data to form:', jsonData);
+                input.value = jsonData;
+                console.log('Form submitting to:', form.action);
                 form.submit();
+            } else {
+                console.warn('No recommendation data available');
             }
         });
 

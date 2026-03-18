@@ -5,6 +5,7 @@ using ALOud.Services;
 using ALOud.Services.Security;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Clients;
+using ALOud.Services.Infrastructure.ExpertSystem;
 using ALOud.Services.Brand;
 using ALOud.Services.Perfume;
 using ALOud.Services.Family;

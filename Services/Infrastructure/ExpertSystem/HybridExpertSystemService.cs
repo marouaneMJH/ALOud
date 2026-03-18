@@ -3,6 +3,8 @@ using ALOud.Services.Rag.Clients;
 using ALOud.Services.Rag.Models;
 using System.Text;
 
+namespace ALOud.Services.Infrastructure.ExpertSystem;
+
 public class HybridExpertSystemService : IHybridExpertSystemService
 {
     private readonly IPayloadSearchClient _payloadSearchClient;
@@ -24,18 +26,36 @@ public class HybridExpertSystemService : IHybridExpertSystemService
     {
         ArgumentNullException.ThrowIfNull(rec);
 
-        var products = await GetTopKProducts(
-            rec.Prefer,
-            rec.Avoid,
-            rec.Sillage,
-            rec.Longevity,
-            topK: 5,
-            cancellationToken: cancellationToken);
+        // Validate that we have at least some criteria
+        if (rec.Prefer.Count == 0 && rec.Avoid.Count == 0 &&
+            string.IsNullOrWhiteSpace(rec.Sillage) && string.IsNullOrWhiteSpace(rec.Longevity))
+        {
+            return "Please provide at least one preference criterion (prefer, avoid, sillage, or longevity).";
+        }
 
-        return await GetLLMGeneratedRecommendationAsync(
-            products,
-            rec.Reasons,
-            cancellationToken);
+        try
+        {
+            var products = await GetTopKProducts(
+                rec.Prefer,
+                rec.Avoid,
+                rec.Sillage,
+                rec.Longevity,
+                topK: 5,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return await GetLLMGeneratedRecommendationAsync(
+                products,
+                rec.Reasons ?? new List<string>(),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return $"An error occurred during recommendation: {ex.Message}";
+        }
     }
 
 
@@ -52,7 +72,7 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         var results = await _payloadSearchClient.SearchByFilterAsync(
             topK,
             filter: filter,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var uniqueProducts = results
             .GroupBy(GetSourceKey)
@@ -70,38 +90,42 @@ public class HybridExpertSystemService : IHybridExpertSystemService
     {
         var filter = new QdrantFilter();
 
+        // Add prefer conditions - these search for characteristics in content
         foreach (var term in prefer.Where(p => !string.IsNullOrWhiteSpace(p)))
         {
             filter.Must.Add(new FilterCondition
             {
-                Key = "content",
+                Key = "characteristics",
                 Value = term.Trim()
             });
         }
 
+        // Add avoid conditions - these exclude characteristics from results
         foreach (var term in avoid.Where(a => !string.IsNullOrWhiteSpace(a)))
         {
             filter.MustNot.Add(new FilterCondition
             {
-                Key = "content",
+                Key = "characteristics",
                 Value = term.Trim()
             });
         }
 
+        // Add sillage filter if provided - should use appropriate metadata field
         if (!string.IsNullOrWhiteSpace(sillage))
         {
             filter.Must.Add(new FilterCondition
             {
-                Key = "content",
+                Key = "sillage",
                 Value = sillage.Trim()
             });
         }
 
+        // Add longevity filter if provided - should use appropriate metadata field
         if (!string.IsNullOrWhiteSpace(longevity))
         {
             filter.Must.Add(new FilterCondition
             {
-                Key = "content",
+                Key = "longevity",
                 Value = longevity.Trim()
             });
         }
@@ -111,29 +135,46 @@ public class HybridExpertSystemService : IHybridExpertSystemService
 
     private async Task<string> GetLLMGeneratedRecommendationAsync(
         IReadOnlyList<RagRetrievedChunk> products,
-        List<string> reasons,
+        IReadOnlyList<string> reasons,
         CancellationToken cancellationToken = default)
     {
-        var productContext = BuildProductContext(products);
-        var reasonContext = reasons.Count == 0
-            ? "No explicit reasons provided by user."
-            : string.Join("\n", reasons.Select(r => $"- {r}"));
-
-        var result = await _llmClient.ExecuteAsync(new RagLLMRequest
+        try
         {
-            SystemPrompt = "You are a perfume recommendation expert. Recommend only from provided products. Respect avoid constraints and explain why each product fits the user profile.",
-            UserMessage = "Generate a concise recommendation response with top products, why they fit, and a short caution for any trade-off.",
-            Context = new
+            if (products.Count == 0)
             {
-                reasons = reasonContext,
-                products = productContext
+                return "No products found matching your criteria. Please try relaxing your filters.";
             }
-        });
 
-        if (!string.IsNullOrWhiteSpace(result.FinalAnswer))
-            return result.FinalAnswer;
+            var productContext = BuildProductContext(products);
+            var reasonContext = reasons.Count == 0
+                ? "No explicit reasons provided by user."
+                : string.Join("\n", reasons.Select(r => $"- {r}"));
 
-        return BuildFallbackResponse(products);
+            var result = await _llmClient.ExecuteAsync(new RagLLMRequest
+            {
+                SystemPrompt = "You are a perfume recommendation expert. Recommend only from provided products. Respect avoid constraints and explain why each product fits the user profile.",
+                UserMessage = "Generate a concise recommendation response with top products, why they fit, and a short caution for any trade-off.",
+                Context = new
+                {
+                    reasons = reasonContext,
+                    products = productContext
+                }
+            }).ConfigureAwait(false);
+
+            if (result != null && !string.IsNullOrWhiteSpace(result.FinalAnswer))
+                return result.FinalAnswer;
+
+            return BuildFallbackResponse(products);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // Log the error and return fallback response
+            return BuildFallbackResponse(products);
+        }
     }
 
     private static string GetSourceKey(RagRetrievedChunk chunk)
@@ -160,13 +201,13 @@ public class HybridExpertSystemService : IHybridExpertSystemService
     private static string ExtractField(string content, string label)
     {
         var lines = content.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        var value = lines
+        var matchingLine = lines
             .FirstOrDefault(line => line.StartsWith(label, StringComparison.OrdinalIgnoreCase));
 
-        if (value == null)
+        if (string.IsNullOrEmpty(matchingLine) || matchingLine.Length <= label.Length)
             return string.Empty;
 
-        return value.Substring(label.Length).Trim();
+        return matchingLine[label.Length..].Trim();
     }
 
     private static string BuildFallbackResponse(IReadOnlyList<RagRetrievedChunk> products)
@@ -174,8 +215,8 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         if (products.Count == 0)
             return "I couldn’t find products that match your constraints. Try relaxing the avoid/preference criteria.";
 
-        var sb = new StringBuilder();
-        sb.AppendLine("Recommended products:");
+        var sb = new StringBuilder("Recommended products:");
+        sb.AppendLine();
 
         foreach (var product in products)
         {
@@ -184,6 +225,6 @@ public class HybridExpertSystemService : IHybridExpertSystemService
             sb.AppendLine($"- {name} by {brand}");
         }
 
-        return sb.ToString().Trim();
+        return sb.ToString().TrimEnd();
     }
 }

@@ -24,7 +24,7 @@ namespace ALOud.Controllers.MVC
     /// MVC Controller for comprehensive perfume and catalog admin management
     /// </summary>
     [Authorize]
-    [Route("PerfumeAdmin")]
+    [Route("Admin")]
     public class PerfumeAdminController : Controller
     {
         private readonly IBrandService _brandService;

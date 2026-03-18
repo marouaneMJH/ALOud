@@ -42,7 +42,7 @@ namespace ALOud.Controllers.Api.v1
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Test([FromBody] UserProfileDto userProfileDto)
+        public async Task<IActionResult> Test([FromBody] UserProfileDto userProfileDto)
         {
             if (userProfileDto == null)
                 return BadRequest(new { error = "User profile is required." });
@@ -50,7 +50,28 @@ namespace ALOud.Controllers.Api.v1
             try
             {
                 var result = _expertService.Evaluate(userProfileDto);
-                return Ok(result);
+                
+                // Also get LLM explanation for complete response
+                string llmResult = string.Empty;
+                try
+                {
+                    llmResult = await _hybridExpertService.EvaluateAsync(result).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to generate LLM explanation, returning expert system result only");
+                }
+                
+                // Return complete recommendation with LLM result
+                return Ok(new
+                {
+                    prefer = result.Prefer,
+                    avoid = result.Avoid,
+                    sillage = result.Sillage,
+                    longevity = result.Longevity,
+                    reasons = result.Reasons,
+                    result = llmResult
+                });
             }
             catch (Exception ex)
             {
