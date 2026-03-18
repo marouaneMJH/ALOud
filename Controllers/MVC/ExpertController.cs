@@ -9,6 +9,7 @@ namespace ALOud.Controllers.MVC
     /// <summary>
     /// MVC Controller for expert system recommendations
     /// </summary>
+    [Route("Expert", Name = "MvcExpertPrefix")]
     public class ExpertController : Controller
     {
         private readonly IHybridExpertSystemService _hybridExpert;
@@ -32,10 +33,10 @@ namespace ALOud.Controllers.MVC
         /// </summary>
         /// <returns>Hybrid recommendation form view</returns>
         [HttpGet]
-        [Route("Expert/HybridRecommendation", Name = "MvcExpertHybridGet")]
+        [Route("HybridRecommendation", Name = "MvcExpertHybridGet")]
         public IActionResult HybridRecommendation()
         {
-            return View(new RecommendationDto());
+            return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
         }
 
         /// <summary>
@@ -44,14 +45,15 @@ namespace ALOud.Controllers.MVC
         /// <param name="recommendationJson">The recommendation data as JSON string</param>
         /// <returns>View with recommendation result</returns>
         [HttpPost]
-        [Route("Expert/HybridRecommendation", Name = "MvcExpertHybridPost")]
+        [Route("HybridRecommendation", Name = "MvcExpertHybridPost")]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(1024 * 1024)] // 1MB limit
         public async Task<IActionResult> HybridRecommendation([FromForm] string recommendationJson)
         {
             if (string.IsNullOrWhiteSpace(recommendationJson))
             {
-                SetErrorMessage("Invalid recommendation data");
-                return View(new RecommendationDto());
+                SetErrorMessage("Invalid recommendation data: JSON cannot be empty");
+                return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
             }
 
             try
@@ -59,42 +61,47 @@ namespace ALOud.Controllers.MVC
                 var recommendation = JsonSerializer.Deserialize<RecommendationDto>(recommendationJson);
                 if (recommendation == null)
                 {
-                    SetErrorMessage("Failed to parse recommendation data");
-                    return View(new RecommendationDto());
+                    SetErrorMessage("Failed to parse recommendation data: Invalid JSON format");
+                    return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
                 }
 
-                // Convert DTO to domain model
+                // Validate DTO
+                if ((recommendation.Prefer == null || recommendation.Prefer.Count == 0) &&
+                    (recommendation.Avoid == null || recommendation.Avoid.Count == 0) &&
+                    string.IsNullOrWhiteSpace(recommendation.Sillage) &&
+                    string.IsNullOrWhiteSpace(recommendation.Longevity))
+                {
+                    SetErrorMessage("Please provide at least one search criterion (prefer, avoid, sillage, or longevity)");
+                    return View(new HybridRecommendationViewModel { Recommendation = recommendation });
+                }
+
+                // Convert DTO to domain model efficiently
                 var rec = new Recommendation();
 
-                if (recommendation.Prefer != null)
+                // Use HashSet operations for better performance
+                if (recommendation.Prefer?.Any() == true)
                 {
-                    foreach (var item in recommendation.Prefer)
-                    {
-                        rec.Prefer.Add(item);
-                    }
+                    rec.Prefer.UnionWith(recommendation.Prefer.Where(p => !string.IsNullOrWhiteSpace(p)));
                 }
 
-                if (recommendation.Avoid != null)
+                if (recommendation.Avoid?.Any() == true)
                 {
-                    foreach (var item in recommendation.Avoid)
-                    {
-                        rec.Avoid.Add(item);
-                    }
+                    rec.Avoid.UnionWith(recommendation.Avoid.Where(a => !string.IsNullOrWhiteSpace(a)));
                 }
 
                 if (!string.IsNullOrWhiteSpace(recommendation.Sillage))
-                    rec.Sillage = recommendation.Sillage;
+                    rec.Sillage = recommendation.Sillage.Trim();
 
                 if (!string.IsNullOrWhiteSpace(recommendation.Longevity))
-                    rec.Longevity = recommendation.Longevity;
+                    rec.Longevity = recommendation.Longevity.Trim();
 
-                if (recommendation.Reasons != null)
+                if (recommendation.Reasons?.Any() == true)
                 {
-                    rec.Reasons.AddRange(recommendation.Reasons);
+                    rec.Reasons.AddRange(recommendation.Reasons.Where(r => !string.IsNullOrWhiteSpace(r)));
                 }
 
                 // Generate LLM recommendation
-                var result = await _hybridExpert.EvaluateAsync(rec);
+                var result = await _hybridExpert.EvaluateAsync(rec).ConfigureAwait(false);
 
                 var viewModel = new HybridRecommendationViewModel
                 {
@@ -105,11 +112,17 @@ namespace ALOud.Controllers.MVC
                 SetSuccessMessage("Recommendation generated successfully");
                 return View(viewModel);
             }
+            catch (OperationCanceledException)
+            {
+                _logger.LogError("Request was cancelled during hybrid recommendation processing");
+                SetErrorMessage("Request was cancelled. Please try again.");
+                return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing hybrid recommendation");
-                SetErrorMessage($"Error processing recommendation: {ex.Message}");
-                return View(new RecommendationDto());
+                SetErrorMessage("An error occurred while processing your recommendation. Please try again.");
+                return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
             }
         }
 
@@ -134,57 +147,5 @@ namespace ALOud.Controllers.MVC
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// DTO for expert system recommendations
-    /// </summary>
-    public class RecommendationDto
-    {
-        /// <summary>
-        /// Preferred characteristics
-        /// </summary>
-        public List<string>? Prefer { get; set; }
-
-        /// <summary>
-        /// Characteristics to avoid
-        /// </summary>
-        public List<string>? Avoid { get; set; }
-
-        /// <summary>
-        /// Preferred sillage level
-        /// </summary>
-        public string? Sillage { get; set; }
-
-        /// <summary>
-        /// Preferred longevity
-        /// </summary>
-        public string? Longevity { get; set; }
-
-        /// <summary>
-        /// Reasons for recommendation
-        /// </summary>
-        public List<string>? Reasons { get; set; }
-
-        /// <summary>
-        /// LLM generated result
-        /// </summary>
-        public string? Result { get; set; }
-    }
-
-    /// <summary>
-    /// View model for hybrid recommendations
-    /// </summary>
-    public class HybridRecommendationViewModel
-    {
-        /// <summary>
-        /// The user's recommendation input
-        /// </summary>
-        public RecommendationDto? Recommendation { get; set; }
-
-        /// <summary>
-        /// The LLM generated response
-        /// </summary>
-        public string? LlmGeneratedResponse { get; set; }
     }
 }
