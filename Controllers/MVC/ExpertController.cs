@@ -58,12 +58,19 @@ namespace ALOud.Controllers.MVC
 
             try
             {
-                var recommendation = JsonSerializer.Deserialize<RecommendationDto>(recommendationJson);
+                _logger.LogInformation($"[Recommendation POST] Received JSON: {recommendationJson.Substring(0, Math.Min(200, recommendationJson.Length))}...");
+                
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var recommendation = JsonSerializer.Deserialize<RecommendationDto>(recommendationJson, options);
+                
                 if (recommendation == null)
                 {
+                    _logger.LogError("[Recommendation POST] Deserialization returned null");
                     SetErrorMessage("Failed to parse recommendation data: Invalid JSON format");
                     return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
                 }
+                
+                _logger.LogInformation($"[Recommendation POST] Deserialized successfully. Prefer: {recommendation.Prefer?.Count ?? 0}, Avoid: {recommendation.Avoid?.Count ?? 0}");
 
                 // Validate DTO
                 if ((recommendation.Prefer == null || recommendation.Prefer.Count == 0) &&

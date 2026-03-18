@@ -820,12 +820,19 @@
                 const form = document.getElementById('hiddenRecommendationForm');
                 const input = document.getElementById('recommendationDataInput');
                 const jsonData = JSON.stringify(window.currentRecommendation);
-                console.log('Sending JSON data to form:', jsonData);
+                console.log('JSON stringified:', jsonData);
+                console.log('JSON size:', jsonData.length, 'bytes');
+                console.log('Sending JSON data to form input');
                 input.value = jsonData;
-                console.log('Form submitting to:', form.action);
+                console.log('Input value after assignment:', input.value.substring(0, 100) + '...');
+                console.log('Form action:', form.action);
+                console.log('Form method:', form.method);
+                console.log('Form HTML before submit:', form.outerHTML.substring(0, 200) + '...');
+                console.log('About to call form.submit()');
                 form.submit();
             } else {
                 console.warn('No recommendation data available');
+                alert('No recommendation data available. Please get a recommendation first.');
             }
         });
 

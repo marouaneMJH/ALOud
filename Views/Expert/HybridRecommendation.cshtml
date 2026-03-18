@@ -213,6 +213,18 @@
 </style>
 
 <div class="recommendation-container">
+    <!-- Debug Info (remove in production) -->
+    <script>
+        console.log('HybridRecommendation View Debug:');
+        console.log('Model exists:', @(Model != null ? "true" : "false"));
+        console.log('Recommendation exists:', @(Model?.Recommendation != null ? "true" : "false"));
+        console.log('Prefer count:', @(Model?.Recommendation?.Prefer?.Count ?? 0));
+        console.log('Avoid count:', @(Model?.Recommendation?.Avoid?.Count ?? 0));
+        console.log('Sillage:', '@(Model?.Recommendation?.Sillage ?? "empty")');
+        console.log('Longevity:', '@(Model?.Recommendation?.Longevity ?? "empty")');
+        console.log('LlmGeneratedResponse:', '@(Model?.LlmGeneratedResponse ?? "empty")');
+    </script>
+
     <!-- Header -->
     <div class="recommendation-header">
         <h1><i class="bi bi-sparkles"></i> Your Personalized Recommendation</h1>
@@ -221,6 +233,17 @@
 
     @if (Model?.Recommendation != null)
     {
+        <!-- Visual Debug Card -->
+        <div class="recommendation-card" style="background: #f0f0f0; border: 2px dashed #ccc;">
+            <h3>DEBUG INFO (Remove Before Production)</h3>
+            <p><strong>Prefer:</strong> @(Model.Recommendation.Prefer?.Count ?? 0) items - [@string.Join(", ", Model.Recommendation.Prefer?.Take(3) ?? new List<string>())]</p>
+            <p><strong>Avoid:</strong> @(Model.Recommendation.Avoid?.Count ?? 0) items - [@string.Join(", ", Model.Recommendation.Avoid?.Take(3) ?? new List<string>())]</p>
+            <p><strong>Sillage:</strong> @(Model.Recommendation.Sillage ?? "[null]")</p>
+            <p><strong>Longevity:</strong> @(Model.Recommendation.Longevity ?? "[null]")</p>
+            <p><strong>Reasons:</strong> @(Model.Recommendation.Reasons?.Count ?? 0) items</p>
+            <p><strong>Result/LLM Response:</strong> @(string.IsNullOrEmpty(Model.Recommendation.Result) ? "[null in DTO]" : "EXISTS in DTO") / @(string.IsNullOrEmpty(Model.LlmGeneratedResponse) ? "[null in VM]" : "EXISTS in VM")</p>
+        </div>
+
         <!-- Profile Summary Card -->
         <div class="recommendation-card">
             <h2 class="section-title">Your Preference Profile</h2>
