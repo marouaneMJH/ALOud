@@ -150,17 +150,6 @@ namespace ALOud.Controllers.MVC
             return View(user);
         }
 
-        /// <summary>
-        /// Displays the email verification form
-        /// </summary>
-        /// <param name="email">The email address to verify</param>
-        /// <returns>Verification view</returns>
-        [HttpGet("/Account/Verify", Name = "MvcAccountVerifyGet")]
-        public IActionResult Verify(string? email)
-        {
-            SetViewDataEmail(email ?? string.Empty);
-            return View();
-        }
 
         /// <summary>
         /// Processes email verification code
@@ -183,13 +172,42 @@ namespace ALOud.Controllers.MVC
             
             if (!isValid)
             {
-                AddModelError("Invalid or expired code");
+                AddModelError("Invalid or expired code. Please verify the code or request a new one.");
                 SetViewDataEmail(email);
                 return View();
             }
 
-            SetSuccessMessage("Email verified successfully. Please login.");
+            SetSuccessMessage("Email verified successfully. You can now login.");
             return RedirectToRoute("MvcAccountLoginGet");
+        }
+
+        /// <summary>
+        /// Resends the verification email
+        /// </summary>
+        /// <param name="email">The email address</param>
+        /// <returns>Redirect back to verification view with status message</returns>
+        [HttpPost("/Account/ResendVerification", Name = "MvcAccountResendVerificationPost")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendVerification(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                AddModelError("Email is required");
+                return RedirectToRoute("MvcAccountVerifyGet");
+            }
+
+            var success = await _verificationService.ResendVerificationAsync(email);
+            
+            if (success)
+            {
+                SetSuccessMessage("A new verification code has been sent to your email address.");
+            }
+            else
+            {
+                AddModelError("Unable to resend code. Please verify your email address is correct.");
+            }
+
+            return RedirectToRoute("MvcAccountVerifyGet", new { email });
         }
 
         #region Private Helper Methods

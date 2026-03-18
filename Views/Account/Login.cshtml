@@ -1,21 +1,19 @@
 ﻿@model ALOud.DTOs.LoginDto
 @{
     ViewData["Title"] = "Login";
+    Layout = "_AuthLayout";
 }
 
-<!-- Auth Container -->
-<section class="py-6">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <!-- Header -->
-                <div class="text-center mb-5">
-                    <h1 class="mb-3">Login</h1>
-                    <p class="text-muted">Access your personal ALOud space</p>
-                </div>
-
-                <!-- Login Form -->
-                <div class="auth-card">
+<!-- Auth Card -->
+<div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+        <h1>ALOud</h1>
+        <p class="text-muted mb-0">Sign in to your account</p>
+    </div>
+    
+    <!-- Login Form -->
+    <div>
                     <form asp-route="MvcAccountLoginPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -58,12 +56,9 @@
                                 <a asp-route="MvcAccountRegisterGet" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Create an account</a>
                             </p>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

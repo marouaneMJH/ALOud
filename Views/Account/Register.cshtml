@@ -1,21 +1,20 @@
 ﻿@model ALOud.DTOs.CreateUserDto
 @{
     ViewData["Title"] = "Create an account";
+    Layout = "_AuthLayout";
+    ViewData["WideLayout"] = "true";
 }
 
-<!-- Auth Container -->
-<section class="py-6">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <!-- Header -->
-                <div class="text-center mb-5">
-                    <h1 class="mb-3">Create an account</h1>
-                    <p class="text-muted">Join the ALOud community and discover our exclusive fragrances</p>
-                </div>
-
-                <!-- Register Form -->
-                <div class="auth-card">
+<!-- Auth Card -->
+<div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+        <h1>ALOud</h1>
+        <p class="text-muted mb-0">Create an account</p>
+    </div>
+    
+    <!-- Register Form -->
+    <div>
                     <form asp-route="MvcAccountRegisterPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
@@ -54,7 +53,7 @@
                             <input asp-for="Email" 
                                    type="email" 
                                    class="form-control" 
-                                   placeholder="votre@email.com" 
+                                   placeholder="your@email.com" 
                                    autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
@@ -82,18 +81,44 @@
                                    autocomplete="new-password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                             <div class="form-text text-muted small mt-1">
-                                Your password must contain at least 8 characters
+                                Your password must contain:
+                                <ul class="mb-0 mt-1" style="font-size: 0.875rem;">
+                                    <li>At least 8 characters</li>
+                                    <li>One uppercase letter (A-Z)</li>
+                                    <li>One lowercase letter (a-z)</li>
+                                    <li>One digit (0-9)</li>
+                                    <li>One special character (@@$!%*?&)</li>
+                                </ul>
                             </div>
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label small text-uppercase" 
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Confirm Password *</label>
+                            <input asp-for="ConfirmPassword" 
+                                   type="password" 
+                                   class="form-control" 
+                                   placeholder="Re-enter your password" 
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
 
                         <!-- Terms & Conditions -->
                         <div class="mb-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="termsAccepted" required>
-                                <label class="form-check-label text-muted small" for="termsAccepted">
+                                <input asp-for="AcceptedTerms" 
+                                       class="form-check-input" 
+                                       type="checkbox" 
+                                       id="acceptedTerms" />
+                                <label class="form-check-label text-muted small" for="acceptedTerms">
                                     I accept the <a href="#" class="text-decoration-none" style="color: var(--color-accent);">terms and conditions</a> 
-                                    and the <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a>
+                                    and the <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a> *
                                 </label>
+                                <span asp-validation-for="AcceptedTerms" class="text-danger small d-block mt-1"></span>
+                            </div>
+                            <div class="form-text text-muted small mt-2">
+                                <strong>Important:</strong> You must accept the terms and conditions to create an account.
                             </div>
                         </div>
 
@@ -111,12 +136,9 @@
                                 <a asp-route="MvcAccountLoginGet" class="text-decoration-none" style="color: var(--color-accent);">Sign in</a>
                             </p>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

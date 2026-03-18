@@ -155,22 +155,21 @@ namespace ALOud.Controllers.Api.v1
         /// <returns>Confirmation of resend</returns>
         [HttpPost("resend-verification")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequest request)
         {
-            var user = await _userService.GetByEmailAsync(request.Email);
-
-            if (user == null)
+            if (string.IsNullOrEmpty(request.Email))
             {
-                return NotFoundResponse("User not found");
+                return ErrorResponse("Email is required");
             }
 
-            if (user.IsEmailVerified)
-            {
-                return ErrorResponse("Email is already verified");
-            }
+            var success = await _verificationService.ResendVerificationAsync(request.Email);
 
-            await _verificationService.SendVerificationAsync(user);
+            if (!success)
+            {
+                return ErrorResponse("Unable to resend verification. Please check your email address.");
+            }
 
             return SuccessResponse(new
             {
