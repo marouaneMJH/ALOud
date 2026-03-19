@@ -1,0 +1,328 @@
+// IMPLEMENTATION TEMPLATE
+// This file shows the exact structure for converting MVC controllers to REST API controllers
+// Use this as a reference for creating AdminController.cs and catalog controllers
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ALOud.Services;
+using ALOud.DTOs.Brands;
+using ALOud.Common;
+
+namespace ALOud.Controllers.Api.v1
+{
+    /// <summary>
+    /// REST API Controller for Brand management in admin panel
+    /// Converts MVC PerfumeAdminController.Brands* methods to REST endpoints
+    /// </summary>
+    [ApiController]
+    [Authorize]
+    [Route("api/v1/admin/brands")]
+    public class BrandsController : BaseApiController
+    {
+        private readonly IBrandService _brandService;
+        private readonly ILogger<BrandsController> _logger;
+
+        public BrandsController(
+            IBrandService brandService,
+            ILogger<BrandsController> logger)
+        {
+            _brandService = brandService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// GET /api/v1/admin/brands
+        /// Lists all brands with pagination and search
+        /// Replaces: PerfumeAdminController.Brands() [HttpGet("Brands")]
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? searchTerm = null)
+        {
+            try
+            {
+                var result = await _brandService.GetAllBrandsAsync(pageIndex, pageSize, searchTerm);
+                return SuccessResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading brands");
+                return ErrorResponse("Failed to load brands", 500);
+            }
+        }
+
+        /// <summary>
+        /// GET /api/v1/admin/brands/select
+        /// Returns list of brands for dropdown/select UI
+        /// Replaces: ViewBag.Brands = await _brandService.GetAllBrandsForSelectAsync()
+        /// </summary>
+        [HttpGet("select")]
+        public async Task<IActionResult> GetForSelect()
+        {
+            try
+            {
+                var result = await _brandService.GetAllBrandsForSelectAsync();
+                return SuccessResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading brands for select");
+                return ErrorResponse("Failed to load brands", 500);
+            }
+        }
+
+        /// <summary>
+        /// POST /api/v1/admin/brands
+        /// Creates a new brand
+        /// Replaces: PerfumeAdminController.CreateBrand(CreateBrandDto dto) [HttpPost]
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateBrandDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return ValidationErrorResponse(new Dictionary<string, string[]>
+                {
+                    { "validation", errors.ToArray() }
+                });
+            }
+
+            try
+            {
+                if (await _brandService.BrandExistsAsync(dto.Name))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "A brand with this name already exists",
+                        validationErrors = new { Name = new[] { "Brand name must be unique" } }
+                    });
+                }
+
+                await _brandService.CreateBrandAsync(dto);
+                return StatusCode(201, new { success = true, message = "Brand created successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating brand");
+                return ErrorResponse("Failed to create brand", 500);
+            }
+        }
+
+        /// <summary>
+        /// GET /api/v1/admin/brands/{id}
+        /// Gets brand for editing
+        /// Replaces: PerfumeAdminController.EditBrand(Guid id) [HttpGet]
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetForEdit(Guid id)
+        {
+            try
+            {
+                var result = await _brandService.GetBrandForEditAsync(id);
+                if (result == null)
+                    return NotFoundResponse($"Brand with ID {id} not found");
+                return SuccessResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading brand for edit: {Id}", id);
+                return ErrorResponse("Failed to load brand", 500);
+            }
+        }
+
+        /// <summary>
+        /// PUT /api/v1/admin/brands/{id}
+        /// Updates an existing brand
+        /// Replaces: PerfumeAdminController.EditBrand(Guid id, UpdateBrandDto dto) [HttpPost]
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBrandDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest(new { success = false, error = "Route ID does not match DTO ID" });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return ValidationErrorResponse(new Dictionary<string, string[]>
+                {
+                    { "validation", errors.ToArray() }
+                });
+            }
+
+            try
+            {
+                if (await _brandService.BrandExistsAsync(dto.Name, dto.Id))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "A brand with this name already exists",
+                        validationErrors = new { Name = new[] { "Brand name must be unique" } }
+                    });
+                }
+
+                var success = await _brandService.UpdateBrandAsync(dto);
+                if (!success)
+                    return NotFoundResponse($"Brand with ID {id} not found");
+
+                return SuccessResponse(new { message = "Brand updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating brand: {Id}", id);
+                return ErrorResponse("Failed to update brand", 500);
+            }
+        }
+
+        /// <summary>
+        /// DELETE /api/v1/admin/brands/{id}
+        /// Deletes a brand
+        /// Replaces: PerfumeAdminController.DeleteBrand(Guid id) [HttpPost]
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var success = await _brandService.DeleteBrandAsync(id);
+                if (!success)
+                    return NotFoundResponse($"Brand with ID {id} not found");
+
+                return SuccessResponse(new { message = "Brand deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting brand: {Id}", id);
+                return ErrorResponse("Failed to delete brand", 500);
+            }
+        }
+
+        /// <summary>
+        /// POST /api/v1/admin/brands/validate-exists
+        /// Validates if a brand name already exists (for client-side validation)
+        /// Useful for real-time validation in forms
+        /// </summary>
+        [HttpPost("validate-exists")]
+        public async Task<IActionResult> ValidateExists([FromBody] ValidateExistsDto dto)
+        {
+            try
+            {
+                var exists = await _brandService.BrandExistsAsync(dto.Name, dto.ExcludeId);
+                return SuccessResponse(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating brand existence");
+                return ErrorResponse("Failed to validate brand", 500);
+            }
+        }
+    }
+
+    /// <summary>
+    /// DTO for validating entity existence
+    /// </summary>
+    public class ValidateExistsDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public Guid? ExcludeId { get; set; }
+    }
+}
+
+/*
+ * IMPLEMENTATION NOTES
+ * ====================
+ * 
+ * 1. SERVICE REUSE:
+ *    - Every method directly calls the existing IBrandService
+ *    - No business logic changes required
+ *    - All validation happens in the service layer
+ * 
+ * 2. ERROR HANDLING:
+ *    - Uses standardized BaseApiController methods
+ *    - SuccessResponse() → 200 OK with {success: true, data}
+ *    - ErrorResponse() → 400/500 with {success: false, error}
+ *    - NotFoundResponse() → 404 with {success: false, error}
+ *    - ValidationErrorResponse() → 400 with validation errors
+ * 
+ * 3. RESPONSE FORMAT (consistent across all APIs):
+ *    
+ *    Success (200):
+ *    {
+ *      "success": true,
+ *      "data": { /* entity or list */ }
+ *    }
+ *    
+ *    Error (400/500):
+ *    {
+ *      "success": false,
+ *      "error": "Error message"
+ *    }
+ *    
+ *    Validation Error (400):
+ *    {
+ *      "success": false,
+ *      "error": "Validation failed",
+ *      "validationErrors": {
+ *        "fieldName": ["error1", "error2"]
+ *      }
+ *    }
+ * 
+ * 4. AUTHORIZATION:
+ *    - [Authorize] attribute enforces authentication
+ *    - Already handled by DI container
+ *    - No additional changes needed
+ * 
+ * 5. LOGGING:
+ *    - Use ILogger<T> for structured logging
+ *    - Log errors with context information
+ *    - Helps with debugging and monitoring
+ * 
+ * 6. HTTP STATUS CODES:
+ *    - 200 OK: Successful GET/PUT
+ *    - 201 Created: Successful POST
+ *    - 400 Bad Request: Validation errors, duplicate entries
+ *    - 404 Not Found: Resource doesn't exist
+ *    - 500 Internal Server Error: Unexpected exceptions
+ * 
+ * STEP-BY-STEP CONVERSION TEMPLATE:
+ * ==================================
+ * 
+ * For each resource (Brand, Family, Note, Accord, Tag, Season, Occasion):
+ * 
+ * 1. Create: /Controllers/Api/v1/CatalogManagement/ResourceController.cs
+ * 2. Copy 7 methods from template above
+ * 3. Replace "Brand" with resource name
+ * 4. Replace "IBrandService" with IResourceService
+ * 5. Replace DTOs (CreateBrandDto, UpdateBrandDto, etc.)
+ * 6. Replace logger type: ILogger<ResourceController>
+ * 7. Update route: [Route("api/v1/admin/resources")]
+ * 8. Update XML comments to reference the resource
+ * 9. Test each endpoint with Postman/curl
+ * 
+ * PARALLEL IMPLEMENTATION:
+ * ========================
+ * 
+ * You can implement ALL controllers in parallel since they follow identical pattern:
+ * 
+ * - BrandsController.cs (22 min)
+ * - FamiliesController.cs (22 min)
+ * - NotesController.cs (25 min - includes category endpoint)
+ * - AccordsController.cs (22 min)
+ * - TagsController.cs (22 min)
+ * - SeasonsController.cs (22 min)
+ * - OccasionsController.cs (22 min)
+ * - PerfumesController.cs (30 min - complex filtering)
+ * 
+ * Total: ~3-4 hours for all catalog controllers
+ */

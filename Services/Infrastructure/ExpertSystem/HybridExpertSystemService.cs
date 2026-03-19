@@ -71,7 +71,7 @@ public class HybridExpertSystemService : IHybridExpertSystemService
 
         var results = await _payloadSearchClient.SearchByFilterAsync(
             topK,
-            filter: filter,
+            filter: null,
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
         var uniqueProducts = results

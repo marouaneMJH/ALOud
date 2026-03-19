@@ -1,6 +1,7 @@
 using ALOud.DTOs;
 using ALOud.Services;
 using ALOud.Controllers.Api;
+using ALOud.Services.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,26 +14,30 @@ namespace ALOud.Controllers.Api.v1
     [ApiController]
     [Route("api/v1/[controller]")]
     public class AccountController : BaseApiController
-    {
-        private readonly IUserService _userService;
-        private readonly IVerificationService _verificationService;
-        private readonly ILogger<AccountController> _logger;
+     {
+         private readonly IUserService _userService;
+         private readonly IVerificationService _verificationService;
+         private readonly IJwtTokenService _jwtTokenService;
+         private readonly ILogger<AccountController> _logger;
 
-        /// <summary>
-        /// Initializes a new instance of the AccountController class
-        /// </summary>
-        /// <param name="userService">The user service</param>
-        /// <param name="verificationService">The verification service</param>
-        /// <param name="logger">The logger</param>
-        public AccountController(
-            IUserService userService,
-            IVerificationService verificationService,
-            ILogger<AccountController> logger)
-        {
-            _userService = userService;
-            _verificationService = verificationService;
-            _logger = logger;
-        }
+         /// <summary>
+         /// Initializes a new instance of the AccountController class
+         /// </summary>
+         /// <param name="userService">The user service</param>
+         /// <param name="verificationService">The verification service</param>
+         /// <param name="jwtTokenService">The JWT token service</param>
+         /// <param name="logger">The logger</param>
+         public AccountController(
+             IUserService userService,
+             IVerificationService verificationService,
+             IJwtTokenService jwtTokenService,
+             ILogger<AccountController> logger)
+         {
+             _userService = userService;
+             _verificationService = verificationService;
+             _jwtTokenService = jwtTokenService;
+             _logger = logger;
+         }
 
         /// <summary>
         /// Registers a new user account
@@ -110,6 +115,7 @@ namespace ALOud.Controllers.Api.v1
             return SuccessResponse(new
             {
                 message = "Login successful",
+                token = _jwtTokenService.GenerateToken(user.Id.ToString(), user.Email, user.Email == "admin@example.com"),
                 user = new
                 {
                     id = user.Id,

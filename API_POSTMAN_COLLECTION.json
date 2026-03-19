@@ -1,0 +1,1187 @@
+{
+  "info": {
+    "_postman_id": "aloud-rest-api-v1",
+    "name": "ALOud REST API v1 - 62 Complete Endpoints",
+    "description": "Complete test collection for ALOud e-commerce platform REST API\n\n**Setup Instructions:**\n1. Import this collection into Postman\n2. Set the base URL in the collection variables: `http://localhost:5021`\n3. For admin endpoints, add your JWT token to the `token` variable\n4. Run the collection in Postman Test Runner",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Phase 1: Admin Dashboard & Config (4)",
+      "description": "Admin dashboard and LLM configuration endpoints",
+      "item": [
+        {
+          "name": "GET Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "GET LLM Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/llm-config",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "llm-config"]
+            }
+          }
+        },
+        {
+          "name": "POST Switch LLM Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"provider\": \"openai\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/llm-config/switch-provider",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "llm-config", "switch-provider"]
+            }
+          }
+        },
+        {
+          "name": "GET Expert System Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/expert-system",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "expert-system"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Brands (7)",
+      "description": "Brand CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Brands List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Brands Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Brand\", \"description\": \"Test brand description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands"]
+            }
+          }
+        },
+        {
+          "name": "GET Brand by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{brand_id}}\", \"name\": \"Updated Brand\", \"description\": \"Updated description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Brand Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Brand\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/brands/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "brands", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Families (7)",
+      "description": "Family CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Families List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Families Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Family",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Family\", \"description\": \"Test family description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families"]
+            }
+          }
+        },
+        {
+          "name": "GET Family by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Family",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{family_id}}\", \"name\": \"Updated Family\", \"description\": \"Updated description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Family",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Family Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Family\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/families/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "families", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Tags (7)",
+      "description": "Tag CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Tags List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Tags Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Tag\", \"description\": \"Test tag description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags"]
+            }
+          }
+        },
+        {
+          "name": "GET Tag by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags/{{tag_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags", "{{tag_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Tag",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{tag_id}}\", \"name\": \"Updated Tag\", \"description\": \"Updated description\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags/{{tag_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags", "{{tag_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags/{{tag_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags", "{{tag_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Tag Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Tag\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tags/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "tags", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Seasons (7)",
+      "description": "Season CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Seasons List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Seasons Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Season",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Summer\", \"description\": \"Summer season perfumes\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons"]
+            }
+          }
+        },
+        {
+          "name": "GET Season by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons/{{season_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons", "{{season_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Season",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{season_id}}\", \"name\": \"Winter\", \"description\": \"Winter season perfumes\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons/{{season_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons", "{{season_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Season",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons/{{season_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons", "{{season_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Season Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Summer\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/seasons/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "seasons", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Occasions (7)",
+      "description": "Occasion CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Occasions List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Occasions Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Occasion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Wedding\", \"description\": \"Wedding occasion perfumes\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions"]
+            }
+          }
+        },
+        {
+          "name": "GET Occasion by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions/{{occasion_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions", "{{occasion_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Occasion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{occasion_id}}\", \"name\": \"Party\", \"description\": \"Party occasion perfumes\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions/{{occasion_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions", "{{occasion_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Occasion",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions/{{occasion_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions", "{{occasion_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Occasion Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Wedding\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/occasions/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "occasions", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2A: Accords (7)",
+      "description": "Accord CRUD endpoints with standard pattern",
+      "item": [
+        {
+          "name": "GET Accords List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Accords Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Accord",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Floral\", \"description\": \"Floral accord\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords"]
+            }
+          }
+        },
+        {
+          "name": "GET Accord by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords/{{accord_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords", "{{accord_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Accord",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{accord_id}}\", \"name\": \"Woody\", \"description\": \"Woody accord\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords/{{accord_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords", "{{accord_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Accord",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords/{{accord_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords", "{{accord_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Accord Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Floral\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/accords/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "accords", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2B: Notes (8)",
+      "description": "Note CRUD endpoints with category support",
+      "item": [
+        {
+          "name": "GET Notes List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Notes Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "select"]
+            }
+          }
+        },
+        {
+          "name": "GET Note Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "categories"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Rose\", \"category\": \"Floral\", \"description\": \"Rose note\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes"]
+            }
+          }
+        },
+        {
+          "name": "GET Note by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/{{note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "{{note_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Note",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{note_id}}\", \"name\": \"Jasmine\", \"category\": \"Floral\", \"description\": \"Jasmine note\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/{{note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "{{note_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Note",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/{{note_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "{{note_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Note Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Rose\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notes/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "notes", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2B: Perfumes Admin (8)",
+      "description": "Perfume admin CRUD endpoints with complex relationships",
+      "item": [
+        {
+          "name": "GET Perfumes Admin List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin?pageIndex=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Perfumes Admin Select",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin/select",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin", "select"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Perfume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Perfume\", \"price\": 99.99, \"stockQuantity\": 100, \"brandId\": \"{{brand_id}}\", \"familyIds\": [], \"noteSelections\": [], \"accordSelections\": [], \"tagIds\": [], \"seasonIds\": [], \"occasionIds\": []}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin"]
+            }
+          }
+        },
+        {
+          "name": "GET Perfume Admin by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin/{{perfume_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin", "{{perfume_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Perfume",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": \"{{perfume_id}}\", \"name\": \"Updated Perfume\", \"price\": 119.99, \"stockQuantity\": 150, \"brandId\": \"{{brand_id}}\", \"familyIds\": [], \"noteSelections\": [], \"accordSelections\": [], \"tagIds\": [], \"seasonIds\": [], \"occasionIds\": []}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin/{{perfume_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin", "{{perfume_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Perfume",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin/{{perfume_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin", "{{perfume_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Validate Perfume Exists",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}", "type": "text"},
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Test Perfume\", \"excludeId\": null}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/admin/validate-exists",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "admin", "validate-exists"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public: Customer Endpoints (3)",
+      "description": "Public endpoints for customer-facing operations",
+      "item": [
+        {
+          "name": "GET Perfumes (Customer)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes?pageIndex=1&pageSize=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes"],
+              "query": [
+                {"key": "pageIndex", "value": "1"},
+                {"key": "pageSize", "value": "12"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Perfume Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/{{perfume_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "{{perfume_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json", "type": "text"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"perfumeId\": \"{{perfume_id}}\", \"quantity\": 1}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/perfumes/add-to-cart",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "perfumes", "add-to-cart"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5021"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE"
+    },
+    {
+      "key": "brand_id",
+      "value": ""
+    },
+    {
+      "key": "family_id",
+      "value": ""
+    },
+    {
+      "key": "tag_id",
+      "value": ""
+    },
+    {
+      "key": "season_id",
+      "value": ""
+    },
+    {
+      "key": "occasion_id",
+      "value": ""
+    },
+    {
+      "key": "accord_id",
+      "value": ""
+    },
+    {
+      "key": "note_id",
+      "value": ""
+    },
+    {
+      "key": "perfume_id",
+      "value": ""
+    }
+  ]
+}
