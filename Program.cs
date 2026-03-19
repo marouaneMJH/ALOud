@@ -141,7 +141,12 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
     ?? "ALOudAPI";
 
 builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddAuthentication(options =>
+    {
+        // Use a custom handler that can switch between Cookie and JWT
+        options.DefaultAuthenticateScheme = "MultiAuth";
+        options.DefaultChallengeScheme = "MultiAuth";
+    })
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
@@ -175,6 +180,19 @@ builder.Services
                     message = "Invalid or missing authorization token"
                 });
             }
+        };
+    })
+    .AddPolicyScheme("MultiAuth", "Cookie or JWT", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+        {
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            if (authHeader?.StartsWith("Bearer ") == true)
+            {
+                return JwtBearerDefaults.AuthenticationScheme;
+            }
+
+            return CookieAuthenticationDefaults.AuthenticationScheme;
         };
     });
 
