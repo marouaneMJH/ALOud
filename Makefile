@@ -1,12 +1,23 @@
 # Request to use 
 # I want floral and Gourmand perfume for men good to ware in summer and hot office
 
-.PHONY:  help dev run build backup restore all
+.PHONY:  help dev run build backup restore all sonar-analyse start-sonar-server
+
+ifneq (,$(wildcard .env.sonar))
+include .env.sonar
+endif
+
+export SONAR_TOKEN SONAR_PROJECT_KEY SONAR_HOST_URL
+
+SONAR_HOST_URL ?= http://localhost:9000/
+SONAR_PROJECT_KEY ?= ALOud
+
 help:
 	@echo "	make help: to see make options"
 	@echo "	make dev: to start development environment"
 	@echo "	make run: to start production environment"
 	@echo "	make build: to build the application"
+	@echo "	make sonar-analyse: run SonarQube begin/build/end scan"
 	@echo "	make backup: to backup all databases"
 	@echo "	make restore: to restore databases from backup"
 	@echo "	make start-services: to start all database services"
@@ -22,6 +33,22 @@ run:
 
 build:
 	@dotnet build
+
+start-sonar-server:
+	@docker start sonarqube
+
+sonar-analyse:
+	@if [ -z "$$SONAR_TOKEN" ]; then \
+		echo "Error: SONAR_TOKEN is not set."; \
+		echo "Run: export SONAR_TOKEN='<your-sonar-token>'"; \
+		exit 1; \
+	fi
+	@echo "Starting SonarQube analysis for project: $(SONAR_PROJECT_KEY)"
+	@dotnet sonarscanner begin /k:"$(SONAR_PROJECT_KEY)" /d:sonar.host.url="$(SONAR_HOST_URL)" /d:sonar.token="$$SONAR_TOKEN"
+	@echo "Building project..."
+	@dotnet build
+	@echo "Finalizing SonarQube analysis..."
+	@dotnet sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
 
 start-services:
 	@redis-start

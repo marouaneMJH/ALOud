@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 
 namespace ALOud.Services.Rag.Clients;
 

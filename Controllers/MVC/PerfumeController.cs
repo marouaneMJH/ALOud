@@ -17,7 +17,6 @@ namespace ALOud.Controllers.MVC
         private readonly IBrandService _brandService;
         private readonly IFamilyService _familyService;
         private readonly ICartService _cartService;
-        private readonly ILogger<PerfumeController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the PerfumeController class
@@ -38,7 +37,6 @@ namespace ALOud.Controllers.MVC
             _brandService = brandService;
             _familyService = familyService;
             _cartService = cartService;
-            _logger = logger;
         }
 
         /// <summary>

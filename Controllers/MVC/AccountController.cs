@@ -15,7 +15,6 @@ namespace ALOud.Controllers.MVC
     {
         private readonly IUserService _userService;
         private readonly IVerificationService _verificationService;
-        private readonly ILogger<AccountController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the AccountController class
@@ -30,7 +29,6 @@ namespace ALOud.Controllers.MVC
         {
             _userService = userService;
             _verificationService = verificationService;
-            _logger = logger;
         }
 
         /// <summary>

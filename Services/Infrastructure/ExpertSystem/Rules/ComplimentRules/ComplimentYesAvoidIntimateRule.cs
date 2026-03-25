@@ -1,8 +1,6 @@
 using NRules.Fluent.Dsl;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
-using ALOud.Services.Infrastructure.ExpertSystem.Domain;
-
 namespace ALOud.Services.Infrastructure.ExpertSystem.Rules.ComplimentRules;
 
 public class ComplimentYesAvoidIntimateRule : Rule

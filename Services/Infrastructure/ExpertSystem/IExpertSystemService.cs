@@ -1,7 +1,10 @@
 using ALOud.DTOs.ExpertSystem;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
-public interface IExpertSystemService
+namespace ALOud.Services.Infrastructure.ExpertSystem
 {
-    Recommendation Evaluate(UserProfileDto profile);
+    public interface IExpertSystemService
+    {
+        Recommendation Evaluate(UserProfileDto profile);
+    }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using ALOud.Data;
 using ALOud.Services;
@@ -6,6 +6,9 @@ using ALOud.Services.Security;
 using ALOud.Services.Rag;
 using ALOud.Services.Rag.Clients;
 using ALOud.Services.Infrastructure.ExpertSystem;
+using ALOud.Services.Infrastructure.Rag.Clients;
+using ALOud.Services.Infrastructure.Rag.ChatAPI;
+using ALOud.Services.Infrastructure.Rag.IndexingJob;
 using ALOud.Services.Brand;
 using ALOud.Services.Perfume;
 using ALOud.Services.Family;
@@ -23,122 +26,34 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Net;
 using ALOud.Services.Rag.IndexingJob;
-using ALOud.Services.Security;
 using Microsoft.Extensions.Options;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+using ALOud.Services.Infrastructure.Cache;
 using System.Text.Json.Serialization;
 using System.Text;
+using ALOud.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =====================================================
-// ENVIRONMENT VARIABLES (.env loader)
-// =====================================================
-var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
-if (File.Exists(envPath))
-{
-    foreach (var line in File.ReadAllLines(envPath))
-    {
-        var trimmed = line.Trim();
-        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#"))
-            continue;
+// Load environment variables
+builder.LoadEnvironmentVariables();
 
-        var idx = trimmed.IndexOf('=');
-        if (idx <= 0)
-            continue;
+// Configure SMTP
+builder.Services.ConfigureSmtp(builder.Configuration);
 
-        var key = trimmed[..idx].Trim();
-        var value = trimmed[(idx + 1)..].Trim();
+// Configure Redis
+builder.Services.ConfigureRedis(builder.Configuration);
 
-        // Remove optional surrounding quotes
-        if ((value.StartsWith("\"") && value.EndsWith("\"")) ||
-            (value.StartsWith("'") && value.EndsWith("'")))
-        {
-            value = value[1..^1];
-        }
-
-        Environment.SetEnvironmentVariable(key, value);
-    }
-}
-
-// =====================================================
-// SMTP CONFIGURATION
-// =====================================================
-builder.Services.Configure<SmtpOptions>(options =>
-{
-    var smtpSection = builder.Configuration.GetSection("Smtp");
-
-    options.Host = smtpSection["Host"] ?? "smtp.gmail.com";
-    options.Port = int.TryParse(smtpSection["Port"], out var port) ? port : 587;
-
-    // Credentials from environment variables (preferred)
-    options.User = Environment.GetEnvironmentVariable("SMTP_USER")
-                   ?? smtpSection["User"]
-                   ?? string.Empty;
-
-    options.Password = Environment.GetEnvironmentVariable("SMTP_PASSWORD")
-                       ?? smtpSection["Password"]
-                       ?? string.Empty;
-
-    options.From = Environment.GetEnvironmentVariable("SMTP_FROM")
-                   ?? smtpSection["From"]
-                   ?? string.Empty;
-});
-
-// =====================================================
-// REDIS
-// =====================================================
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var logger = sp.GetRequiredService<ILogger<Program>>();
-    var redisConnection = builder.Configuration.GetSection("Redis")["ConnectionString"];
-
-    if (string.IsNullOrWhiteSpace(redisConnection))
-        throw new InvalidOperationException("Redis connection string is missing");
-
-    try
-    {
-        var options = ConfigurationOptions.Parse(redisConnection);
-        options.AbortOnConnectFail = false;
-        options.ConnectRetry = 3;
-        options.ConnectTimeout = 3000;
-
-        var connection = ConnectionMultiplexer.Connect(options);
-
-        logger.LogInformation("[+] Redis connection established");
-        return connection;
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(ex, "[-] Redis connection failed");
-        throw;
-    }
-});
-
-// Redis cache abstraction
-builder.Services.AddScoped<ICacheService, RedisCacheService>();
-
-// =====================================================
-// HTTP CONTEXT (required for cart & cookies)
-// =====================================================
+// HTTP context accessor for services that use request/response context (e.g., cart cookie key)
 builder.Services.AddHttpContextAccessor();
 
-// =====================================================
-// AUTHENTICATION (Cookies + JWT Bearer)
-// =====================================================
+// Cache abstraction used by CartService and dependent RAG/cart components
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
-// Get JWT configuration
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
-    ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-    ?? "ALOudSecretKeyForJwtTokenGenerationPleaseChangeInProduction123456789!";
-
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
-    ?? "ALOud";
-
-var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-    ?? "ALOudAPI";
+// JWT configuration
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "default-secret-key-change-in-production";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "ALOudAPI";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "ALOudAPI";
 
 builder.Services
     .AddAuthentication(options =>
@@ -186,7 +101,7 @@ builder.Services
     {
         options.ForwardDefaultSelector = context =>
         {
-            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
             if (authHeader?.StartsWith("Bearer ") == true)
             {
                 return JwtBearerDefaults.AuthenticationScheme;
@@ -314,18 +229,7 @@ builder.Services.AddScoped<IRagLLMClient>(sp =>
 // =====================================================
 // DATA ACCESS (EF CORE – SQL SERVER)
 // =====================================================
-builder.Services.AddDbContext<ALOudDbContext>(options =>
-{
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql =>
-        {
-            sql.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null);
-        });
-});
+builder.Services.ConfigureDatabase(builder.Configuration);
 
 // =====================================================
 // REPOSITORY LAYER (DATA ACCESS ABSTRACTION)
@@ -340,7 +244,27 @@ builder.Services.AddScoped<IPerfumeRepository, PerfumeRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // =====================================================
-// Auto Mapper - String to Enum
+// CORS CONFIGURATION
+// =====================================================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",   // Vite dev server (typical)
+                "http://localhost:3000",   // Alternative frontend port
+                "http://localhost:5174",   // Alternative Vite port
+                "http://localhost:5175"    // Another alternative
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
+// =====================================================
+// AUTO MAPPER - String to Enum
 // =====================================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -366,48 +290,7 @@ var app = builder.Build();
 // =====================================================
 // STARTUP CHECKS (FAIL FAST)
 // =====================================================
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-
-    // SQL Server connectivity check
-    try
-    {
-        var db = services.GetRequiredService<ALOudDbContext>();
-        if (!db.Database.CanConnect())
-            throw new Exception("Database not reachable");
-
-        logger.LogInformation("[+] SQL Server connection OK");
-
-        // Seed perfume data if database is empty
-        await PerfumeSeeder.SeedAsync(db);
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(ex, "[-] Database startup check failed");
-        throw;
-    }
-
-    // Redis connectivity check
-    try
-    {
-        var redis = services.GetRequiredService<IConnectionMultiplexer>();
-        var ping = redis.GetDatabase().Ping();
-
-        logger.LogInformation("[+] Redis ping OK ({Ping} ms)", ping.TotalMilliseconds);
-    }
-    catch (Exception ex)
-    {
-        logger.LogCritical(ex, "[-] Redis startup check failed");
-        throw;
-    }
-
-    //  EnsureCollectionExistsAsync
-    var bootstrap = scope.ServiceProvider
-        .GetRequiredService<QdrantBootstrapService>();
-    await bootstrap.EnsureCollectionExistsAsync();
-}
+await app.PerformStartupChecksAsync();
 
 // =====================================================
 // MIDDLEWARE PIPELINE
@@ -422,6 +305,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Enable CORS middleware (must be after UseRouting and before UseAuthentication)
+app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -439,4 +326,4 @@ app.MapControllerRoute(
 // =====================================================
 // RUN
 // =====================================================
-app.Run();
+await app.RunAsync();

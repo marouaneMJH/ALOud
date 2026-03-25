@@ -9,7 +9,6 @@ namespace ALOud.Services;
 // SMTP implementation of IEmailService (reads configuration).
 public class SmtpEmailService : IEmailService
 {
-    private readonly IConfiguration _config;
     private readonly ILogger<SmtpEmailService> _logger;
     private readonly SmtpOptions _smtpOptions;
 
@@ -20,7 +19,6 @@ public class SmtpEmailService : IEmailService
         IOptions<SmtpOptions> smtpOptions
     )
     {
-        _config = config;
         _logger = logger;
         _smtpOptions = smtpOptions.Value;
     }

@@ -1,7 +1,10 @@
 //  Take a prepared RAG context and a user query, call the LLM, return a final answer.
 using System.Text;
 using ALOud.Services.Rag.Clients;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
+
 
 public sealed class LlmGenerationService : ILlmGenerationService
 {

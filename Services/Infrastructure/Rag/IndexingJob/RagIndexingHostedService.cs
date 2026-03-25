@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Hosting;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 using static ALOud.Models.JobsConfig;
+using ALOud.Services.Infrastructure.Rag.IndexingJob;
 
-namespace ALOud.Services.Rag.IndexingJob;
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
 
 public sealed class RagIndexingHostedService : BackgroundService
 {

@@ -26,7 +26,7 @@ namespace ALOud.Services.Security
         /// </summary>
         /// <param name="token">JWT token to validate</param>
         /// <returns>Claims principal if valid, null otherwise</returns>
-        ClaimsPrincipal ValidateToken(string token);
+        ClaimsPrincipal? ValidateToken(string token);
     }
 
     /// <summary>
@@ -34,7 +34,6 @@ namespace ALOud.Services.Security
     /// </summary>
     public class JwtTokenService : IJwtTokenService
     {
-        private readonly IConfiguration _configuration;
         private readonly ILogger<JwtTokenService> _logger;
         private readonly string _secretKey;
         private readonly string _issuer;
@@ -45,7 +44,6 @@ namespace ALOud.Services.Security
             IConfiguration configuration,
             ILogger<JwtTokenService> logger)
         {
-            _configuration = configuration;
             _logger = logger;
 
             // Get configuration from appsettings or environment variables
@@ -115,7 +113,7 @@ namespace ALOud.Services.Security
         /// <summary>
         /// Validates a JWT token and extracts claims
         /// </summary>
-        public ClaimsPrincipal ValidateToken(string token)
+        public ClaimsPrincipal? ValidateToken(string token)
         {
             try
             {

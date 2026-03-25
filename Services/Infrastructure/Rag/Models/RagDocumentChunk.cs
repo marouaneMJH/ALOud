@@ -1,3 +1,5 @@
+namespace ALOud.Services.Infrastructure.Rag.Models;
+
 public class RagDocumentChunk
 {
     public Guid SourceId { get; init; }      // PerfumeId

@@ -1,8 +1,9 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 using ALOud.DTOs.ExpertSystem;
+using ALOud.Services.Infrastructure.ExpertSystem;
 
 namespace ALOud.Controllers.MVC
 {

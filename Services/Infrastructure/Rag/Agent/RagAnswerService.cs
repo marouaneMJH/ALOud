@@ -1,4 +1,7 @@
-using ALOud.Services.Rag.Models;
+using ALOud.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Agent;
+using ALOud.Services.Infrastructure.Rag.ChatAPI;
 
 namespace ALOud.Services.Rag;
 

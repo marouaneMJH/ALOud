@@ -1,3 +1,5 @@
+namespace ALOud.Services.Infrastructure.Rag.Models;
+
 
 /// <summary>
 /// Represents dynamic, runtime context injected into RAG

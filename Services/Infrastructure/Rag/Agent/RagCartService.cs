@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
 using ALOud.Models.Cart;
+using ALOud.Services.Infrastructure.Rag.Agent;
 using ALOud.Services.Cart;
 using ALOud.Services.Rag.Clients;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 
 namespace ALOud.Services.Rag;
 

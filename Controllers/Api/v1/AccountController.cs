@@ -13,12 +13,11 @@ namespace ALOud.Controllers.Api.v1
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class AccountController : BaseApiController
+     public class AccountController : BaseApiController
      {
          private readonly IUserService _userService;
          private readonly IVerificationService _verificationService;
          private readonly IJwtTokenService _jwtTokenService;
-         private readonly ILogger<AccountController> _logger;
 
          /// <summary>
          /// Initializes a new instance of the AccountController class
@@ -36,7 +35,6 @@ namespace ALOud.Controllers.Api.v1
              _userService = userService;
              _verificationService = verificationService;
              _jwtTokenService = jwtTokenService;
-             _logger = logger;
          }
 
         /// <summary>

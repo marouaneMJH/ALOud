@@ -1,7 +1,10 @@
-// Simple cache abstraction for storing JSON-serializable values.
-public interface ICacheService
+namespace ALOud.Services.Infrastructure.Cache
 {
-    Task<T?> GetAsync<T>(string key);
-    Task SetAsync<T>(string key, T value, TimeSpan? expiry = null);
-    Task RemoveAsync(string key);
+    // Simple cache abstraction for storing JSON-serializable values.
+    public interface ICacheService
+    {
+        Task<T?> GetAsync<T>(string key);
+        Task SetAsync<T>(string key, T value, TimeSpan? expiry = null);
+        Task RemoveAsync(string key);
+    }
 }

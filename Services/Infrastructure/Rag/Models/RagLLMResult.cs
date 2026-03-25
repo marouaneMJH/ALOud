@@ -1,4 +1,4 @@
-namespace ALOud.Services.Rag.Models;
+namespace ALOud.Services.Infrastructure.Rag.Models;
 
 
 

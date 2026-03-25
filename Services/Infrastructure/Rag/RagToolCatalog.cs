@@ -1,4 +1,4 @@
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 using Humanizer;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

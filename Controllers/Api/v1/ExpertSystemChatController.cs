@@ -2,6 +2,7 @@ using ALOud.DTOs.ExpertSystem;
 using ALOud.DTOs.Rag;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 using ALOud.Services.Rag;
+using ALOud.Services.Infrastructure.ExpertSystem;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ALOud.Controllers.Api.v1

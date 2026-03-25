@@ -1,8 +1,12 @@
+using ALOud.Models;
 // Given a query embedding, fetch the Top-K most relevant document chunks
 // from the vector database, optionally filtered by metadata.
 
 using ALOud.Services.Rag.Clients;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
+
 
 public class RetrievalService : IRetrievalService
 {

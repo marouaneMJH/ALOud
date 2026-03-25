@@ -1,4 +1,5 @@
-using ALOud.Services.Rag.Models;
+using ALOud.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 
 public interface IVectorSearchClient
 {

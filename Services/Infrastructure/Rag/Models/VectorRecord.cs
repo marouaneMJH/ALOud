@@ -1,3 +1,5 @@
+namespace ALOud.Services.Infrastructure.Rag.Models;
+
 public class VectorRecord
 {
     public string Id { get; init; } = string.Empty;

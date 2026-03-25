@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using ALOud.Services.Rag;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 using Microsoft.AspNetCore.Mvc;
+using ALOud.Services.Infrastructure.Rag.ChatAPI;
 
 namespace ALOud.Controllers.Api.v1
 {

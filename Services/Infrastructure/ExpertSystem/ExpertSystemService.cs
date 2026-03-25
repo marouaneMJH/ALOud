@@ -2,11 +2,13 @@ using ALOud.DTOs.ExpertSystem;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 using ALOud.Services.Infrastructure.ExpertSystem.Mappers;
 
-
-public class ExpertSystemService : IExpertSystemService
+namespace ALOud.Services.Infrastructure.ExpertSystem
 {
-    private readonly ExpertSystemEngine _engine = new();
+    public class ExpertSystemService : IExpertSystemService
+    {
+        private readonly ExpertSystemEngine _engine = new();
 
-    public Recommendation Evaluate(UserProfileDto profile)
-        => _engine.Run(UserProfileMapper.ToDomain(profile));
+        public Recommendation Evaluate(UserProfileDto profile)
+            => _engine.Run(UserProfileMapper.ToDomain(profile));
+    }
 }

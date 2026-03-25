@@ -44,6 +44,12 @@ namespace ALOud.Controllers.MVC
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Increase(Guid productId)
         {
+            if (!ModelState.IsValid)
+            {
+                SetErrorMessage("Invalid request");
+                return RedirectToRoute("MvcCartIndex");
+            }
+
             if (productId == Guid.Empty)
             {
                 SetErrorMessage("Invalid product ID");
@@ -74,6 +80,12 @@ namespace ALOud.Controllers.MVC
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Decrease(Guid productId)
         {
+            if (!ModelState.IsValid)
+            {
+                SetErrorMessage("Invalid request");
+                return RedirectToRoute("MvcCartIndex");
+            }
+
             if (productId == Guid.Empty)
             {
                 SetErrorMessage("Invalid product ID");
@@ -104,6 +116,12 @@ namespace ALOud.Controllers.MVC
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remove(Guid productId)
         {
+            if (!ModelState.IsValid)
+            {
+                SetErrorMessage("Invalid request");
+                return RedirectToRoute("MvcCartIndex");
+            }
+
             if (productId == Guid.Empty)
             {
                 SetErrorMessage("Invalid product ID");

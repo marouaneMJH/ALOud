@@ -1,4 +1,5 @@
-namespace ALOud.Services.Rag.Models;
+using ALOud.Models;
+namespace ALOud.Services.Infrastructure.Rag.Models;
 
 public sealed class RagDebugResult
 {

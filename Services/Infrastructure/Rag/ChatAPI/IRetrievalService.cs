@@ -1,4 +1,8 @@
-using ALOud.Services.Rag.Models;
+using ALOud.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
+
 
 public interface IRetrievalService
 {

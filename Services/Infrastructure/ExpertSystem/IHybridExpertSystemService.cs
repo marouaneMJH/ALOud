@@ -1,8 +1,11 @@
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 
-public interface IHybridExpertSystemService
+namespace ALOud.Services.Infrastructure.ExpertSystem
 {
-    Task<string> EvaluateAsync(
-        Recommendation rec,
-        CancellationToken cancellationToken = default);
+    public interface IHybridExpertSystemService
+    {
+        Task<string> EvaluateAsync(
+            Recommendation rec,
+            CancellationToken cancellationToken = default);
+    }
 }

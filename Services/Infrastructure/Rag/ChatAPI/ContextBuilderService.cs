@@ -1,5 +1,10 @@
+using ALOud.Models;
 using System.Text;
 using ALOud.Services.Rag;
+using ALOud.Services.Infrastructure.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
+
 
 public class ContextBuilderService : IContextBuilderService
 {

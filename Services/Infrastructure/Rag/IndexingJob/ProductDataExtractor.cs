@@ -1,7 +1,11 @@
+using ALOud.Services.Infrastructure.Rag.Models;
 
 
 using ALOud.Data;
 using Microsoft.EntityFrameworkCore;
+
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
+
 
 
 /**
@@ -55,17 +59,17 @@ public class ProductDataExtractor : IProductDataExtractor
             Notes = p.PerfumeNotes
                 .Select(n => new PerfumeNoteInfo
                 {
-                    Name = n.Note.Name,
-                    Category = n.Note.Category,
-                    Level = n.NoteLevel
+                    Name = n.Note.Name ?? string.Empty,
+                    Category = n.Note.Category ?? string.Empty,
+                    Level = n.NoteLevel ?? string.Empty
                 })
                 .ToList(),
 
             Accords = p.PerfumeAccords
                 .Select(a => new PerfumeAccordInfo
                 {
-                    Name = a.Accord.Name,
-                    Intensity = a.Intensity
+                    Name = a.Accord.Name ?? string.Empty,
+                    Intensity = a.Intensity ?? string.Empty
                 })
                 .ToList(),
 

@@ -1,6 +1,9 @@
 // Convert document chunks into embeddings, ready to be stored in a vector database.
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 using ALOud.Services.Rag.Clients;
+
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
+
 
 public class EmbeddingIndexService : IEmbeddingIndexService
 {

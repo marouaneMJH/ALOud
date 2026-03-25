@@ -2,7 +2,10 @@
 
 
 using ALOud.Services.Rag.Clients;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
+
 
 public class VectorIndexService : IVectorIndexService
 {

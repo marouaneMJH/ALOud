@@ -1,3 +1,4 @@
+using ALOud.Services.Infrastructure.Rag.Models;
 /**
  *  Convert a PerfumeRagSource into
  *  a semantic document string suitablefor embeddings.
@@ -24,7 +25,9 @@
 
 
 using System.Text;
-using ALOud.Services.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
+
 
 public class DocumentBuilderService : IDocumentBuilderService
 {

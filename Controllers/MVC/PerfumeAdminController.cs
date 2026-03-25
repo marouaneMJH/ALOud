@@ -35,7 +35,6 @@ namespace ALOud.Controllers.MVC
         private readonly ITagService _tagService;
         private readonly ISeasonService _seasonService;
         private readonly IOccasionService _occasionService;
-        private readonly IDashboardService _dashboardService;
         private readonly ILogger<PerfumeAdminController> _logger;
 
         /// <summary>
@@ -61,7 +60,6 @@ namespace ALOud.Controllers.MVC
             _tagService = tagService;
             _seasonService = seasonService;
             _occasionService = occasionService;
-            _dashboardService = dashboardService;
             _logger = logger;
         }
 

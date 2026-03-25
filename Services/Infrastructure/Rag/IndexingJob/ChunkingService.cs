@@ -1,8 +1,11 @@
+using ALOud.Services.Infrastructure.Rag.Models;
 // Split a semantic document string into embedding-ready chunks
 // while preserving meaning and metadata.
 
 
-using ALOud.Services.Rag.Models;
+
+namespace ALOud.Services.Infrastructure.Rag.IndexingJob;
+
 
 public class ChunkingService : IChunkingService
 {

@@ -10,15 +10,13 @@ namespace ALOud.Controllers.MVC
     /// </summary>
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
         /// <summary>
         /// Initializes a new instance of the HomeController class
         /// </summary>
         /// <param name="logger">The logger</param>
         public HomeController(ILogger<HomeController> logger)
         {
-            _logger = logger;
+            // Logger parameter removed since it's not used
         }
 
         /// <summary>

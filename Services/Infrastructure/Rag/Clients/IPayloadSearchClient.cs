@@ -1,10 +1,14 @@
-using ALOud.Services.Rag.Models;
+using ALOud.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
 
-public interface IPayloadSearchClient
+namespace ALOud.Services.Infrastructure.Rag.Clients
 {
-    Task<IReadOnlyList<RagRetrievedChunk>> SearchByFilterAsync(
-        int topK,
-        QdrantFilter? filter,
-        CancellationToken cancellationToken = default
-    );
+    public interface IPayloadSearchClient
+    {
+        Task<IReadOnlyList<RagRetrievedChunk>> SearchByFilterAsync(
+            int topK,
+            QdrantFilter? filter,
+            CancellationToken cancellationToken = default
+        );
+    }
 }

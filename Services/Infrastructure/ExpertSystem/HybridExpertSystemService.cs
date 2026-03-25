@@ -1,6 +1,8 @@
+using ALOud.Models;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 using ALOud.Services.Rag.Clients;
-using ALOud.Services.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Clients;
 using System.Text;
 
 namespace ALOud.Services.Infrastructure.ExpertSystem;

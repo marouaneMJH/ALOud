@@ -2,6 +2,9 @@
 
 using ALOud.Services.Rag.Clients;
 
+namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
+
+
 public class QueryEmbeddingService : IQueryEmbeddingService
 {
     private readonly IEmbeddingClient _embeddingClient;
