@@ -35,13 +35,13 @@
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
                 </svg>
+                <label for="query" class="visually-hidden">Search for perfumes</label>
                 <input type="text"
                        id="query"
                        name="query"
                        value="@searchQuery"
                        class="search-input"
-                       placeholder="Search for a perfume or brand..."
-                       onchange="this.form.submit()" />
+                       placeholder="Search for a perfume or brand..." />
             </div>
         </form>
     </div>
@@ -53,7 +53,7 @@
         <div class="filter-row">
             <!-- Brand Filter -->
             <div class="filter-group">
-                <label class="filter-label">Brand</label>
+                <h3 class="filter-label">Brand</h3>
                 <div class="filter-pills">
                     <a class="filter-pill @(selectedBrandId == null ? "active" : "")" 
                        asp-action="Index"
@@ -84,7 +84,7 @@
 
             <!-- Family Filter -->
             <div class="filter-group">
-                <label class="filter-label">Olfactory Family</label>
+                <h3 class="filter-label">Olfactory Family</h3>
                 <div class="filter-pills">
                     <a class="filter-pill @(selectedFamilyId == null ? "active" : "")" 
                        asp-action="Index"
@@ -115,7 +115,7 @@
 
             <!-- Gender Filter -->
             <div class="filter-group">
-                <label class="filter-label">Gender</label>
+                <h3 class="filter-label">Gender</h3>
                 <div class="filter-pills">
                     <a class="filter-pill @(string.IsNullOrEmpty(selectedGender) ? "active" : "")" 
                        asp-action="Index"
@@ -159,6 +159,19 @@
 </section>
 
 <style>
+    /* Accessibility */
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
     /* Toast Notifications */
     .toast-notification {
         position: fixed;
@@ -544,10 +557,10 @@
                                 {
                                     <span class="perfume-badge">@perfume.GenderProfile</span>
                                 }
-                                <img src="@(perfume.ImageUrl ?? fallback)" 
+                                 <img src="@(perfume.ImageUrl ?? fallback)" 
                                      alt="@perfume.Name"
                                      class="perfume-image" 
-                                     onerror="this.onerror=null;this.src='@fallback';" />
+                                     data-fallback="@fallback" />
                             </div>
                         </a>
 
@@ -672,6 +685,26 @@
 </section>
 
 <script>
+    // Handle image load errors with fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.perfume-image[data-fallback]');
+        images.forEach(img => {
+            img.addEventListener('error', function() {
+                if (this.src !== this.dataset.fallback) {
+                    this.src = this.dataset.fallback;
+                }
+            });
+        });
+
+        // Handle search form submission
+        const searchInput = document.getElementById('query');
+        if (searchInput) {
+            searchInput.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+    });
+
     // Auto-dismiss toast notifications after 4 seconds
     setTimeout(() => {
         const toasts = document.querySelectorAll('.toast-notification');

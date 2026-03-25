@@ -15,7 +15,7 @@
 <body>
 
     <!-- Mobile Toggle -->
-    <button class="mobile-toggle" onclick="toggleSidebar()">
+    <button class="mobile-toggle" id="mobileToggle">
         <i class="bi bi-list"></i>
     </button>
 
@@ -54,8 +54,11 @@
             }
 
             // Mobile sidebar toggle
-            function toggleSidebar() {
-                sidebar.classList.toggle('active');
+            const mobileToggle = document.getElementById('mobileToggle');
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
             }
 
             // Close sidebar when clicking outside on mobile

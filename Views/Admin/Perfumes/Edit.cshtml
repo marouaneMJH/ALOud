@@ -157,8 +157,8 @@
                             {
                                 @foreach (var family in families)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="FamilyIds" value="@family.Id" 
+                                    <label class="multi-select-option" for="edit-family-@family.Id">
+                                        <input type="checkbox" name="FamilyIds" value="@family.Id" id="edit-family-@family.Id"
                                                checked="@(Model.FamilyIds.Contains(family.Id))" />
                                         @family.Name
                                     </label>
@@ -174,8 +174,8 @@
                             {
                                 @foreach (var tag in tags)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="TagIds" value="@tag.Id"
+                                    <label class="multi-select-option" for="edit-tag-@tag.Id">
+                                        <input type="checkbox" name="TagIds" value="@tag.Id" id="edit-tag-@tag.Id"
                                                checked="@(Model.TagIds.Contains(tag.Id))" />
                                         @tag.Name
                                     </label>
@@ -193,8 +193,8 @@
                             {
                                 @foreach (var season in seasons)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="SeasonIds" value="@season.Id"
+                                    <label class="multi-select-option" for="edit-season-@season.Id">
+                                        <input type="checkbox" name="SeasonIds" value="@season.Id" id="edit-season-@season.Id"
                                                checked="@(Model.SeasonIds.Contains(season.Id))" />
                                         @season.Name
                                     </label>
@@ -210,8 +210,8 @@
                             {
                                 @foreach (var occasion in occasions)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="OccasionIds" value="@occasion.Id"
+                                    <label class="multi-select-option" for="edit-occasion-@occasion.Id">
+                                        <input type="checkbox" name="OccasionIds" value="@occasion.Id" id="edit-occasion-@occasion.Id"
                                                checked="@(Model.OccasionIds.Contains(occasion.Id))" />
                                         @occasion.Name
                                     </label>

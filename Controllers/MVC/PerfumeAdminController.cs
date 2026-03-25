@@ -17,6 +17,7 @@ using ALOud.DTOs.Tags;
 using ALOud.DTOs.Seasons;
 using ALOud.DTOs.Occasions;
 using ALOud.Services;
+using ALOud.Constants;
 
 namespace ALOud.Controllers.MVC
 {
@@ -102,25 +103,25 @@ namespace ALOud.Controllers.MVC
         public async Task<IActionResult> CreateBrand(CreateBrandDto dto)
         {
             if (!ModelState.IsValid)
-                return View("~/Views/Admin/Brands/Create.cshtml", dto);
+                return View(ViewPaths.AdminBrandsCreate, dto);
 
             try
             {
                 if (await _brandService.BrandExistsAsync(dto.Name))
                 {
-                    ModelState.AddModelError("Name", "A brand with this name already exists");
-                    return View("~/Views/Admin/Brands/Create.cshtml", dto);
+                    ModelState.AddModelError("Name", ErrorMessages.BrandExists);
+                    return View(ViewPaths.AdminBrandsCreate, dto);
                 }
 
                 await _brandService.CreateBrandAsync(dto);
-                SetSuccessMessage("Brand created successfully");
-                return RedirectToRoute("MvcPerfumeAdminBrands");
+                SetSuccessMessage(SuccessMessages.BrandCreated);
+                return RedirectToRoute(RouteNames.MvcPerfumeAdminBrands);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating brand");
-                SetErrorMessage("Failed to create brand");
-                return View("~/Views/Admin/Brands/Create.cshtml", dto);
+                SetErrorMessage(ErrorMessages.BrandCreateFailed);
+                return View(ViewPaths.AdminBrandsCreate, dto);
             }
         }
 

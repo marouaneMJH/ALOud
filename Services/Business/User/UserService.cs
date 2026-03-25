@@ -77,7 +77,7 @@ public class UserService : IUserService
 
     public async Task<User?> AuthenticateAsync(LoginDto dto)
     {
-        _logger.LogInformation($"=== AUTHENTICATION START === Email: {dto.Email}");
+        _logger.LogInformation("=== AUTHENTICATION START === Email: {Email}", dto.Email);
 
         try
         {
@@ -87,7 +87,7 @@ public class UserService : IUserService
 
             if (user == null)
             {
-                _logger.LogWarning($"User not found or inactive for email: {dto.Email}");
+                _logger.LogWarning("User not found or inactive for email: {Email}", dto.Email);
 
                 // Check if user exists but is inactive
                 var inactiveUser = await _db.Users
@@ -95,17 +95,18 @@ public class UserService : IUserService
 
                 if (inactiveUser != null)
                 {
-                    _logger.LogWarning($"User exists but IsActive = {inactiveUser.IsActive}");
+                    _logger.LogWarning("User exists but IsActive = {IsActive} for email: {Email}", 
+                        inactiveUser.IsActive, dto.Email);
                 }
                 else
                 {
-                    _logger.LogWarning("No user found with this email address");
+                    _logger.LogWarning("No user found with email address: {Email}", dto.Email);
                 }
 
                 return null;
             }
 
-            _logger.LogInformation($"User found: ID={user.Id}, IsActive={user.IsActive}");
+            _logger.LogInformation("User found: ID={UserId}, IsActive={IsActive}", user.Id, user.IsActive);
             _logger.LogInformation("Verifying password...");
 
             var isValid = _passwordHasher.Verify(
@@ -113,18 +114,13 @@ public class UserService : IUserService
                 dto.Password
             );
 
-            _logger.LogInformation($"Password verification result: {isValid}");
+            _logger.LogInformation("Password verification result: {IsValid}", isValid);
 
             return isValid ? user : null;
         }
-        catch (DbUpdateException dbEx)
-        {
-            _logger.LogError(dbEx, "Database error during authentication for email: {Email}", dto.Email);
-            throw new InvalidOperationException("Authentication failed: database error", dbEx);
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error during authentication for email: {Email}", dto.Email);
+            _logger.LogError(ex, "Error during authentication for email: {Email}", dto.Email);
             throw;
         }
     }
@@ -135,14 +131,9 @@ public class UserService : IUserService
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.IsActive);
         }
-        catch (DbUpdateException dbEx)
-        {
-            _logger.LogError(dbEx, "Database error fetching user by id: {UserId}", id);
-            throw new InvalidOperationException("Failed to fetch user: database error", dbEx);
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error fetching user by id: {UserId}", id);
+            _logger.LogError(ex, "Error fetching user by id: {UserId}", id);
             throw;
         }
     }
@@ -153,14 +144,9 @@ public class UserService : IUserService
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
-        catch (DbUpdateException dbEx)
-        {
-            _logger.LogError(dbEx, "Database error fetching user by email: {Email}", email);
-            throw new InvalidOperationException("Failed to fetch user: database error", dbEx);
-        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error fetching user by email: {Email}", email);
+            _logger.LogError(ex, "Error fetching user by email: {Email}", email);
             throw;
         }
     }

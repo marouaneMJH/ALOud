@@ -1,5 +1,6 @@
 using ALOud.DTOs.ExpertSystem;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
+using ALOud.Services.Infrastructure.ExpertSystem.Engine;
 using ALOud.Services.Infrastructure.ExpertSystem.Mappers;
 
 namespace ALOud.Services.Infrastructure.ExpertSystem

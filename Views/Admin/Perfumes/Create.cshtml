@@ -156,8 +156,8 @@
                             {
                                 @foreach (var family in families)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="FamilyIds" value="@family.Id" />
+                                    <label class="multi-select-option" for="family-@family.Id">
+                                        <input type="checkbox" name="FamilyIds" value="@family.Id" id="family-@family.Id" />
                                         @family.Name
                                     </label>
                                 }
@@ -172,8 +172,8 @@
                             {
                                 @foreach (var tag in tags)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="TagIds" value="@tag.Id" />
+                                    <label class="multi-select-option" for="tag-@tag.Id">
+                                        <input type="checkbox" name="TagIds" value="@tag.Id" id="tag-@tag.Id" />
                                         @tag.Name
                                     </label>
                                 }
@@ -190,8 +190,8 @@
                             {
                                 @foreach (var season in seasons)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="SeasonIds" value="@season.Id" />
+                                    <label class="multi-select-option" for="season-@season.Id">
+                                        <input type="checkbox" name="SeasonIds" value="@season.Id" id="season-@season.Id" />
                                         @season.Name
                                     </label>
                                 }
@@ -206,8 +206,8 @@
                             {
                                 @foreach (var occasion in occasions)
                                 {
-                                    <label class="multi-select-option">
-                                        <input type="checkbox" name="OccasionIds" value="@occasion.Id" />
+                                    <label class="multi-select-option" for="occasion-@occasion.Id">
+                                        <input type="checkbox" name="OccasionIds" value="@occasion.Id" id="occasion-@occasion.Id" />
                                         @occasion.Name
                                     </label>
                                 }

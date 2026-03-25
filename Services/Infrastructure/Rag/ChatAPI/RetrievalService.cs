@@ -4,6 +4,7 @@ using ALOud.Models;
 
 using ALOud.Services.Rag.Clients;
 using ALOud.Services.Infrastructure.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Clients;
 
 namespace ALOud.Services.Infrastructure.Rag.ChatAPI;
 

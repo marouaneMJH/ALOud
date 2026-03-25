@@ -50,6 +50,14 @@ sonar-analyse:
 	@echo "Finalizing SonarQube analysis..."
 	@dotnet sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
 
+json-issues-sonar:
+	@if [ -z "$$SONAR_TOKEN" ]; then \
+		echo "Error: SONAR_TOKEN is not set."; \
+		echo "Run: export SONAR_TOKEN='<your-sonar-token>'"; \
+		exit 1; \
+	fi
+	@curl -u "$(SONAR_TOKEN)": "$(SONAR_HOST_URL)api/issues/search?componentKeys=$(SONAR_PROJECT_KEY)&issueStatuses=OPEN,CONFIRMED&ps=500" -o issues.json
+
 start-services:
 	@redis-start
 	@mssql-start

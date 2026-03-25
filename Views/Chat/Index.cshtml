@@ -82,7 +82,21 @@
         const imagePlaceholders = [];
         let formatted = text.replace(/\[image:(https?:\/\/[^\]]+)\]/g, (match, url) => {
             const placeholder = `___IMAGE_${imagePlaceholders.length}___`;
-            imagePlaceholders.push(`<div class="product-image-container"><img src="${url}" alt="Product" class="product-image" onerror="this.parentElement.style.display='none'"></div>`);
+            
+            // Create image element properly without inline event handler
+            const container = document.createElement('div');
+            container.className = 'product-image-container';
+            
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Product';
+            img.className = 'product-image';
+            img.addEventListener('error', function() {
+                this.parentElement.style.display = 'none';
+            });
+            
+            container.appendChild(img);
+            imagePlaceholders.push(container.outerHTML);
             return placeholder;
         });
 

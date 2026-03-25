@@ -1,6 +1,7 @@
 using ALOud.Models;
 using System.Text.Json;
 using ALOud.Services.Infrastructure.Rag.Models;
+using ALOud.Services.Infrastructure.Rag.Clients;
 
 namespace ALOud.Services.Rag.Clients;
 

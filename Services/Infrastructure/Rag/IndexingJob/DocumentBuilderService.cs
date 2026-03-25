@@ -35,6 +35,16 @@ public class DocumentBuilderService : IDocumentBuilderService
     {
         var sb = new StringBuilder();
 
+        AppendBasicInfo(sb, perfume);
+        AppendDescription(sb, perfume);
+        AppendPerformanceCharacteristics(sb, perfume);
+        AppendCollections(sb, perfume);
+
+        return sb.ToString().Trim();
+    }
+
+    private static void AppendBasicInfo(StringBuilder sb, PerfumeRagSource perfume)
+    {
         sb.AppendLine($"Perfume Name: {perfume.Name}");
         sb.AppendLine($"Brand: {perfume.Brand}");
 
@@ -47,14 +57,20 @@ public class DocumentBuilderService : IDocumentBuilderService
             sb.AppendLine($"Price Range: {perfume.PriceRange}");
 
         sb.AppendLine();
+    }
 
+    private static void AppendDescription(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (!string.IsNullOrWhiteSpace(perfume.Description))
         {
             sb.AppendLine("Description:");
             sb.AppendLine(perfume.Description.Trim());
             sb.AppendLine();
         }
+    }
 
+    private static void AppendPerformanceCharacteristics(StringBuilder sb, PerfumeRagSource perfume)
+    {
         sb.AppendLine("Performance Characteristics:");
         if (!string.IsNullOrWhiteSpace(perfume.Intensity))
             sb.AppendLine($"- Intensity: {perfume.Intensity}");
@@ -63,14 +79,30 @@ public class DocumentBuilderService : IDocumentBuilderService
         if (!string.IsNullOrWhiteSpace(perfume.Sillage))
             sb.AppendLine($"- Sillage: {perfume.Sillage}");
         sb.AppendLine();
+    }
 
+    private static void AppendCollections(StringBuilder sb, PerfumeRagSource perfume)
+    {
+        AppendFamilies(sb, perfume);
+        AppendNotes(sb, perfume);
+        AppendAccords(sb, perfume);
+        AppendSeasons(sb, perfume);
+        AppendOccasions(sb, perfume);
+        AppendTags(sb, perfume);
+    }
+
+    private static void AppendFamilies(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Families.Any())
         {
             sb.AppendLine("Olfactory Families:");
             sb.AppendLine(string.Join(", ", perfume.Families));
             sb.AppendLine();
         }
+    }
 
+    private static void AppendNotes(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Notes.Any())
         {
             sb.AppendLine("Notes:");
@@ -80,7 +112,10 @@ public class DocumentBuilderService : IDocumentBuilderService
             }
             sb.AppendLine();
         }
+    }
 
+    private static void AppendAccords(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Accords.Any())
         {
             sb.AppendLine("Main Accords:");
@@ -90,28 +125,34 @@ public class DocumentBuilderService : IDocumentBuilderService
             }
             sb.AppendLine();
         }
+    }
 
+    private static void AppendSeasons(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Seasons.Any())
         {
             sb.AppendLine("Best Seasons:");
             sb.AppendLine(string.Join(", ", perfume.Seasons));
             sb.AppendLine();
         }
+    }
 
+    private static void AppendOccasions(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Occasions.Any())
         {
             sb.AppendLine("Best Occasions:");
             sb.AppendLine(string.Join(", ", perfume.Occasions));
             sb.AppendLine();
         }
+    }
 
+    private static void AppendTags(StringBuilder sb, PerfumeRagSource perfume)
+    {
         if (perfume.Tags.Any())
         {
             sb.AppendLine("Tags:");
             sb.AppendLine(string.Join(", ", perfume.Tags));
         }
-
-        return sb.ToString().Trim();
     }
-
 }

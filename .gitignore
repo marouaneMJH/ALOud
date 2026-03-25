@@ -377,5 +377,8 @@ raw-data/scrapers/src/*.ts
 /.private/
 /.vscode/
 /backups/
-issues.json
+*issues.json
+
+# Code analysis
 /.sonarqube/
+/.scannerwork/

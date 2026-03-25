@@ -309,18 +309,6 @@ body {
     color: #fff;
 }
 
-.btn-primary {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: var(--color-primary);
-}
-
-.btn-primary:hover {
-    background: var(--accent-dark);
-    border-color: var(--accent-dark);
-    color: var(--color-primary);
-}
-
 .badge.bg-secondary {
     background: var(--color-primary) !important;
     color: #fff;
@@ -967,49 +955,12 @@ body {
 }
 
 /* ─── Sidebar ─── */
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--sidebar-bg);
-    padding: 1.5rem 0;
-    overflow-y: auto;
-    z-index: 1000;
-    transition: transform 0.3s ease;
-}
-
-.sidebar-brand {
-    padding: 0 1.5rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1rem;
-}
-
-.sidebar-brand h2 {
-    color: #fff;
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-family: var(--font-heading);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar-brand h2 i {
-    color: var(--accent-color);
-}
 
 .sidebar-brand span {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
     display: block;
     margin-top: 0.25rem;
-}
-
-.nav-section {
-    padding: 0.5rem 1.5rem;
-    margin-bottom: 0.5rem;
 }
 
 .nav-section-title {
@@ -1059,13 +1010,6 @@ body {
 
 .nav-link.active .badge {
     background: rgba(0, 0, 0, 0.2);
-}
-
-/* ─── Main Content ─── */
-.main-content {
-    margin-left: var(--sidebar-width);
-    padding: 2rem;
-    min-height: 100vh;
 }
 
 .page-header {
@@ -1313,50 +1257,7 @@ body {
     background: var(--color-primary);
 }
 
-/* ─── Buttons ─── */
-.btn-outline-primary {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.btn-outline-primary:hover {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff;
-}
-
-.btn-primary {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: var(--color-primary);
-}
-
-.btn-primary:hover {
-    background: var(--accent-dark);
-    border-color: var(--accent-dark);
-    color: var(--color-primary);
-}
-
-.badge.bg-secondary {
-    background: var(--color-primary) !important;
-    color: #fff;
-}
-
 /* ─── Mobile ─── */
-.mobile-toggle {
-    display: none;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1001;
-    background: var(--sidebar-bg);
-    color: #fff;
-    border: none;
-    padding: 0.75rem;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
 @media (max-width: 992px) {
     .sidebar {
         transform: translateX(-100%);

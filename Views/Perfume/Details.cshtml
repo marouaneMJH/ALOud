@@ -652,8 +652,8 @@
             <div class="perfume-image-section">
                 <div class="perfume-main-image">
                     <img src="@(Model.ImageUrl ?? fallback)" 
-                         alt="@Model.Name"
-                         onerror="this.onerror=null;this.src='@fallback';" />
+                         alt="@Model.Name perfume image"
+                         loading="lazy" />
                 </div>
             </div>
 
