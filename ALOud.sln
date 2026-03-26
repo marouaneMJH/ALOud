@@ -1,8 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ALOud", "ALOud.csproj", "{C6F2CF8D-2C63-2C39-B178-1903850CBAF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ALOud.Tests", "ALOud.Tests.csproj", "{2EB08C8C-34A8-4243-99F9-8382DC7828CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{C6F2CF8D-2C63-2C39-B178-1903850CBAF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6F2CF8D-2C63-2C39-B178-1903850CBAF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6F2CF8D-2C63-2C39-B178-1903850CBAF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EB08C8C-34A8-4243-99F9-8382DC7828CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EB08C8C-34A8-4243-99F9-8382DC7828CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EB08C8C-34A8-4243-99F9-8382DC7828CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EB08C8C-34A8-4243-99F9-8382DC7828CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

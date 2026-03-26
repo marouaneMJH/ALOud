@@ -1,4 +1,3 @@
-using Bogus;
 using ALOud.Models;
 
 namespace Tests.Common.TestDataBuilders
@@ -82,7 +81,7 @@ namespace Tests.Common.TestDataBuilders
         public Brand Build()
         {
             var brand = _faker.Generate();
-            
+
             // Ensure navigation properties are properly linked
             foreach (var perfume in brand.Perfumes)
             {

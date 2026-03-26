@@ -1,6 +1,6 @@
 # ALOud Project Makefile
 
-.PHONY:  help dev run build backup restore all sonar-analyse sonar-analyse-with-coverage coverage-install coverage-check
+.PHONY: test coverage coverage-report help dev run build backup restore all sonar-analyse sonar-analyse-with-coverage coverage-install coverage-check
 
 ifneq (,$(wildcard .env.sonar))
 include .env.sonar
@@ -15,6 +15,9 @@ COVERAGE_REPORT_DIRECTORY ?= .
 
 help:
 	@echo "	make help: to see make options"
+	@echo "	make test: to run all tests"
+	@echo "	make coverage: to run tests with coverage"
+	@echo "	make coverage-report: to generate HTML coverage report"
 	@echo "	make dev: to start development environment"
 	@echo "	make run: to start production environment"
 	@echo "	make build: to build the application"
@@ -26,16 +29,41 @@ help:
 	@echo "	make start-services: to start all database services"
 	@echo "	make stop-services: to stop all database services"
 
+test:
+	dotnet build ALOud.sln
+	dotnet test ALOud.sln --logger "console;verbosity=normal"
+
+coverage:
+	@echo "Building solution..."
+	dotnet build ALOud.sln -c Release
+	@echo "Running tests with coverage..."
+	@if [ -d "Tests" ] && [ -n "$$(find Tests -name '*.cs' -type f 2>/dev/null)" ]; then \
+		dotnet test ALOud.sln --no-build -c Release \
+			--collect:"XPlat Code Coverage" \
+			--results-directory ./coverage-results \
+			--logger "console;verbosity=normal"; \
+	else \
+		echo "No test files found in Tests/, skipping"; \
+	fi
+
+coverage-report:
+	dotnet tool install -g dotnet-reportgenerator-globaltool 2>/dev/null || true
+	reportgenerator \
+		-reports:"coverage-results/**/coverage.cobertura.xml" \
+		-targetdir:"coverage-html" \
+		-reporttypes:Html
+	@echo "Done. Open coverage-html/index.html in your browser."
+
 dev:
 	@echo "Running the application with development mode ..."
-	@dotnet watch run
+	@dotnet watch run --project ALOud.csproj
 
 run:
 	@echo "Running the application..."
-	@dotnet run
+	@dotnet run --project ALOud.csproj
 
 build:
-	@dotnet build
+	@dotnet build ALOud.sln
 
 start-sonar-server:
 	@docker start sonarqube
@@ -49,7 +77,7 @@ sonar-analyse:
 	@echo "Starting SonarQube analysis for project: $(SONAR_PROJECT_KEY)"
 	@dotnet sonarscanner begin /k:"$(SONAR_PROJECT_KEY)" /d:sonar.host.url="$(SONAR_HOST_URL)" /d:sonar.token="$$SONAR_TOKEN"
 	@echo "Building project..."
-	@dotnet build
+	@dotnet build ALOud.sln
 	@echo "Finalizing SonarQube analysis..."
 	@dotnet sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
 
@@ -57,7 +85,6 @@ coverage-install:
 	@echo "Installing dotnet-coverage global tool..."
 	@dotnet tool install --global dotnet-coverage
 	@echo "dotnet-coverage installed successfully"
-
 
 sonar-analyse-with-coverage:
 	@if [ -z "$$SONAR_TOKEN" ]; then \
@@ -83,7 +110,7 @@ sonar-analyse-with-coverage:
 	dotnet build ALOud.sln --no-incremental; \
 	\
 	echo "Running tests with coverage..."; \
-	if [ -d "Tests" ] && [ -n "$(find Tests -name '*.cs' -type f 2>/dev/null)" ]; then \
+	if [ -d "Tests" ] && [ -n "$$(find Tests -name '*.cs' -type f 2>/dev/null)" ]; then \
 		dotnet-coverage collect "dotnet test ALOud.sln --no-build" \
 			-f xml \
 			-o coverage.xml || TEST_EXIT_CODE=$$?; \
@@ -107,7 +134,6 @@ sonar-analyse-with-coverage:
 	fi
 
 	@echo "Sonar analysis completed successfully"
-
 
 json-issues-sonar:
 	@if [ -z "$$SONAR_TOKEN" ]; then \
