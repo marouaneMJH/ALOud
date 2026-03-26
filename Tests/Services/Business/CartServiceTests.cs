@@ -21,6 +21,10 @@ namespace ALOud.Tests.Services.Business
         private readonly Mock<ICacheService> _mockCacheService;
         private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private readonly Mock<HttpContext> _mockHttpContext;
+        private readonly Mock<HttpRequest> _mockRequest;
+        private readonly Mock<HttpResponse> _mockResponse;
+        private readonly Mock<IRequestCookieCollection> _mockRequestCookies;
+        private readonly Mock<IResponseCookies> _mockResponseCookies;
 
         public CartServiceTests()
         {
@@ -28,6 +32,20 @@ namespace ALOud.Tests.Services.Business
             _mockCacheService = new Mock<ICacheService>();
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockHttpContext = new Mock<HttpContext>();
+            _mockRequest = new Mock<HttpRequest>();
+            _mockResponse = new Mock<HttpResponse>();
+            _mockRequestCookies = new Mock<IRequestCookieCollection>();
+            _mockResponseCookies = new Mock<IResponseCookies>();
+            
+            // Setup HTTP context hierarchy
+            _mockHttpContext.Setup(x => x.Request).Returns(_mockRequest.Object);
+            _mockHttpContext.Setup(x => x.Response).Returns(_mockResponse.Object);
+            _mockRequest.Setup(x => x.Cookies).Returns(_mockRequestCookies.Object);
+            _mockResponse.Setup(x => x.Cookies).Returns(_mockResponseCookies.Object);
+            
+            // Setup default cookie behavior (no existing cart cookie)
+            _mockRequestCookies.Setup(x => x.TryGetValue("CartId", out It.Ref<string>.IsAny))
+                .Returns(false);
             
             // Setup HttpContextAccessor to return our mock context
             _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(_mockHttpContext.Object);

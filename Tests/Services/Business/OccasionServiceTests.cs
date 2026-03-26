@@ -73,10 +73,14 @@ namespace Tests.Services.Business
         [Fact]
         public async Task GetAllOccasionsAsync_WithSearchTerm_ShouldReturnFilteredResults()
         {
-            // Arrange
-            var searchOccasion = OccasionBuilder.CreateWithName("Date Night Special");
-            var occasions = new List<ALOud.Models.Occasion> { searchOccasion };
-            occasions.AddRange(OccasionBuilder.CreateValidList(10));
+            // Arrange - Create specific test data to avoid random conflicts
+            var occasions = OccasionBuilder.CreateWithNames(
+                "Date Night Special", 
+                "Office Work",
+                "Evening Party",
+                "Casual Weekend",
+                "Formal Meeting"
+            );
             _context.Occasions.AddRange(occasions);
             await _context.SaveChangesAsync();
 

@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ALOud.Tests'">
+    <MSBuildProjectExtensionsPath>obj/ALOud.Tests/</MSBuildProjectExtensionsPath>
+    <BaseIntermediateOutputPath>obj/ALOud.Tests/</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>obj/ALOud.Tests/$(Configuration)/</IntermediateOutputPath>
+    <BaseOutputPath>bin/ALOud.Tests/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

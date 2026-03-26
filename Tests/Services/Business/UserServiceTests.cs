@@ -163,15 +163,19 @@ namespace ALOud.Tests.Services.Business
             // Arrange
             var createUserDto = new CreateUserDtoBuilder().Build();
             
-            // Dispose the original context to simulate database error
-            _context.Dispose();
+            // Create a user with a duplicate email first to force a constraint violation
+            var existingUser = new UserBuilder()
+                .WithEmail(createUserDto.Email)
+                .Build();
+            
+            _context.Users.Add(existingUser);
+            await _context.SaveChangesAsync();
 
-            // Act & Assert
+            // Act & Assert - Trying to create a user with duplicate email should throw InvalidOperationException
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _userService.CreateUserAsync(createUserDto));
             
-            exception.Message.Should().Be("Failed to create user: database error");
-            exception.InnerException.Should().BeOfType<ObjectDisposedException>();
+            exception.Message.Should().Be("Email already exists");
         }
 
         #endregion

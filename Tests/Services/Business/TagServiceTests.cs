@@ -55,8 +55,18 @@ namespace Tests.Services.Business
         {
             // Arrange
             var searchTag = TagBuilder.CreateWithName("Luxury Collection");
+            var nonMatchingTags = new List<ALOud.Models.Tag>
+            {
+                TagBuilder.CreateWithName("Vintage"),
+                TagBuilder.CreateWithName("Modern"),
+                TagBuilder.CreateWithName("Oriental"),
+                TagBuilder.CreateWithName("Fresh"),
+                TagBuilder.CreateWithName("Intense")
+            };
+            
             var tags = new List<ALOud.Models.Tag> { searchTag };
-            tags.AddRange(TagBuilder.CreateValidList(10));
+            tags.AddRange(nonMatchingTags);
+            
             _context.Tags.AddRange(tags);
             await _context.SaveChangesAsync();
 

@@ -15,9 +15,8 @@ using System.Linq.Expressions;
 namespace ALOud.Tests.Services.Business
 {
     /// <summary>
-    /// Unit tests for PerfumeService using Hybrid Strategy (Mock IUnitOfWork + EF InMemory for relations).
-    /// Tests the complex perfume business logic with mocked repository pattern and in-memory database
-    /// for relationship management.
+    /// Unit tests for PerfumeService using EF InMemory for full async support.
+    /// Tests the complex perfume business logic with in-memory database that properly supports async operations.
     /// 
     /// Test naming convention: MethodName_Scenario_ExpectedBehavior
     /// </summary>
@@ -30,18 +29,19 @@ namespace ALOud.Tests.Services.Business
 
         public PerfumeServiceTests()
         {
-            // Arrange - Create in-memory database context for relation writes
+            // Create in-memory database context that supports async operations
             _context = DbContextFactory.CreateAndEnsureCreated();
             
-            // Mock the repository pattern dependencies
+            // Create a real unit of work with real repositories using the EF context
+            // This approach ensures all async operations work correctly
+            var unitOfWork = new UnitOfWork(_context);
+            
+            // Create service under test with real EF-backed unit of work
+            _perfumeService = new PerfumeService(unitOfWork, _context);
+            
+            // Keep the mocks for reference but don't use them for setup
             _mockPerfumeRepository = new Mock<IPerfumeRepository>();
             _mockUnitOfWork = new Mock<IUnitOfWork>();
-            
-            // Setup unit of work to return our mock repository
-            _mockUnitOfWork.Setup(uow => uow.Perfumes).Returns(_mockPerfumeRepository.Object);
-            
-            // Create service under test with hybrid dependencies
-            _perfumeService = new PerfumeService(_mockUnitOfWork.Object, _context);
         }
 
         public void Dispose()
@@ -59,14 +59,17 @@ namespace ALOud.Tests.Services.Business
             var brand = new Brand { Id = Guid.NewGuid(), Name = "Test Brand" };
             var family = new Family { Id = Guid.NewGuid(), Name = "Floral", Description = "Floral scents" };
             
+            // Add brand to context
+            _context.Brands.Add(brand);
+            await _context.SaveChangesAsync();
+            
             var perfumes = new PerfumeBuilder()
                 .WithBrand(brand)
                 .Build(15); // Create 15 perfumes for pagination testing
 
-            var queryable = perfumes.AsQueryable();
-            
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            // Add perfumes to the EF context instead of mocking the return
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(pageIndex: 1, pageSize: 10);
@@ -87,6 +90,7 @@ namespace ALOud.Tests.Services.Business
         {
             // Arrange
             var brand = new Brand { Id = Guid.NewGuid(), Name = "Test Brand" };
+            _context.Brands.Add(brand);
             
             var perfumes = new List<Perfume>
             {
@@ -95,9 +99,8 @@ namespace ALOud.Tests.Services.Business
                 new PerfumeBuilder().WithName("Channel Classic").WithBrand(brand).Build() // Typo intentional
             };
 
-            var queryable = perfumes.AsQueryable();
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(searchTerm: "Chanel");
@@ -115,6 +118,7 @@ namespace ALOud.Tests.Services.Business
             // Arrange
             var chanelBrand = new Brand { Id = Guid.NewGuid(), Name = "Chanel" };
             var diorBrand = new Brand { Id = Guid.NewGuid(), Name = "Dior" };
+            _context.Brands.AddRange(chanelBrand, diorBrand);
             
             var perfumes = new List<Perfume>
             {
@@ -123,9 +127,8 @@ namespace ALOud.Tests.Services.Business
                 new PerfumeBuilder().WithName("Sauvage").WithBrand(diorBrand).Build()
             };
 
-            var queryable = perfumes.AsQueryable();
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(searchTerm: "Chanel");
@@ -146,6 +149,7 @@ namespace ALOud.Tests.Services.Business
             
             var targetBrand = new Brand { Id = targetBrandId, Name = "Target Brand" };
             var otherBrand = new Brand { Id = otherBrandId, Name = "Other Brand" };
+            _context.Brands.AddRange(targetBrand, otherBrand);
             
             var perfumes = new List<Perfume>
             {
@@ -154,9 +158,8 @@ namespace ALOud.Tests.Services.Business
                 new PerfumeBuilder().WithBrand(otherBrand).Build()
             };
 
-            var queryable = perfumes.AsQueryable();
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(brandId: targetBrandId);
@@ -173,6 +176,7 @@ namespace ALOud.Tests.Services.Business
         {
             // Arrange
             var brand = new Brand { Id = Guid.NewGuid(), Name = "Test Brand" };
+            _context.Brands.Add(brand);
             
             var perfumes = new List<Perfume>
             {
@@ -182,9 +186,8 @@ namespace ALOud.Tests.Services.Business
                 new PerfumeBuilder().WithBrand(brand).WithGenderProfile("Unisex").Build()
             };
 
-            var queryable = perfumes.AsQueryable();
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(genderProfile: "Women");
@@ -221,13 +224,14 @@ namespace ALOud.Tests.Services.Business
         {
             // Arrange
             var brand = new Brand { Id = Guid.NewGuid(), Name = "Test Brand" };
+            _context.Brands.Add(brand);
+            
             var perfumes = new PerfumeBuilder()
                 .WithBrand(brand)
                 .Build(12); // 12 perfumes total
 
-            var queryable = perfumes.AsQueryable();
-            _mockPerfumeRepository.Setup(r => r.GetQueryable())
-                .Returns(queryable);
+            _context.Perfumes.AddRange(perfumes);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetAllPerfumesAsync(pageIndex: 2, pageSize: 5);
@@ -253,6 +257,8 @@ namespace ALOud.Tests.Services.Business
             // Arrange
             var perfumeId = Guid.NewGuid();
             var brand = new Brand { Id = Guid.NewGuid(), Name = "Test Brand" };
+            _context.Brands.Add(brand);
+            
             var perfume = new PerfumeBuilder()
                 .WithId(perfumeId)
                 .WithName("Test Perfume")
@@ -260,8 +266,8 @@ namespace ALOud.Tests.Services.Business
                 .WithPrice(99.99m)
                 .Build();
 
-            _mockPerfumeRepository.Setup(r => r.GetByIdAsync(perfumeId))
-                .ReturnsAsync(perfume);
+            _context.Perfumes.Add(perfume);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.GetPerfumeByIdAsync(perfumeId);
@@ -301,11 +307,9 @@ namespace ALOud.Tests.Services.Business
             var perfumeId = Guid.NewGuid();
             var perfume = new PerfumeBuilder().WithId(perfumeId).Build();
 
-            _mockPerfumeRepository.Setup(r => r.GetByIdAsync(perfumeId))
-                .ReturnsAsync(perfume);
-            
-            _mockUnitOfWork.Setup(uow => uow.SaveChangesAsync())
-                .ReturnsAsync(1);
+            // Add perfume to real database first
+            _context.Perfumes.Add(perfume);
+            await _context.SaveChangesAsync();
 
             // Act
             var result = await _perfumeService.DeletePerfumeAsync(perfumeId);
@@ -313,9 +317,9 @@ namespace ALOud.Tests.Services.Business
             // Assert
             result.Should().BeTrue();
             
-            // Verify the perfume was removed and changes saved
-            _mockPerfumeRepository.Verify(r => r.Remove(perfume), Times.Once);
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+            // Verify the perfume was actually removed from database
+            var deletedPerfume = await _context.Perfumes.FindAsync(perfumeId);
+            deletedPerfume.Should().BeNull();
         }
 
         [Fact]
@@ -371,24 +375,20 @@ namespace ALOud.Tests.Services.Business
                 OccasionIds = new List<Guid>()
             };
 
-            _mockUnitOfWork.Setup(uow => uow.SaveChangesAsync())
-                .ReturnsAsync(1);
-
             // Act
             var result = await _perfumeService.CreatePerfumeAsync(dto);
 
             // Assert
             result.Should().NotBeEmpty();
             
-            // Verify perfume was added and changes saved
-            _mockPerfumeRepository.Verify(r => r.AddAsync(It.Is<Perfume>(p => 
-                p.Name == "New Perfume" && 
-                p.BrandId == brandId &&
-                p.Intensity == intensity &&
-                p.Longevity == longevity &&
-                p.Sillage == sillage)), Times.Once);
-                
-            _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.AtLeastOnce);
+            // Verify perfume was actually saved to database
+            var savedPerfume = await _context.Perfumes.FindAsync(result);
+            savedPerfume.Should().NotBeNull();
+            savedPerfume!.Name.Should().Be("New Perfume");
+            savedPerfume.BrandId.Should().Be(brandId);
+            savedPerfume.Intensity.Should().Be(intensity);
+            savedPerfume.Longevity.Should().Be(longevity);
+            savedPerfume.Sillage.Should().Be(sillage);
         }
 
         [Fact]

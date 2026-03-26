@@ -75,8 +75,17 @@ namespace Tests.Services.Business
         {
             // Arrange
             var searchSeason = SeasonBuilder.CreateWithName("Spring Bloom");
+            var nonMatchingSeasons = new List<ALOud.Models.Season>
+            {
+                SeasonBuilder.CreateWithName("Summer"),
+                SeasonBuilder.CreateWithName("Autumn"),
+                SeasonBuilder.CreateWithName("Winter"),
+                SeasonBuilder.CreateWithName("All Season")
+            };
+            
             var seasons = new List<ALOud.Models.Season> { searchSeason };
-            seasons.AddRange(SeasonBuilder.CreateValidList(10));
+            seasons.AddRange(nonMatchingSeasons);
+            
             _context.Seasons.AddRange(seasons);
             await _context.SaveChangesAsync();
 
