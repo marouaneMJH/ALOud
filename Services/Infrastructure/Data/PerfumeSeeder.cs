@@ -230,12 +230,12 @@ namespace ALOud.Services.Data
             // Add families
             foreach (string familyName in data.Families)
             {
-                if (families.ContainsKey(familyName))
+                if (families.TryGetValue(familyName, out var family))
                 {
                     context.PerfumeFamilies.Add(new Models.PerfumeFamily
                     {
                         PerfumeId = perfume.Id,
-                        FamilyId = families[familyName].Id
+                        FamilyId = family.Id
                     });
                 }
             }
@@ -243,12 +243,12 @@ namespace ALOud.Services.Data
             // Add notes
             foreach (string noteName in data.Notes)
             {
-                if (notes.ContainsKey(noteName))
+                if (notes.TryGetValue(noteName, out var note))
                 {
                     context.PerfumeNotes.Add(new Models.PerfumeNote
                     {
                         PerfumeId = perfume.Id,
-                        NoteId = notes[noteName].Id
+                        NoteId = note.Id
                     });
                 }
             }
@@ -256,12 +256,12 @@ namespace ALOud.Services.Data
             // Add accords
             foreach (string accordName in data.Accords)
             {
-                if (accords.ContainsKey(accordName))
+                if (accords.TryGetValue(accordName, out var accord))
                 {
                     context.PerfumeAccords.Add(new Models.PerfumeAccord
                     {
                         PerfumeId = perfume.Id,
-                        AccordId = accords[accordName].Id
+                        AccordId = accord.Id
                     });
                 }
             }
@@ -269,12 +269,12 @@ namespace ALOud.Services.Data
             // Add seasons
             foreach (string seasonName in data.Seasons)
             {
-                if (seasons.ContainsKey(seasonName))
+                if (seasons.TryGetValue(seasonName, out var season))
                 {
                     context.PerfumeSeasons.Add(new Models.PerfumeSeason
                     {
                         PerfumeId = perfume.Id,
-                        SeasonId = seasons[seasonName].Id
+                        SeasonId = season.Id
                     });
                 }
             }
@@ -282,12 +282,12 @@ namespace ALOud.Services.Data
             // Add occasions
             foreach (string occasionName in data.Occasions)
             {
-                if (occasions.ContainsKey(occasionName))
+                if (occasions.TryGetValue(occasionName, out var occasion))
                 {
                     context.PerfumeOccasions.Add(new Models.PerfumeOccasion
                     {
                         PerfumeId = perfume.Id,
-                        OccasionId = occasions[occasionName].Id
+                        OccasionId = occasion.Id
                     });
                 }
             }

@@ -11,6 +11,7 @@ public sealed class AddressAttribute : ValidationAttribute
 {
     private readonly int _minLength;
     private readonly int _maxLength;
+    private static readonly char[] AddressSeparators = { ' ', ',', '\t' };
 
     public AddressAttribute(int minLength = 10, int maxLength = 200)
     {
@@ -51,7 +52,7 @@ public sealed class AddressAttribute : ValidationAttribute
         }
 
         // Check for minimum word count (at least 3 words)
-        var words = address.Split(new[] { ' ', ',', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+        var words = address.Split(AddressSeparators, StringSplitOptions.RemoveEmptyEntries);
         if (words.Length < 3)
         {
             return new ValidationResult("Address must contain at least 3 words (number, street, city)");

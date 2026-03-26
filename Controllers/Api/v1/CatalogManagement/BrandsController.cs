@@ -16,6 +16,8 @@ namespace ALOud.Controllers.Api.v1.CatalogManagement
     {
         private readonly IBrandService _brandService;
         private readonly ILogger<BrandsController> _logger;
+        
+        private static readonly string[] BrandNameUniqueError = { "Brand name must be unique" };
 
         public BrandsController(
             IBrandService brandService,
@@ -96,7 +98,7 @@ namespace ALOud.Controllers.Api.v1.CatalogManagement
                     {
                         success = false,
                         error = "A brand with this name already exists",
-                        validationErrors = new { Name = new[] { "Brand name must be unique" } }
+                        validationErrors = new { Name = BrandNameUniqueError }
                     });
                 }
 
@@ -169,7 +171,7 @@ namespace ALOud.Controllers.Api.v1.CatalogManagement
                     {
                         success = false,
                         error = "A brand with this name already exists",
-                        validationErrors = new { Name = new[] { "Brand name must be unique" } }
+                        validationErrors = new { Name = BrandNameUniqueError }
                     });
                 }
 

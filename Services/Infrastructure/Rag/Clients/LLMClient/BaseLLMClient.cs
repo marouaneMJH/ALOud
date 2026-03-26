@@ -27,8 +27,8 @@ public abstract class BaseLLMClient : IRagLLMClient
         var payload = BuildPayload(request);
         var payloadJson = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
 
-        _logger.LogInformation($"Sending request to {GetProviderName()}. Payload size: {payloadJson.Length} bytes");
-        _logger.LogDebug($"Payload: {payloadJson}");
+        _logger.LogInformation("Sending request to {ProviderName}. Payload size: {PayloadSize} bytes", GetProviderName(), payloadJson.Length);
+        _logger.LogDebug("Payload: {Payload}", payloadJson);
 
         var url = BuildRequestUrl();
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -37,18 +37,19 @@ public abstract class BaseLLMClient : IRagLLMClient
 
         var response = await _http.SendAsync(httpRequest);
 
-        _logger.LogInformation($"{GetProviderName()} API response status: {(int)response.StatusCode} {response.StatusCode}");
+        _logger.LogInformation("{ProviderName} API response status: {StatusCode} {StatusCodeName}", GetProviderName(), (int)response.StatusCode, response.StatusCode);
 
         // Handle common error cases
         await HandleErrorResponse(response);
 
         var responseBody = await response.Content.ReadAsStringAsync();
-        _logger.LogDebug($"Response body: {responseBody}");
+        _logger.LogDebug("Response body: {ResponseBody}", responseBody);
 
         using var doc = JsonDocument.Parse(responseBody);
         var result = ParseResponse(doc);
 
-        _logger.LogInformation($"Parsed result - IsToolCall: {result.IsToolCall}, ToolName: {result.ToolCall?.Name}, HasAnswer: {!string.IsNullOrEmpty(result.FinalAnswer)}");
+        _logger.LogInformation("Parsed result - IsToolCall: {IsToolCall}, ToolName: {ToolName}, HasAnswer: {HasAnswer}", 
+            result.IsToolCall, result.ToolCall?.Name, !string.IsNullOrEmpty(result.FinalAnswer));
 
         return result;
     }
@@ -90,7 +91,7 @@ public abstract class BaseLLMClient : IRagLLMClient
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogWarning($"{GetProviderName()} API rate limit exceeded. Response: {errorBody}");
+            _logger.LogWarning("{ProviderName} API rate limit exceeded. Response: {ErrorBody}", GetProviderName(), errorBody);
             throw new InvalidOperationException(
                 "The AI service has reached its request limit. Please try again in a few seconds.");
         }
@@ -99,7 +100,7 @@ public abstract class BaseLLMClient : IRagLLMClient
         if (response.StatusCode == HttpStatusCode.Forbidden)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"{GetProviderName()} API returned 403 Forbidden. Response: {errorBody}");
+            _logger.LogError("{ProviderName} API returned 403 Forbidden. Response: {ErrorBody}", GetProviderName(), errorBody);
             throw new InvalidOperationException(
                 $"Access denied to {GetProviderName()} API. Please verify your API key.");
         }
@@ -108,7 +109,7 @@ public abstract class BaseLLMClient : IRagLLMClient
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"{GetProviderName()} API error: {errorBody}");
+            _logger.LogError("{ProviderName} API error: {ErrorBody}", GetProviderName(), errorBody);
             response.EnsureSuccessStatusCode();
         }
     }

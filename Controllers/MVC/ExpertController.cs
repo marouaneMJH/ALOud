@@ -15,6 +15,7 @@ namespace ALOud.Controllers.MVC
     {
         private readonly IHybridExpertSystemService _hybridExpert;
         private readonly ILogger<ExpertController> _logger;
+        private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
         /// <summary>
         /// Initializes a new instance of the ExpertController class
@@ -59,10 +60,9 @@ namespace ALOud.Controllers.MVC
 
             try
             {
-                _logger.LogInformation($"[Recommendation POST] Received JSON: {recommendationJson.Substring(0, Math.Min(200, recommendationJson.Length))}...");
+                _logger.LogInformation("[Recommendation POST] Received JSON: {JsonSubstring}...", recommendationJson.Substring(0, Math.Min(200, recommendationJson.Length)));
                 
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var recommendation = JsonSerializer.Deserialize<RecommendationDto>(recommendationJson, options);
+                var recommendation = JsonSerializer.Deserialize<RecommendationDto>(recommendationJson, JsonOptions);
                 
                 if (recommendation == null)
                 {
@@ -71,7 +71,8 @@ namespace ALOud.Controllers.MVC
                     return View(new HybridRecommendationViewModel { Recommendation = new RecommendationDto() });
                 }
                 
-                _logger.LogInformation($"[Recommendation POST] Deserialized successfully. Prefer: {recommendation.Prefer?.Count ?? 0}, Avoid: {recommendation.Avoid?.Count ?? 0}");
+                _logger.LogInformation("[Recommendation POST] Deserialized successfully. Prefer: {PreferCount}, Avoid: {AvoidCount}", 
+                    recommendation.Prefer?.Count ?? 0, recommendation.Avoid?.Count ?? 0);
 
                 // Validate DTO
                 if ((recommendation.Prefer == null || recommendation.Prefer.Count == 0) &&
@@ -87,12 +88,12 @@ namespace ALOud.Controllers.MVC
                 var rec = new Recommendation();
 
                 // Use HashSet operations for better performance
-                if (recommendation.Prefer?.Any() == true)
+                if (recommendation.Prefer?.Count > 0)
                 {
                     rec.Prefer.UnionWith(recommendation.Prefer.Where(p => !string.IsNullOrWhiteSpace(p)));
                 }
 
-                if (recommendation.Avoid?.Any() == true)
+                if (recommendation.Avoid?.Count > 0)
                 {
                     rec.Avoid.UnionWith(recommendation.Avoid.Where(a => !string.IsNullOrWhiteSpace(a)));
                 }
@@ -103,7 +104,7 @@ namespace ALOud.Controllers.MVC
                 if (!string.IsNullOrWhiteSpace(recommendation.Longevity))
                     rec.Longevity = recommendation.Longevity.Trim();
 
-                if (recommendation.Reasons?.Any() == true)
+                if (recommendation.Reasons?.Count > 0)
                 {
                     rec.Reasons.AddRange(recommendation.Reasons.Where(r => !string.IsNullOrWhiteSpace(r)));
                 }

@@ -17,6 +17,8 @@ namespace ALOud.Controllers.Api.v1
         private readonly IDashboardService _dashboardService;
         private readonly LLMConfigService _llmConfigService;
         private readonly ILogger<AdminController> _logger;
+        
+        private static readonly string[] ProviderIdRequiredError = { "Provider ID cannot be empty" };
 
         /// <summary>
         /// Initializes a new instance of the AdminController class
@@ -112,7 +114,7 @@ namespace ALOud.Controllers.Api.v1
                 { 
                     success = false, 
                     error = "Provider ID is required",
-                    validationErrors = new { ProviderId = new[] { "Provider ID cannot be empty" } }
+                    validationErrors = new { ProviderId = ProviderIdRequiredError }
                 });
             }
 

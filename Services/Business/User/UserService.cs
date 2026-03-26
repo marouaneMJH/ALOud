@@ -30,13 +30,13 @@ public class UserService : IUserService
 
     public async Task<User> CreateUserAsync(CreateUserDto dto)
     {
-        _logger.LogInformation($"=== CREATE USER START === Email: {dto.Email}");
+        _logger.LogInformation("=== CREATE USER START === Email: {Email}", dto.Email);
 
         try
         {
             if (await _db.Users.AnyAsync(u => u.Email == dto.Email))
             {
-                _logger.LogWarning($"Email already exists: {dto.Email}");
+                _logger.LogWarning("Email already exists: {Email}", dto.Email);
                 throw new InvalidOperationException("Email already exists");
             }
 
@@ -52,7 +52,7 @@ public class UserService : IUserService
                 IsActive = true
             };
 
-            _logger.LogInformation($"User created with ID: {user.Id}, IsActive: {user.IsActive}");
+            _logger.LogInformation("User created with ID: {UserId}, IsActive: {IsActive}", user.Id, user.IsActive);
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync();

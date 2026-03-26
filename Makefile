@@ -1,7 +1,6 @@
-# Request to use 
-# I want floral and Gourmand perfume for men good to ware in summer and hot office
+# ALOud Project Makefile
 
-.PHONY:  help dev run build backup restore all sonar-analyse start-sonar-server
+.PHONY:  help dev run build backup restore all sonar-analyse sonar-analyse-with-coverage coverage-install coverage-check
 
 ifneq (,$(wildcard .env.sonar))
 include .env.sonar
@@ -11,13 +10,17 @@ export SONAR_TOKEN SONAR_PROJECT_KEY SONAR_HOST_URL
 
 SONAR_HOST_URL ?= http://localhost:9000/
 SONAR_PROJECT_KEY ?= ALOud
+COVERAGE_REPORT ?= coverage.xml
+COVERAGE_REPORT_DIRECTORY ?= .
 
 help:
 	@echo "	make help: to see make options"
 	@echo "	make dev: to start development environment"
 	@echo "	make run: to start production environment"
 	@echo "	make build: to build the application"
-	@echo "	make sonar-analyse: run SonarQube begin/build/end scan"
+	@echo "	make sonar-analyse: run SonarQube analysis without coverage"
+	@echo "	make sonar-analyse-with-coverage: run SonarQube analysis WITH test coverage"
+	@echo "	make coverage-install: install dotnet-coverage tool"
 	@echo "	make backup: to backup all databases"
 	@echo "	make restore: to restore databases from backup"
 	@echo "	make start-services: to start all database services"
@@ -49,6 +52,62 @@ sonar-analyse:
 	@dotnet build
 	@echo "Finalizing SonarQube analysis..."
 	@dotnet sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
+
+coverage-install:
+	@echo "Installing dotnet-coverage global tool..."
+	@dotnet tool install --global dotnet-coverage
+	@echo "dotnet-coverage installed successfully"
+
+
+sonar-analyse-with-coverage:
+	@if [ -z "$$SONAR_TOKEN" ]; then \
+		echo "SONAR_TOKEN is not set"; \
+		exit 1; \
+	fi
+
+	@echo "Starting Sonar analysis with coverage..."
+
+	@set -e; \
+	TEST_EXIT_CODE=0; \
+	mkdir -p coverage-reports; \
+	\
+	dotnet sonarscanner begin \
+		/k:"$(SONAR_PROJECT_KEY)" \
+		/d:sonar.host.url="$(SONAR_HOST_URL)" \
+		/d:sonar.token="$(SONAR_TOKEN)" \
+		/d:sonar.cs.cobertura.reportPaths="coverage-reports/Cobertura.xml" \
+		/d:sonar.exclusions="**/bin/**,**/obj/**,**/Migrations/**" \
+		/d:sonar.test.inclusions="**/Tests/**/*.cs"; \
+	\
+	echo "Building solution..."; \
+	dotnet build ALOud.sln --no-incremental; \
+	\
+	echo "Running tests with coverage..."; \
+	if [ -d "Tests" ] && [ -n "$(find Tests -name '*.cs' -type f 2>/dev/null)" ]; then \
+		dotnet-coverage collect "dotnet test ALOud.sln --no-build" \
+			-f xml \
+			-o coverage.xml || TEST_EXIT_CODE=$$?; \
+	else \
+		echo "No test projects found, skipping test coverage"; \
+		echo '<?xml version="1.0" encoding="utf-8"?><coverage line-rate="0" branch-rate="0" version="1.9" timestamp="0" lines-covered="0" lines-valid="0" branches-covered="0" branches-valid="0"></coverage>' > coverage.xml; \
+	fi; \
+	\
+	echo "Generating Cobertura report..."; \
+	reportgenerator \
+		-reports:coverage.xml \
+		-targetdir:coverage-reports \
+		-reporttypes:Cobertura; \
+	\
+	echo "Ending Sonar analysis..."; \
+	dotnet sonarscanner end /d:sonar.token="$(SONAR_TOKEN)"; \
+	\
+	if [ "$$TEST_EXIT_CODE" -ne 0 ]; then \
+		echo "Tests failed but coverage uploaded"; \
+		exit $$TEST_EXIT_CODE; \
+	fi
+
+	@echo "Sonar analysis completed successfully"
+
 
 json-issues-sonar:
 	@if [ -z "$$SONAR_TOKEN" ]; then \

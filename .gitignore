@@ -241,6 +241,14 @@ ClientBin/
 
 # Local SonarQube environment variables (contains secrets)
 .env.sonar
+
+# Code coverage reports and artifacts
+coverage.xml
+coverage/
+*.coverage
+OpenCover/
+.sonarqube/
+
 orleans.codegen.cs
 
 # Including strong name files can present a security risk
@@ -382,3 +390,6 @@ raw-data/scrapers/src/*.ts
 # Code analysis
 /.sonarqube/
 /.scannerwork/
+
+
+/coverage-reports/
