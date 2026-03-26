@@ -75,11 +75,15 @@ sonar-analyse:
 		exit 1; \
 	fi
 	@echo "Starting SonarQube analysis for project: $(SONAR_PROJECT_KEY)"
-	@dotnet sonarscanner begin /k:"$(SONAR_PROJECT_KEY)" /d:sonar.host.url="$(SONAR_HOST_URL)" /d:sonar.token="$$SONAR_TOKEN"
+	@dotnet-sonarscanner begin \
+		/k:"$(SONAR_PROJECT_KEY)" \
+		/d:sonar.host.url="$(SONAR_HOST_URL)" \
+		/d:sonar.token="$$SONAR_TOKEN" \
+		/d:sonar.dotnet.solution="ALOud.sln"
 	@echo "Building project..."
 	@dotnet build ALOud.sln
 	@echo "Finalizing SonarQube analysis..."
-	@dotnet sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
+	@dotnet-sonarscanner end /d:sonar.token="$$SONAR_TOKEN"
 
 coverage-install:
 	@echo "Installing dotnet-coverage global tool..."
@@ -98,10 +102,11 @@ sonar-analyse-with-coverage:
 	TEST_EXIT_CODE=0; \
 	mkdir -p coverage-reports; \
 	\
-	dotnet sonarscanner begin \
+	dotnet-sonarscanner begin \
 		/k:"$(SONAR_PROJECT_KEY)" \
 		/d:sonar.host.url="$(SONAR_HOST_URL)" \
 		/d:sonar.token="$(SONAR_TOKEN)" \
+		/d:sonar.dotnet.solution="ALOud.sln" \
 		/d:sonar.cs.cobertura.reportPaths="coverage-reports/Cobertura.xml" \
 		/d:sonar.exclusions="**/bin/**,**/obj/**,**/Migrations/**" \
 		/d:sonar.test.inclusions="**/Tests/**/*.cs"; \
@@ -126,7 +131,7 @@ sonar-analyse-with-coverage:
 		-reporttypes:Cobertura; \
 	\
 	echo "Ending Sonar analysis..."; \
-	dotnet sonarscanner end /d:sonar.token="$(SONAR_TOKEN)"; \
+	dotnet-sonarscanner end /d:sonar.token="$(SONAR_TOKEN)"; \
 	\
 	if [ "$$TEST_EXIT_CODE" -ne 0 ]; then \
 		echo "Tests failed but coverage uploaded"; \
