@@ -51,7 +51,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 
 // JWT configuration
-var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "default-secret-key-change-in-production";
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "ALOudSecretKeyForJwtTokenGenerationPleaseChangeInProduction123456789";
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "ALOudAPI";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "ALOudAPI";
 

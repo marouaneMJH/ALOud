@@ -56,7 +56,7 @@ coverage-report:
 
 dev:
 	@echo "Running the application with development mode ..."
-	@dotnet watch run --project ALOud.csproj
+	@dotnet watch --project ALOud.csproj run
 
 run:
 	@echo "Running the application..."

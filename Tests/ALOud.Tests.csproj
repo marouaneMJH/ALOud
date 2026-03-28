@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="ALOud.csproj" />
+    <ProjectReference Include="../ALOud.csproj" />
   </ItemGroup>
 
   <!-- Explicitly include only test files -->

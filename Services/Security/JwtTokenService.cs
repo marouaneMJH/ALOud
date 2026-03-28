@@ -53,7 +53,7 @@ namespace ALOud.Services.Security
 
             _issuer = configuration["Jwt:Issuer"]
                 ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
-                ?? "ALOud";
+                ?? "ALOudAPI";
 
             _audience = configuration["Jwt:Audience"]
                 ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
@@ -115,7 +115,7 @@ namespace ALOud.Services.Security
         /// </summary>
         public ClaimsPrincipal? ValidateToken(string token)
         {
-            this._logger.LogDebug($"Recieve a token: {token}");
+            _logger.LogDebug($"Recieve a token: {token}");
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
