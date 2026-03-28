@@ -228,7 +228,7 @@ GET /admin/brands?pageIndex=2&pageSize=20&searchTerm=Dior
 ```json
 {
   "email": "user@example.com",
-  "password": "SecurePassword123!",
+  "password": "Secureadminadmin!",
   "firstName": "John",     // register only
   "lastName": "Doe"        // register only
 }
@@ -281,8 +281,8 @@ POST /accounts/login
 Content-Type: application/json
 
 {
-  "email": "admin@example.com",
-  "password": "password123"
+  "email": "admin@admin.com",
+  "password": "adminadmin"
 }
 
 # Response includes token field

@@ -101,33 +101,37 @@ sonar-analyse-with-coverage:
 	@set -e; \
 	TEST_EXIT_CODE=0; \
 	mkdir -p coverage-reports; \
+	rm -rf coverage-results; \
 	\
 	dotnet-sonarscanner begin \
 		/k:"$(SONAR_PROJECT_KEY)" \
 		/d:sonar.host.url="$(SONAR_HOST_URL)" \
 		/d:sonar.token="$(SONAR_TOKEN)" \
 		/d:sonar.dotnet.solution="ALOud.sln" \
-		/d:sonar.cs.cobertura.reportPaths="coverage-reports/Cobertura.xml" \
-		/d:sonar.exclusions="**/bin/**,**/obj/**,**/Migrations/**" \
-		/d:sonar.test.inclusions="**/Tests/**/*.cs"; \
+		/d:sonar.projectBaseDir="$(PWD)" \
+		/d:sonar.cs.cobertura.reportPaths="$(PWD)/coverage-reports/Cobertura.xml" \
+		/d:sonar.exclusions="**/bin/**,**/obj/**,**/Migrations/**,**/.sonarqube/**,**/TestResults/**,**/raw-data/**" \
+		/d:sonar.test.inclusions="**/Tests/**/*.cs" \
+		/d:sonar.coverage.exclusions="**/Tests/**,**/Migrations/**,**/Program.cs"; \
 	\
 	echo "Building solution..."; \
 	dotnet build ALOud.sln --no-incremental; \
 	\
 	echo "Running tests with coverage..."; \
 	if [ -d "Tests" ] && [ -n "$$(find Tests -name '*.cs' -type f 2>/dev/null)" ]; then \
-		dotnet-coverage collect "dotnet test ALOud.sln --no-build" \
-			-f xml \
-			-o coverage.xml || TEST_EXIT_CODE=$$?; \
+		dotnet test ALOud.sln --no-build \
+			--collect:"XPlat Code Coverage" \
+			--results-directory ./coverage-results \
+			-- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura \
+			|| TEST_EXIT_CODE=$$?; \
 	else \
 		echo "No test projects found, skipping test coverage"; \
-		echo '<?xml version="1.0" encoding="utf-8"?><coverage line-rate="0" branch-rate="0" version="1.9" timestamp="0" lines-covered="0" lines-valid="0" branches-covered="0" branches-valid="0"></coverage>' > coverage.xml; \
 	fi; \
 	\
-	echo "Generating Cobertura report..."; \
+	echo "Merging coverage reports..."; \
 	reportgenerator \
-		-reports:coverage.xml \
-		-targetdir:coverage-reports \
+		-reports:"coverage-results/**/coverage.cobertura.xml" \
+		-targetdir:"coverage-reports" \
 		-reporttypes:Cobertura; \
 	\
 	echo "Ending Sonar analysis..."; \
@@ -139,7 +143,6 @@ sonar-analyse-with-coverage:
 	fi
 
 	@echo "Sonar analysis completed successfully"
-
 json-issues-sonar:
 	@if [ -z "$$SONAR_TOKEN" ]; then \
 		echo "Error: SONAR_TOKEN is not set."; \

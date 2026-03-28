@@ -309,7 +309,7 @@ curl -X GET "http://localhost:5021/api/v1/admin/expert-system" \
 ```json
 {
   "email": "user@example.com",
-  "password": "SecurePassword123!",
+  "password": "Secureadminadmin!",
   "firstName": "John",
   "lastName": "Doe"
 }
@@ -343,7 +343,7 @@ curl -X POST "http://localhost:5021/api/v1/accounts/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "SecurePassword123!",
+    "password": "Secureadminadmin!",
     "firstName": "John",
     "lastName": "Doe"
   }'
@@ -363,7 +363,7 @@ curl -X POST "http://localhost:5021/api/v1/accounts/register" \
 ```json
 {
   "email": "user@example.com",
-  "password": "SecurePassword123!"
+  "password": "Secureadminadmin!"
 }
 ```
 
@@ -400,7 +400,7 @@ curl -X POST "http://localhost:5021/api/v1/accounts/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "SecurePassword123!"
+    "password": "Secureadminadmin!"
   }'
 ```
 

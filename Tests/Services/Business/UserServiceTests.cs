@@ -186,7 +186,7 @@ namespace ALOud.Tests.Services.Business
         public async Task AuthenticateAsync_WhenUserExistsEmailVerifiedCorrectPassword_ReturnsUser()
         {
             // Arrange
-            var password = "TestPassword123!";
+            var password = "Testadminadmin!";
             var hashedPassword = _passwordHasher.Hash(password);
             
             var user = new UserBuilder()
@@ -216,7 +216,7 @@ namespace ALOud.Tests.Services.Business
         public async Task AuthenticateAsync_WhenUserExistsEmailVerifiedWrongPassword_ReturnsNull()
         {
             // Arrange
-            var correctPassword = "TestPassword123!";
+            var correctPassword = "Testadminadmin!";
             var wrongPassword = "WrongPassword456!";
             var hashedPassword = _passwordHasher.Hash(correctPassword);
             
@@ -245,7 +245,7 @@ namespace ALOud.Tests.Services.Business
         public async Task AuthenticateAsync_WhenUserExistsButEmailNotVerified_ReturnsNull()
         {
             // Arrange
-            var password = "TestPassword123!";
+            var password = "Testadminadmin!";
             var hashedPassword = _passwordHasher.Hash(password);
             
             var user = new UserBuilder()
@@ -273,7 +273,7 @@ namespace ALOud.Tests.Services.Business
         public async Task AuthenticateAsync_WhenUserExistsButIsNotActive_ReturnsNull()
         {
             // Arrange
-            var password = "TestPassword123!";
+            var password = "Testadminadmin!";
             var hashedPassword = _passwordHasher.Hash(password);
             
             var user = new UserBuilder()
@@ -432,7 +432,7 @@ namespace ALOud.Tests.Services.Business
             // Arrange
             var createUserDto = new CreateUserDtoBuilder()
                 .WithEmail("workflow@test.com")
-                .WithPassword("TestPassword123!")
+                .WithPassword("Testadminadmin!")
                 .Build();
 
             // Act - Create user
@@ -445,7 +445,7 @@ namespace ALOud.Tests.Services.Business
 
             // Act - Authenticate user
             var loginDto = new LoginDtoBuilder()
-                .WithCredentials("workflow@test.com", "TestPassword123!")
+                .WithCredentials("workflow@test.com", "Testadminadmin!")
                 .Build();
             
             var authenticatedUser = await _userService.AuthenticateAsync(loginDto);

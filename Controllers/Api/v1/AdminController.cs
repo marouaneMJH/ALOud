@@ -10,7 +10,7 @@ namespace ALOud.Controllers.Api.v1
     /// Converts MVC AdminController to REST endpoints
     /// </summary>
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [Route("api/v1/admin")]
     public class AdminController : BaseApiController
     {

@@ -47,7 +47,7 @@ namespace ALOud.Services.Security
             _logger = logger;
 
             // Get configuration from appsettings or environment variables
-            _secretKey = configuration["Jwt:SecretKey"] 
+            _secretKey = configuration["Jwt:SecretKey"]
                 ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                 ?? "ALOudSecretKeyForJwtTokenGenerationPleaseChangeInProduction123456789!";
 
@@ -115,6 +115,7 @@ namespace ALOud.Services.Security
         /// </summary>
         public ClaimsPrincipal? ValidateToken(string token)
         {
+            this._logger.LogDebug($"Recieve a token: {token}");
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();

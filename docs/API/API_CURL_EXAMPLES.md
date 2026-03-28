@@ -30,8 +30,8 @@ PERFUME_ID="770e8400-e29b-41d4-a716-446655440002"
 export TOKEN=$(curl -s -X POST "$BASE_URL/accounts/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@example.com",
-    "password": "password123"
+    "email": "admin@admin.com",
+    "password": "adminadmin"
   }' | jq -r '.data.token')
 
 echo "Token saved: $TOKEN"
@@ -57,7 +57,7 @@ curl -X POST "$BASE_URL/accounts/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "newuser@example.com",
-    "password": "SecurePassword123!",
+    "password": "Secureadminadmin!",
     "firstName": "John",
     "lastName": "Doe"
   }'
@@ -68,8 +68,8 @@ curl -X POST "$BASE_URL/accounts/register" \
 curl -X POST "$BASE_URL/accounts/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@example.com",
-    "password": "password123"
+    "email": "admin@admin.com",
+    "password": "adminadmin"
   }' | jq .
 ```
 

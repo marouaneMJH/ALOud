@@ -113,11 +113,12 @@ namespace ALOud.Controllers.Api.v1
             return SuccessResponse(new
             {
                 message = "Login successful",
-                token = _jwtTokenService.GenerateToken(user.Id.ToString(), user.Email, user.Email == "admin@example.com"),
+                // TODO: Add admin role check
+                token = _jwtTokenService.GenerateToken(user.Id.ToString(), user.Email, user.Email == "admin@admin.com"),
                 user = new
                 {
                     id = user.Id,
-                    email = user.Email,
+                    email = user.Email, 
                     firstName = user.FirstName,
                     lastName = user.LastName
                 }

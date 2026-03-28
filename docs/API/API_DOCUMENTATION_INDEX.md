@@ -201,8 +201,8 @@ curl -X GET "$BASE_URL/health"
 curl -X POST "$BASE_URL/accounts/register" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@example.com",
-    "password": "SecurePassword123!",
+    "email": "admin@admin.com",
+    "password": "Secureadminadmin!",
     "firstName": "Admin",
     "lastName": "User"
   }'
@@ -211,8 +211,8 @@ curl -X POST "$BASE_URL/accounts/register" \
 TOKEN=$(curl -s -X POST "$BASE_URL/accounts/login" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@example.com",
-    "password": "SecurePassword123!"
+    "email": "admin@admin.com",
+    "password": "Secureadminadmin!"
   }' | jq -r '.data.token')
 
 export TOKEN
