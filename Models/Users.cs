@@ -42,5 +42,9 @@ namespace ALOud.Models
 
 
         public DateTime CreatedAt { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
+        public virtual ICollection<Checkout> Checkouts { get; set; } = new List<Checkout>();
     }
 }

@@ -120,6 +120,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // User & security
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserAddressService, UserAddressService>();
 builder.Services.AddScoped<PasswordHasherService>();
 
 // Email & verification
@@ -146,6 +147,13 @@ builder.Services.AddScoped<IOccasionService, OccasionService>();
 
 // Cart (Redis + cookies)
 builder.Services.AddScoped<ICartService, CartService>();
+
+// Checkout services
+builder.Services.AddScoped<IStockReservationService, StockReservationService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+
+// Order management services
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 // =====================================================
 // Expert System – CORE

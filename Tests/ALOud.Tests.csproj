@@ -15,8 +15,8 @@
 
   <!-- Explicitly include only test files -->
   <ItemGroup>
-    <!-- ../Tests/ === . -->
-    <Compile Include="../Tests/**/*.cs" />
+    <!-- Tests/ === . (current directory) -->
+    <Compile Include="**/*.cs" Exclude="obj/**/*.cs;bin/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
