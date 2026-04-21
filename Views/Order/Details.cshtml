@@ -1,0 +1,396 @@
+@model ALOud.DTOs.OrderDto
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = $"Order #{Model.OrderNumber}";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Order" class="text-decoration-none">My Orders</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Order #@Model.OrderNumber</li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="display-2 mb-2">Order Details</h1>
+                    <p class="lead" style="color: var(--color-text-secondary);">
+                        Order #@Model.OrderNumber placed on @Model.CreatedAt.ToString("MMMM dd, yyyy")
+                    </p>
+                </div>
+                <div class="text-end">
+                    <span class="badge @GetStatusBadgeClass(Model.Status) fs-6 mb-2">@Model.Status</span>
+                    <div class="btn-group" role="group">
+                        @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                        {
+                            <a asp-action="Track" asp-route-orderNumber="@Model.OrderNumber" class="btn btn-primary btn-sm">
+                                Track Package
+                            </a>
+                        }
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                            Print Order
+                        </button>
+                        @if (Model.Status == "Delivered")
+                        {
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#reorderModal">
+                                Reorder
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Order Information -->
+            <div class="col-lg-8">
+                <!-- Order Status Timeline -->
+                <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Timeline</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <!-- Simple timeline based on available timestamps -->
+                            <div class="timeline-item active">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">@Model.Status</h6>
+                                    <p class="text-muted mb-0 small">Current status</p>
+                                    <span class="text-muted small">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                            
+                            @if (Model.DeliveredAt.HasValue)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Delivered</h6>
+                                        <p class="text-muted mb-0 small">Order delivered successfully</p>
+                                        <span class="text-muted small">@Model.DeliveredAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.ShippedAt.HasValue)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Shipped</h6>
+                                        <p class="text-muted mb-0 small">Order shipped</p>
+                                        <span class="text-muted small">@Model.ShippedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.ProcessedAt.HasValue)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Processing</h6>
+                                        <p class="text-muted mb-0 small">Order being processed</p>
+                                        <span class="text-muted small">@Model.ProcessedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.PaidAt.HasValue)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Paid</h6>
+                                        <p class="text-muted mb-0 small">Payment confirmed</p>
+                                        <span class="text-muted small">@Model.PaidAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Order Placed</h6>
+                                    <p class="text-muted mb-0 small">Order placed successfully</p>
+                                    <span class="text-muted small">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span>@Model.SubtotalAmount.ToString("N0") MAD</span>
+                        </div>
+                        @if (Model.ShippingAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping</span>
+                                <span>@Model.ShippingAmount.ToString("N0") MAD</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping</span>
+                                <span style="color: var(--color-accent);">Free</span>
+                            </div>
+                        }
+                        @if (Model.TaxAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+                                <span>@Model.TaxAmount.ToString("N0") MAD</span>
+                            </div>
+                        }
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount</span>
+                                <span style="color: var(--color-accent);">-@Model.DiscountAmount.ToString("N0") MAD</span>
+                            </div>
+                        }
+                        <hr style="border-color: var(--color-border);">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-semibold">Total</span>
+                            <span class="fw-semibold fs-5" style="color: var(--color-accent);">@Model.TotalAmount.ToString("N0") MAD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                    <div class="card-header">
+                        <h6 class="mb-0">Shipping Address</h6>
+                    </div>
+                    <div class="card-body">
+                        <address class="mb-0">
+                            <strong>@Model.ShippingFirstName @Model.ShippingLastName</strong><br>
+                            @Model.ShippingAddressLine1<br>
+                            @if (!string.IsNullOrEmpty(Model.ShippingAddressLine2))
+                            {
+                                @Model.ShippingAddressLine2<br>
+                            }
+                            @Model.ShippingCity, @Model.ShippingPostalCode<br>
+                            @Model.ShippingCountry
+                            @if (!string.IsNullOrEmpty(Model.ShippingPhoneNumber))
+                            {
+                                <br><strong>Phone:</strong> @Model.ShippingPhoneNumber
+                            }
+                        </address>
+                    </div>
+                </div>
+
+                <!-- Billing Address (if different) -->
+                @if (!string.IsNullOrEmpty(Model.BillingAddressLine1) && 
+                     (Model.BillingAddressLine1 != Model.ShippingAddressLine1 || Model.BillingCity != Model.ShippingCity))
+                {
+                    <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                        <div class="card-header">
+                            <h6 class="mb-0">Billing Address</h6>
+                        </div>
+                        <div class="card-body">
+                            <address class="mb-0">
+                                <strong>@Model.BillingFirstName @Model.BillingLastName</strong><br>
+                                @Model.BillingAddressLine1<br>
+                                @if (!string.IsNullOrEmpty(Model.BillingAddressLine2))
+                                {
+                                    @Model.BillingAddressLine2<br>
+                                }
+                                @Model.BillingCity, @Model.BillingPostalCode<br>
+                                @Model.BillingCountry
+                            </address>
+                        </div>
+                    </div>
+                }
+
+                <!-- Payment Information -->
+                @if (!string.IsNullOrEmpty(Model.PaymentMethod))
+                {
+                    <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                        <div class="card-header">
+                            <h6 class="mb-0">Payment Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@Model.PaymentMethod</span>
+                                @if (!string.IsNullOrEmpty(Model.PaymentStatus))
+                                {
+                                    <span class="badge @GetPaymentStatusBadgeClass(Model.PaymentStatus)">@Model.PaymentStatus</span>
+                                }
+                            </div>
+                            <div class="small text-muted">
+                                Amount: @Model.TotalAmount.ToString("N0") MAD
+                                @if (Model.PaidAt.HasValue)
+                                {
+                                    @:<br>
+                                    <span>Paid on: @Model.PaidAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Quick Actions -->
+                <div class="card" style="border: 1px solid var(--color-border);">
+                    <div class="card-header">
+                        <h6 class="mb-0">Need Help?</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="mailto:support@aloud.com?subject=Order%20%23@Model.OrderNumber" class="btn btn-outline-primary btn-sm">
+                                Contact Support
+                            </a>
+                            @if (Model.Status == "Delivered")
+                            {
+                                <button type="button" class="btn btn-outline-secondary btn-sm">
+                                    Request Return
+                                </button>
+                            }
+                            else if (Model.Status == "Pending" || Model.Status == "Paid")
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmCancellation()">
+                                    Cancel Order
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "paid" => "bg-info text-white",
+            "processing" => "bg-primary text-white",
+            "shipped" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "cancelled" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    string GetShipmentStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "prepared" => "bg-warning text-dark",
+            "shipped" => "bg-primary text-white",
+            "in_transit" => "bg-info text-white",
+            "out_for_delivery" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "exception" => "bg-danger text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    string GetPaymentStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "succeeded" => "bg-success text-white",
+            "failed" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--color-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -22px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--color-background);
+            border: 2px solid var(--color-border);
+        }
+
+        .timeline-item.active .timeline-marker {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+
+        .timeline-content {
+            background: var(--color-background);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+        }
+
+        @@media print {
+            .btn, .card-header, nav {
+                display: none !important;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Handle image load errors with fallback
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img[data-fallback]');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    if (this.src !== this.dataset.fallback) {
+                        this.src = this.dataset.fallback;
+                    }
+                });
+            });
+        });
+
+        function confirmCancellation() {
+            if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+                // Implement cancellation logic here
+                window.location.href = '@Url.Action("Cancel", "Order", new { id = Model.Id })';
+            }
+        }
+    </script>
+}

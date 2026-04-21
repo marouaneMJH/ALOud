@@ -111,10 +111,16 @@
 
                     <!-- Action Buttons -->
                     <div class="d-grid gap-2 d-md-block">
-                        <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary">
+                        @if (ViewBag.OrderId != null)
+                        {
+                            <a asp-controller="Order" asp-action="Details" asp-route-id="@ViewBag.OrderId" class="btn btn-primary">
+                                View Order Details
+                            </a>
+                        }
+                        <a asp-action="Index" asp-controller="Perfume" class="btn btn-outline-primary">
                             Continue Shopping
                         </a>
-                        <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
                             Print Order Details
                         </button>
                     </div>

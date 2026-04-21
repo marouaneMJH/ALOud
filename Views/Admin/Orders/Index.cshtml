@@ -1,0 +1,482 @@
+@model List<ALOud.DTOs.OrderDto>
+@{
+    ViewData["Title"] = "Orders Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="admin-content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">Orders Management</h1>
+            <p class="text-muted mb-0">Manage and track all customer orders</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="bi bi-download me-1"></i>Export Orders
+            </button>
+            <button type="button" class="btn btn-primary" onclick="refreshOrders()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary rounded-circle p-3">
+                                <i class="bi bi-cart-check text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="small text-muted">Total Orders</div>
+                            <div class="h4 mb-0">@Model.Count</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning rounded-circle p-3">
+                                <i class="bi bi-clock text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="small text-muted">Pending Orders</div>
+                            <div class="h4 mb-0">@Model.Count(o => o.Status == "Pending")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info rounded-circle p-3">
+                                <i class="bi bi-truck text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="small text-muted">Shipped Orders</div>
+                            <div class="h4 mb-0">@Model.Count(o => o.Status == "Shipped")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success rounded-circle p-3">
+                                <i class="bi bi-check-circle text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="small text-muted">Revenue (MAD)</div>
+                            <div class="h4 mb-0">@Model.Where(o => o.Status == "Delivered").Sum(o => o.TotalAmount).ToString("N0")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="searchTerm" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                           placeholder="Order number, customer name...">
+                </div>
+                <div class="col-md-2">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Refunded">Refunded</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="dateFrom" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="dateFrom" name="dateFrom">
+                </div>
+                <div class="col-md-2">
+                    <label for="dateTo" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="dateTo" name="dateTo">
+                </div>
+                <div class="col-md-2">
+                    <label for="sortBy" class="form-label">Sort By</label>
+                    <select class="form-select" id="sortBy" name="sortBy">
+                        <option value="OrderDate">Order Date</option>
+                        <option value="TotalAmount">Total Amount</option>
+                        <option value="Status">Status</option>
+                        <option value="CustomerName">Customer Name</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                            <i class="bi bi-funnel"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Orders (@Model.Count)</h6>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">
+                        Select All
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            Bulk Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="bulkUpdateStatus('Processing')">Mark as Processing</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="bulkUpdateStatus('Shipped')">Mark as Shipped</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="bulkUpdateStatus('Delivered')">Mark as Delivered</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="bulkCancel()">Cancel Orders</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="40">
+                                <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
+                            </th>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.OrderByDescending(o => o.CreatedAt))
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input order-checkbox" value="@order.Id">
+                                </td>
+                                <td>
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@order.Id" class="fw-semibold text-decoration-none">
+                                            #@order.OrderNumber
+                                        </a>
+                                        <div class="small text-muted">ID: @order.Id.ToString().Substring(0, 8)</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-semibold">@order.ShippingFirstName @order.ShippingLastName</div>
+                                        <div class="small text-muted">@order.CustomerEmail</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div>@order.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        <div class="small text-muted">@order.CreatedAt.ToString("HH:mm")</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="fw-semibold">@order.Items.Count</span>
+                                        <div class="small text-muted">@order.Items.Sum(i => i.Quantity) units</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" style="color: var(--color-accent);">
+                                        @order.TotalAmount.ToString("N0") MAD
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">@order.Status</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(order.PaymentStatus))
+                                    {
+                                        <span class="badge @GetPaymentStatusBadgeClass(order.PaymentStatus)">
+                                            @order.PaymentStatus
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unknown</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">No Payment</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@order.Id" 
+                                           class="btn btn-outline-primary btn-sm" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@order.Id">Edit Order</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus('@order.Id', 'Processing')">Mark Processing</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus('@order.Id', 'Shipped')">Mark Shipped</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus('@order.Id', 'Delivered')">Mark Delivered</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            @if (order.Status != "Cancelled" && order.Status != "Delivered")
+                                            {
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="cancelOrder('@order.Id')">Cancel Order</a></li>
+                                            }
+                                            <li><a class="dropdown-item" href="#" onclick="generateInvoice('@order.Id')">Generate Invoice</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-cart-x" style="font-size: 4rem; color: var(--color-text-secondary); opacity: 0.5;"></i>
+            </div>
+            <h4 class="h5 mb-3" style="color: var(--color-text-secondary);">No orders found</h4>
+            <p class="mb-4" style="color: var(--color-text-secondary);">
+                Orders will appear here when customers start placing them.
+            </p>
+        </div>
+    }
+
+    <!-- Pagination -->
+    @if (ViewBag.HasPagination == true)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Orders pagination">
+                <ul class="pagination">
+                    <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+                    </li>
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "paid" => "bg-info text-white",
+            "processing" => "bg-primary text-white",
+            "shipped" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "cancelled" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    string GetPaymentStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "succeeded" => "bg-success text-white",
+            "failed" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        function refreshOrders() {
+            window.location.reload();
+        }
+
+        function applyFilters() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) params.append(key, value);
+            }
+            
+            window.location.search = params.toString();
+        }
+
+        function clearFilters() {
+            window.location.href = window.location.pathname;
+        }
+
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !selectAllCheckbox.checked;
+            });
+            
+            selectAllCheckbox.checked = !selectAllCheckbox.checked;
+        }
+
+        function updateOrderStatus(orderId, status) {
+            if (confirm(`Are you sure you want to update this order to ${status}?`)) {
+                fetch(`/Admin/Orders/UpdateStatus`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ orderId, newStatus: status })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to update order status: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the order status.');
+                });
+            }
+        }
+
+        function bulkUpdateStatus(status) {
+            const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to update ${selectedOrders.length} order(s) to ${status}?`)) {
+                fetch(`/Admin/Orders/BulkUpdateStatus`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ orderIds: selectedOrders, newStatus: status })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to update orders: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the orders.');
+                });
+            }
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+                updateOrderStatus(orderId, 'Cancelled');
+            }
+        }
+
+        function bulkCancel() {
+            const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to cancel ${selectedOrders.length} order(s)? This action cannot be undone.`)) {
+                bulkUpdateStatus('Cancelled');
+            }
+        }
+
+        function generateInvoice(orderId) {
+            window.open(`/Admin/Orders/Invoice/${orderId}`, '_blank');
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(function() {
+            const currentTime = new Date();
+            const lastRefresh = localStorage.getItem('lastOrderRefresh');
+            
+            if (!lastRefresh || (currentTime - new Date(lastRefresh)) > 30000) {
+                localStorage.setItem('lastOrderRefresh', currentTime.toISOString());
+                // Silently refresh data without full page reload
+                fetch(window.location.href)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Update specific elements instead of full reload
+                        // This is a simplified implementation
+                    });
+            }
+        }, 30000);
+    </script>
+}

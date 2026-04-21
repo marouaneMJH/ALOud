@@ -1,0 +1,260 @@
+@model List<ALOud.DTOs.OrderDto>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "My Orders";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-2 mb-2">My Orders</h1>
+                    <p style="color: var(--color-text-secondary);">
+                        @if (Model.Any())
+                        {
+                            <span>@Model.Count @(Model.Count > 1 ? "orders" : "order") found</span>
+                        }
+                        else
+                        {
+                            <span>You haven't placed any orders yet</span>
+                        }
+                    </p>
+                </div>
+                <div>
+                    <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <!-- Empty Orders -->
+            <div class="text-center py-6">
+                <div class="mb-4">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--color-text-secondary); opacity: 0.5;">
+                        <path d="M9 17H7V15H9V17Z" fill="currentColor"/>
+                        <path d="M13 17H11V15H13V17Z" fill="currentColor"/>
+                        <path d="M17 17H15V15H17V17Z" fill="currentColor"/>
+                        <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V8H19V19ZM19 6H5V5H19V6Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">No orders yet</h3>
+                <p class="mb-4" style="color: var(--color-text-secondary);">
+                    When you place your first order, it will appear here with tracking information and order details.
+                </p>
+                <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary">
+                    Start Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Orders List -->
+            <div class="row">
+                <div class="col-lg-12">
+                    @foreach (var order in Model.OrderByDescending(o => o.CreatedAt))
+                    {
+                        <div class="order-card mb-4">
+                            <div class="card border-0" style="background: var(--color-white); border: 1px solid var(--color-border) !important; border-radius: 8px;">
+                                <div class="card-header bg-transparent border-bottom" style="border-color: var(--color-border) !important;">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-3">
+                                            <div class="small text-muted">Order Number</div>
+                                            <div class="fw-semibold">#@order.OrderNumber</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="small text-muted">Date</div>
+                                            <div class="fw-semibold">@order.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="small text-muted">Total</div>
+                                            <div class="fw-semibold" style="color: var(--color-accent);">@order.TotalAmount.ToString("N0") MAD</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="small text-muted">Status</div>
+                                            <span class="badge @GetStatusBadgeClass(order.Status)">@order.Status</span>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-primary btn-sm">
+                                                View Details
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(order.TrackingNumber))
+                                            {
+                                                <a asp-action="Track" asp-route-orderNumber="@order.OrderNumber" class="btn btn-primary btn-sm ms-2">
+                                                    Track Order
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="row">
+                                        <!-- Order Items Preview -->
+                                        <div class="col-md-8">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <h6 class="mb-0 me-3">Items (@order.Items.Count)</h6>
+                                                @if (order.Items.Count > 3)
+                                                {
+                                                    <span class="badge bg-light text-dark">+@(order.Items.Count - 3) more</span>
+                                                }
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-3">
+                                                @foreach (var item in order.Items.Take(3))
+                                                {
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-3" style="width: 50px; height: 50px; background: var(--color-background); border-radius: 4px; overflow: hidden;">
+                                                            <img src="@item.ProductImageUrl" 
+                                                                 alt="@item.ProductName"
+                                                                 style="width: 100%; height: 100%; object-fit: cover;" 
+                                                                 data-fallback="@fallback" />
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold small">@item.ProductName</div>
+                                                            <div class="text-muted small">Qty: @item.Quantity × @item.UnitPrice.ToString("N0") MAD</div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <!-- Shipping Info -->
+                                        <div class="col-md-4">
+                                            <div class="text-end">
+                                                @if (!string.IsNullOrEmpty(order.TrackingNumber))
+                                                {
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Tracking Number</div>
+                                                        <div class="fw-semibold small">@order.TrackingNumber</div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(order.ShippingCarrier))
+                                                {
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Carrier</div>
+                                                        <div class="fw-semibold small">@order.ShippingCarrier</div>
+                                                    </div>
+                                                }
+                                                @if (order.EstimatedDeliveryDate.HasValue)
+                                                {
+                                                    <div class="mb-2">
+                                                        <div class="small text-muted">Estimated Delivery</div>
+                                                        <div class="fw-semibold small">@order.EstimatedDeliveryDate.Value.ToString("MMM dd, yyyy")</div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progress Bar for Active Orders -->
+                                    @if (order.Status != "Delivered" && order.Status != "Cancelled" && order.Status != "Refunded")
+                                    {
+                                        <div class="mt-4 pt-3" style="border-top: 1px solid var(--color-border);">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="order-progress">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="small fw-semibold">Order Progress</span>
+                                                            <span class="small text-muted">@GetProgressPercentage(order.Status)% Complete</span>
+                                                        </div>
+                                                        <div class="progress" style="height: 6px;">
+                                                            <div class="progress-bar" 
+                                                                 style="width: @GetProgressPercentage(order.Status)%; background-color: var(--color-accent);">
+                                                            </div>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between mt-2">
+                                                            <span class="small text-muted">Placed</span>
+                                                            <span class="small text-muted">Processing</span>
+                                                            <span class="small text-muted">Shipped</span>
+                                                            <span class="small text-muted">Delivered</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Pagination (if needed) -->
+            @if (ViewBag.HasPagination == true)
+            {
+                <div class="d-flex justify-content-center mt-5">
+                    <nav aria-label="Orders pagination">
+                        <ul class="pagination">
+                            <li class="page-item @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+                            </li>
+                            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "paid" => "bg-info text-white",
+            "processing" => "bg-primary text-white",
+            "shipped" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "cancelled" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    int GetProgressPercentage(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => 10,
+            "paid" => 25,
+            "processing" => 50,
+            "shipped" => 75,
+            "delivered" => 100,
+            "cancelled" => 0,
+            "refunded" => 0,
+            _ => 10
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Handle image load errors with fallback
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img[data-fallback]');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    if (this.src !== this.dataset.fallback) {
+                        this.src = this.dataset.fallback;
+                    }
+                });
+            });
+        });
+    </script>
+}

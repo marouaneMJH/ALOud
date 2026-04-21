@@ -7,6 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using ALOud.Services.Data;
 using ALOud.Services.Infrastructure.ExpertSystem;
 using ALOud.Services.Rag.IndexingJob;
+using ALOud.Services.Infrastructure.Jobs;
+using ALOud.Services.Business.Jobs;
+using ALOud.Services.Business.Jobs.Processors;
+using ALOud.Services.Business.Jobs.HostedServices;
+using ALOud.Services.External.Payment;
+using ALOud.Services.External.Shipping;
 
 namespace ALOud.Common
 {
@@ -167,6 +173,55 @@ namespace ALOud.Common
             {
                 logger.LogCritical(ex, "[-] Redis startup check failed: {Message}", ex.Message);
                 throw new InvalidOperationException("Redis startup check failed. Ensure Redis is running and accessible.", ex);
+            }
+        }
+
+        public static void ConfigureJobs(this IServiceCollection services, IConfiguration configuration)
+        {
+            // Configure job queue options
+            services.Configure<JobQueueOptions>(configuration.GetSection("Redis:JobQueue"));
+
+            // Register job queues with proper DI
+            services.AddSingleton<IJobQueue<OrderProcessingJob>, RedisJobQueue<OrderProcessingJob>>();
+            services.AddSingleton<IJobQueue<StatusSyncJob>, RedisJobQueue<StatusSyncJob>>();
+            services.AddSingleton<IJobQueue<StockMonitoringJob>, RedisJobQueue<StockMonitoringJob>>();
+            services.AddSingleton<IJobQueue<CleanupJob>, RedisJobQueue<CleanupJob>>();
+
+            // Register job processors
+            services.AddScoped<OrderProcessingJobProcessor>();
+            services.AddScoped<StatusSyncJobProcessor>();
+            services.AddScoped<StockMonitoringJobProcessor>();
+            services.AddScoped<CleanupJobProcessor>();
+
+            // Register hosted services for background job processing
+            services.AddHostedService<OrderProcessingHostedService>();
+            services.AddHostedService<StatusSyncHostedService>();
+            services.AddHostedService<StockMonitoringHostedService>();
+            services.AddHostedService<CleanupHostedService>();
+        }
+
+        public static void ConfigureExternalServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            // Configure mock services options
+            services.Configure<MockPaymentOptions>(configuration.GetSection(MockPaymentOptions.SectionName));
+            services.Configure<MockShippingOptions>(configuration.GetSection(MockShippingOptions.SectionName));
+
+            // Register external services (using mock implementations for development)
+            var mockServicesEnabled = configuration.GetSection("MockServices:Enabled").Get<bool>();
+            
+            if (mockServicesEnabled)
+            {
+                services.AddScoped<IPaymentService, MockPaymentService>();
+                services.AddScoped<IShippingService, MockShippingService>();
+            }
+            else
+            {
+                // In production, register real payment and shipping services
+                // services.AddScoped<IPaymentService, StripePaymentService>();
+                // services.AddScoped<IShippingService, FedExShippingService>();
+                
+                // For now, throw an exception to ensure mock services are enabled during development
+                throw new InvalidOperationException("Real external services not implemented yet. Please enable MockServices in configuration.");
             }
         }
 

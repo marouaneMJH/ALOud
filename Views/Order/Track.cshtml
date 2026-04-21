@@ -1,0 +1,512 @@
+@model ALOud.DTOs.OrderDto
+@{
+    ViewData["Title"] = $"Track Order #{Model.OrderNumber}";
+}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Order" class="text-decoration-none">My Orders</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Track Order</li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-2 mb-3">Track Your Order</h1>
+            <p class="lead" style="color: var(--color-text-secondary);">
+                Order #@Model.OrderNumber
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Order Summary Card -->
+                <div class="card mb-5" style="border: 1px solid var(--color-border);">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="text-center text-md-start">
+                                    <div class="small text-muted">Order Number</div>
+                                    <div class="fw-bold fs-5">#@Model.OrderNumber</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center text-md-start">
+                                    <div class="small text-muted">Order Date</div>
+                                    <div class="fw-semibold">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center text-md-start">
+                                    <div class="small text-muted">Status</div>
+                                    <span class="badge @GetStatusBadgeClass(Model.Status) fs-6">@Model.Status</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center text-md-end">
+                                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                                    View Full Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Timeline -->
+                @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                {
+                    <div class="card mb-4" style="border: 1px solid var(--color-border);">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Tracking: @Model.TrackingNumber</h5>
+                                <div class="d-flex gap-2">
+                                    <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status</span>
+                                    @if (!string.IsNullOrEmpty(Model.TrackingUrl))
+                                    {
+                                        <a href="@Model.TrackingUrl" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            Track Package
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Progress Bar -->
+                            <div class="progress mb-4" style="height: 6px;">
+                                <div class="progress-bar bg-primary" 
+                                     role="progressbar" 
+                                     style="width: @GetProgressPercentage(Model.Status)%" 
+                                     aria-valuenow="@GetProgressPercentage(Model.Status)" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <!-- Timeline -->
+                            <div class="timeline">
+                                @if (Model.DeliveredAt.HasValue)
+                                {
+                                    <div class="timeline-item @(Model.Status == "Delivered" ? "active" : "completed")">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Delivered</h6>
+                                            <p class="text-muted mb-0 small">Package delivered successfully</p>
+                                            <span class="text-muted small">@Model.DeliveredAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                @if (Model.ShippedAt.HasValue)
+                                {
+                                    <div class="timeline-item @(Model.Status == "Shipped" && !Model.DeliveredAt.HasValue ? "active" : "completed")">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">In Transit</h6>
+                                            <p class="text-muted mb-0 small">Package is on its way</p>
+                                            <span class="text-muted small">@Model.ShippedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                @if (Model.ProcessedAt.HasValue)
+                                {
+                                    <div class="timeline-item @(Model.Status == "Processing" && !Model.ShippedAt.HasValue ? "active" : "completed")">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Processing</h6>
+                                            <p class="text-muted mb-0 small">Order is being prepared</p>
+                                            <span class="text-muted small">@Model.ProcessedAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                @if (Model.PaidAt.HasValue)
+                                {
+                                    <div class="timeline-item @(Model.Status == "Paid" && !Model.ProcessedAt.HasValue ? "active" : "completed")">
+                                        <div class="timeline-marker"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">Payment Confirmed</h6>
+                                            <p class="text-muted mb-0 small">Payment received successfully</p>
+                                            <span class="text-muted small">@Model.PaidAt.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                }
+                                
+                                <div class="timeline-item @(Model.Status == "Pending" ? "active" : "completed")">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Order Placed</h6>
+                                        <p class="text-muted mb-0 small">Order received and confirmed</p>
+                                        <span class="text-muted small">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Shipment Progress -->
+                                <div class="tracking-progress mb-4">
+                                    <div class="row text-center">
+                                        <div class="col">
+                                            <div class="tracking-step @(GetTrackingStepStatus(Model.Status, "Prepared"))">
+                                                <div class="tracking-icon">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="tracking-label">Prepared</div>
+                                                <div class="tracking-date small text-muted">@Model.CreatedAt.ToString("MMM dd")</div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-connector @(GetConnectorStatus(Model.Status, "Shipped"))"></div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-step @(GetTrackingStepStatus(Model.Status, "Shipped"))">
+                                                <div class="tracking-icon">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="tracking-label">Shipped</div>
+                                                <div class="tracking-date small text-muted">
+                                                    @if (Model.ShippedAt.HasValue)
+                                                    {
+                                                        @Model.ShippedAt.Value.ToString("MMM dd")
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-connector @(GetConnectorStatus(Model.Status, "In_Transit"))"></div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-step @(GetTrackingStepStatus(Model.Status, "In_Transit"))">
+                                                <div class="tracking-icon">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="tracking-label">In Transit</div>
+                                                <div class="tracking-date small text-muted">
+                                                    @if (Model.Status == "In_Transit" || Model.Status == "Out_For_Delivery" || Model.Status == "Delivered")
+                                                    {
+                                                        @Model.UpdatedAt.ToString("MMM dd")
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-connector @(GetConnectorStatus(Model.Status, "Out_For_Delivery"))"></div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-step @(GetTrackingStepStatus(Model.Status, "Out_For_Delivery"))">
+                                                <div class="tracking-icon">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="tracking-label">Out for Delivery</div>
+                                                <div class="tracking-date small text-muted">
+                                                    @if (Model.Status == "Out_For_Delivery" || Model.Status == "Delivered")
+                                                    {
+                                                        @Model.UpdatedAt.ToString("MMM dd")
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-connector @(GetConnectorStatus(Model.Status, "Delivered"))"></div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="tracking-step @(GetTrackingStepStatus(Model.Status, "Delivered"))">
+                                                <div class="tracking-icon">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7h-3V2h-2v2H8V2H6v2H3v2h18V4zm0 4H3v12h18V8z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="tracking-label">Delivered</div>
+                                                <div class="tracking-date small text-muted">
+                                                    @if (Model.DeliveredAt.HasValue)
+                                                    {
+                                                        @Model.DeliveredAt.Value.ToString("MMM dd")
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Estimated Delivery -->
+                                @if (Model.EstimatedDeliveryDate.HasValue && Model.Status != "Delivered")
+                                {
+                                    <div class="alert alert-info">
+                                        <div class="d-flex align-items-center">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                            </svg>
+                                            <div>
+                                                <strong>Estimated Delivery:</strong> @Model.EstimatedDeliveryDate.Value.ToString("MMMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Shipment Items -->
+                                <div class="mt-4">
+                                    <h6 class="mb-3">Items in this shipment</h6>
+                                    <div class="row">
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            <div class="col-md-6 mb-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3" style="width: 60px; height: 60px; background: var(--color-background); border-radius: 4px; overflow: hidden;">
+                                                        <img src="@item.ProductImageUrl" 
+                                                             alt="@item.ProductName"
+                                                             style="width: 100%; height: 100%; object-fit: cover;" />
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold small">@item.ProductName</div>
+                                                        <div class="text-muted small">@item.BrandName</div>
+                                                        <div class="text-muted small">Qty: @item.Quantity</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- No Tracking Info -->
+                    <div class="card" style="border: 1px solid var(--color-border);">
+                        <div class="card-body text-center py-5">
+                            <div class="mb-4">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" style="color: var(--color-text-secondary); opacity: 0.5;">
+                                    <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                </svg>
+                            </div>
+                            <h4 class="h5 mb-3" style="color: var(--color-text-secondary);">Tracking Information Not Available</h4>
+                            <p class="mb-4" style="color: var(--color-text-secondary);">
+                                Your order is being processed. Tracking information will be available once your order has been shipped.
+                            </p>
+                            @if (Model.Status == "Paid" || Model.Status == "Processing")
+                            {
+                                <div class="alert alert-info">
+                                    <strong>Current Status:</strong> Your order is being prepared for Model. 
+                                    You'll receive an email with tracking information once it ships.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Delivery Address -->
+                <div class="card mt-4" style="border: 1px solid var(--color-border);">
+                    <div class="card-header">
+                        <h6 class="mb-0">Delivery Address</h6>
+                    </div>
+                    <div class="card-body">
+                        <address class="mb-0">
+                            <strong>@Model.ShippingFirstName @Model.ShippingLastName</strong><br>
+                            @Model.ShippingAddressLine1<br>
+                            @if (!string.IsNullOrEmpty(Model.ShippingAddressLine2))
+                            {
+                                @Model.ShippingAddressLine2<br>
+                            }
+                            @Model.ShippingCity, @Model.ShippingPostalCode<br>
+                            @Model.ShippingCountry
+                            @if (!string.IsNullOrEmpty(Model.ShippingPhoneNumber))
+                            {
+                                <br><strong>Phone:</strong> @Model.ShippingPhoneNumber
+                            }
+                        </address>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="text-center mt-5">
+                    <div class="btn-group" role="group">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary">
+                            View Order Details
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-primary">
+                            Back to Orders
+                        </a>
+                        <a href="mailto:support@aloud.com?subject=Order%20%23@Model.OrderNumber" class="btn btn-outline-secondary">
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "bg-warning text-dark",
+            "paid" => "bg-info text-white",
+            "processing" => "bg-primary text-white",
+            "shipped" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "cancelled" => "bg-danger text-white",
+            "refunded" => "bg-secondary text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    int GetProgressPercentage(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => 20,
+            "paid" => 40,
+            "processing" => 60,
+            "shipped" => 80,
+            "delivered" => 100,
+            "cancelled" => 0,
+            _ => 0
+        };
+    }
+
+    string GetShipmentStatusBadgeClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "prepared" => "bg-warning text-dark",
+            "shipped" => "bg-primary text-white",
+            "in_transit" => "bg-info text-white",
+            "out_for_delivery" => "bg-success text-white",
+            "delivered" => "bg-success text-white",
+            "exception" => "bg-danger text-white",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    string GetTrackingStepStatus(string currentStatus, string stepStatus)
+    {
+        var statusOrder = new[] { "Prepared", "Shipped", "In_Transit", "Out_For_Delivery", "Delivered" };
+        var currentIndex = Array.IndexOf(statusOrder, currentStatus.Replace("_", "_"));
+        var stepIndex = Array.IndexOf(statusOrder, stepStatus.Replace("_", "_"));
+        
+        if (currentIndex >= stepIndex) return "completed";
+        if (currentIndex + 1 == stepIndex) return "active";
+        return "pending";
+    }
+
+    string GetConnectorStatus(string currentStatus, string nextStatus)
+    {
+        var statusOrder = new[] { "Prepared", "Shipped", "In_Transit", "Out_For_Delivery", "Delivered" };
+        var currentIndex = Array.IndexOf(statusOrder, currentStatus.Replace("_", "_"));
+        var nextIndex = Array.IndexOf(statusOrder, nextStatus.Replace("_", "_"));
+        
+        return currentIndex >= nextIndex ? "completed" : "pending";
+    }
+}
+
+@section Styles {
+    <style>
+        .tracking-progress {
+            position: relative;
+        }
+
+        .tracking-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .tracking-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            background: var(--color-background);
+            border: 2px solid var(--color-border);
+            color: var(--color-text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .tracking-step.completed .tracking-icon {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+        }
+
+        .tracking-step.active .tracking-icon {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .tracking-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .tracking-connector {
+            height: 2px;
+            background: var(--color-border);
+            margin-top: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .tracking-connector.completed {
+            background: var(--color-accent);
+        }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @@media (max-width: 768px) {
+            .tracking-progress .row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .tracking-connector {
+                display: none;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Auto-refresh tracking data every 5 minutes
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshInterval = 5 * 60 * 1000; // 5 minutes
+            
+            setInterval(function() {
+                // Only refresh if the order is not delivered
+                const status = '@Model.Status'.toLowerCase();
+                if (status !== 'delivered' && status !== 'cancelled' && status !== 'refunded') {
+                    window.location.reload();
+                }
+            }, refreshInterval);
+        });
+    </script>
+}

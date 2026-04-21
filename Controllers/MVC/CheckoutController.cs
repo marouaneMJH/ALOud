@@ -75,7 +75,7 @@ namespace ALOud.Controllers.MVC
         /// <returns>Success or error view</returns>
         [HttpGet]
         [Route("Checkout/Success/{checkoutId}", Name = "MvcCheckoutSuccess")]
-        public async Task<IActionResult> Success(Guid checkoutId)
+        public IActionResult Success(Guid checkoutId)
         {
             try
             {

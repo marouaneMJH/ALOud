@@ -67,7 +67,7 @@ namespace ALOud.Services
                 var billingAddress = checkout.CheckoutAddresses
                     .FirstOrDefault(a => a.AddressType == "Billing") ?? shippingAddress;
 
-                if (shippingAddress == null)
+                if (shippingAddress == null || billingAddress == null)
                 {
                     throw new InvalidOperationException("Shipping address not found in checkout");
                 }

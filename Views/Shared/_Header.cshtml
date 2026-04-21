@@ -24,6 +24,11 @@
                 </a>
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
+                    <a class="nav-link" asp-controller="Order" asp-action="Index" title="My Orders">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 17H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7h-3V2h-2v2H8V2H6v2H3v2h18V4zm0 4H3v12h18V8z"/>
+                        </svg>
+                    </a>
                     <a class="nav-link" asp-route="MvcAccountProfileGet" title="My Profile">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM4 20c0-2.21 3.58-4 8-4s8 1.79 8 4v1H4v-1z" fill="currentColor"/>

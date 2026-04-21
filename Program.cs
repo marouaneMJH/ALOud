@@ -44,6 +44,12 @@ builder.Services.ConfigureSmtp(builder.Configuration);
 // Configure Redis
 builder.Services.ConfigureRedis(builder.Configuration);
 
+// Configure job queues and background services
+builder.Services.ConfigureJobs(builder.Configuration);
+
+// Configure external services (payment, shipping)
+builder.Services.ConfigureExternalServices(builder.Configuration);
+
 // HTTP context accessor for services that use request/response context (e.g., cart cookie key)
 builder.Services.AddHttpContextAccessor();
 

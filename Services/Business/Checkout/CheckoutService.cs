@@ -400,7 +400,7 @@ namespace ALOud.Services
             // In a real implementation, you'd integrate with a tax service like TaxJar or Avalara
             try
             {
-                return subtotal * TAX_RATE;
+                return await Task.FromResult(subtotal * TAX_RATE);
             }
             catch (Exception ex)
             {
@@ -414,14 +414,14 @@ namespace ALOud.Services
             // Simple shipping calculation - in real implementation, integrate with shipping providers
             try
             {
-                return shippingMethod.ToLower() switch
+                return await Task.FromResult(shippingMethod.ToLower() switch
                 {
                     "standard" => 5.99m,
                     "express" => 12.99m,
                     "overnight" => 24.99m,
                     "free" => 0.00m,
                     _ => 5.99m
-                };
+                });
             }
             catch (Exception ex)
             {

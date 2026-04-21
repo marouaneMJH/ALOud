@@ -36,6 +36,17 @@ namespace ALOud.DTOs
         public string ShippingCountry { get; set; } = string.Empty;
         public string? ShippingPhoneNumber { get; set; }
 
+        // Billing information
+        public string? BillingFirstName { get; set; }
+        public string? BillingLastName { get; set; }
+        public string? BillingAddressLine1 { get; set; }
+        public string? BillingAddressLine2 { get; set; }
+        public string? BillingCity { get; set; }
+        public string? BillingState { get; set; }
+        public string? BillingPostalCode { get; set; }
+        public string? BillingCountry { get; set; }
+        public string? BillingPhoneNumber { get; set; }
+
         // Tracking information
         public string? TrackingNumber { get; set; }
         public string? ShippingCarrier { get; set; }
@@ -49,6 +60,7 @@ namespace ALOud.DTOs
         public DateTime? ShippedAt { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public DateTime? CancelledAt { get; set; }
+        public DateTime? EstimatedDeliveryDate { get; set; }
 
         // Order items
         public List<OrderItemDto> Items { get; set; } = new List<OrderItemDto>();
@@ -72,6 +84,7 @@ namespace ALOud.DTOs
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal LineTotal { get; set; }
+        public decimal TotalPrice => LineTotal; // Alias for compatibility
         public string? Size { get; set; }
         public string? ProductImageUrl { get; set; }
         public string Status { get; set; } = string.Empty;
