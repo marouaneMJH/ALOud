@@ -40,25 +40,15 @@ namespace ALOud.Controllers.MVC
         {
             try
             {
-                var userId = GetUserId();
-                var summaries = await _orderService.GetUserOrdersAsync(userId, page, pageSize);
-                
-                // The current Index.cshtml expects List<OrderDto> because it shows items preview.
-                // For simplicity and to match the existing view, we fetch full details for each order.
-                // In a production environment with many orders, we would optimize this with a specific DTO.
-                var orders = new List<OrderDto>();
-                foreach (var summary in summaries)
-                {
-                    var fullOrder = await _orderService.GetOrderAsync(summary.Id);
-                    if (fullOrder != null)
-                    {
-                        orders.Add(fullOrder);
-                    }
-                }
+                // Guard against invalid page numbers that would crash EF Core .Skip() calculation
+                page = Math.Max(1, page);
 
+                var userId = GetUserId();
+                var orders = await _orderService.GetFullUserOrdersAsync(userId, page, pageSize);
+                
                 ViewBag.CurrentPage = page;
                 ViewBag.PageSize = pageSize;
-                ViewBag.HasPagination = summaries.Count == pageSize; // Simplistic pagination check
+                ViewBag.HasPagination = orders.Count == pageSize; // Simplistic pagination check
 
                 return View(orders);
             }

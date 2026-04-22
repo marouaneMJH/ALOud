@@ -10,6 +10,7 @@ namespace ALOud.Services
         Task<OrderDto?> GetOrderAsync(Guid orderId);
         Task<OrderDto?> GetOrderByNumberAsync(string orderNumber);
         Task<List<OrderSummaryDto>> GetUserOrdersAsync(Guid userId, int page = 1, int pageSize = 20);
+        Task<List<OrderDto>> GetFullUserOrdersAsync(Guid userId, int page = 1, int pageSize = 20);
         Task<List<OrderSummaryDto>> SearchOrdersAsync(OrderSearchDto searchDto);
         
         // Order status management

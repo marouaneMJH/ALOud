@@ -242,6 +242,31 @@ namespace ALOud.Services
         }
 
         /// <summary>
+        /// Gets full orders for a specific user including items (used for UI previews)
+        /// </summary>
+        public async Task<List<OrderDto>> GetFullUserOrdersAsync(Guid userId, int page = 1, int pageSize = 20)
+        {
+            var skip = (page - 1) * pageSize;
+
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = new List<OrderDto>();
+            foreach (var order in orders)
+            {
+                dtos.Add(await MapToOrderDtoAsync(order));
+            }
+
+            return dtos;
+        }
+
+
+        /// <summary>
         /// Searches orders based on criteria
         /// </summary>
         public async Task<List<OrderSummaryDto>> SearchOrdersAsync(OrderSearchDto searchDto)
@@ -431,6 +456,9 @@ namespace ALOud.Services
                     return false;
                 }
 
+
+                var previousStatus = order.Status;
+
                 // Update order status
                 var updateStatusDto = new UpdateOrderStatusDto
                 {
@@ -449,7 +477,8 @@ namespace ALOud.Services
                 }
 
                 // Restore stock for cancelled items
-                if (order.Status != "Delivered") // Don't restore stock if already delivered
+                // Only restore stock if the order progressed past Pending, meaning ProcessStockDeduction was likely executed
+                if (order.Status != "Delivered" && previousStatus != "Pending") 
                 {
                     await RestoreStockAsync(dto.OrderId, "Order cancelled");
                 }
@@ -623,6 +652,15 @@ namespace ALOud.Services
                     NotifyCustomer = true
                 };
 
+                // Cascade shipped status to all ordered items
+                var orderItems = await _context.OrderItems.Where(oi => oi.OrderId == orderId && oi.Status != "Cancelled").ToListAsync();
+                foreach (var oi in orderItems)
+                {
+                    oi.Status = "Shipped";
+                    oi.ShippedQuantity = oi.Quantity - oi.CancelledQuantity;
+                    oi.UpdatedAt = DateTime.UtcNow;
+                }
+                
                 return await UpdateOrderStatusAsync(updateDto);
             }
             catch (Exception ex)
@@ -656,6 +694,15 @@ namespace ALOud.Services
                     if (order != null)
                     {
                         order.DeliveredAt = deliveredAt.Value;
+                        
+                        var orderItems = await _context.OrderItems.Where(oi => oi.OrderId == orderId && oi.Status != "Cancelled").ToListAsync();
+                        foreach (var oi in orderItems)
+                        {
+                            oi.Status = "Delivered";
+                            oi.DeliveredQuantity = oi.Quantity - oi.CancelledQuantity;
+                            oi.UpdatedAt = DateTime.UtcNow;
+                        }
+
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -946,12 +993,15 @@ namespace ALOud.Services
                     .Where(oi => oi.OrderId == orderId)
                     .ToListAsync();
 
+                var deductedItems = new List<OrderItem>();
+
                 foreach (var item in orderItems)
                 {
                     var product = item.Product;
                     if (product.StockQuantity >= item.Quantity)
                     {
                         product.StockQuantity -= item.Quantity;
+                        deductedItems.Add(item);
                         
                         _logger.LogInformation("Deducted {Quantity} units of product {ProductId} for order {OrderId}", 
                             item.Quantity, item.ProductId, orderId);
@@ -960,6 +1010,13 @@ namespace ALOud.Services
                     {
                         _logger.LogWarning("Insufficient stock for product {ProductId}. Required: {Required}, Available: {Available}", 
                             item.ProductId, item.Quantity, product.StockQuantity);
+
+                        // Rollback in-memory state changes for previously processed items
+                        foreach (var deducted in deductedItems)
+                        {
+                            deducted.Product.StockQuantity += deducted.Quantity;
+                        }
+
                         return false;
                     }
                 }
@@ -1059,8 +1116,8 @@ namespace ALOud.Services
             };
 
             return await Task.FromResult(
-                validTransitions.ContainsKey(currentStatus) && 
-                validTransitions[currentStatus].Contains(newStatus));
+                validTransitions.Keys.Any(k => string.Equals(k, currentStatus, StringComparison.OrdinalIgnoreCase)) && 
+                validTransitions.First(kvp => string.Equals(kvp.Key, currentStatus, StringComparison.OrdinalIgnoreCase)).Value.Any(v => string.Equals(v, newStatus, StringComparison.OrdinalIgnoreCase)));
         }
 
         /// <summary>
@@ -1093,6 +1150,7 @@ namespace ALOud.Services
             {
                 Id = order.Id,
                 OrderNumber = order.OrderNumber,
+                UserId = order.UserId,
                 CustomerEmail = order.CustomerEmail,
                 Status = order.Status,
                 IsGuestOrder = order.IsGuestOrder,
@@ -1115,6 +1173,15 @@ namespace ALOud.Services
                 ShippingPostalCode = order.ShippingPostalCode,
                 ShippingCountry = order.ShippingCountry,
                 ShippingPhoneNumber = order.ShippingPhoneNumber,
+                BillingFirstName = order.BillingFirstName,
+                BillingLastName = order.BillingLastName,
+                BillingAddressLine1 = order.BillingAddressLine1,
+                BillingAddressLine2 = order.BillingAddressLine2,
+                BillingCity = order.BillingCity,
+                BillingState = order.BillingState,
+                BillingPostalCode = order.BillingPostalCode,
+                BillingCountry = order.BillingCountry,
+                BillingPhoneNumber = order.BillingPhoneNumber,
                 TrackingNumber = order.TrackingNumber,
                 ShippingCarrier = order.ShippingCarrier,
                 TrackingUrl = order.TrackingUrl,
