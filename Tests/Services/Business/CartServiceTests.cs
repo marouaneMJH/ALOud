@@ -44,7 +44,8 @@ namespace ALOud.Tests.Services.Business
             _mockResponse.Setup(x => x.Cookies).Returns(_mockResponseCookies.Object);
             
             // Setup default cookie behavior (no existing cart cookie)
-            _mockRequestCookies.Setup(x => x.TryGetValue("CartId", out It.Ref<string>.IsAny))
+            string? cartId = null;
+            _mockRequestCookies.Setup(x => x.TryGetValue("CartId", out cartId))
                 .Returns(false);
             
             // Setup HttpContextAccessor to return our mock context
