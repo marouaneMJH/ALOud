@@ -184,8 +184,8 @@ namespace Tests.Services.Security
 
             // Assert
             principal.Should().NotBeNull();
-            principal.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId);
-            principal.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email);
+            principal!.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId);
+            principal!.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email);
         }
 
         [Fact]
@@ -201,8 +201,8 @@ namespace Tests.Services.Security
 
             // Assert
             principal.Should().NotBeNull();
-            principal.IsInRole("Admin").Should().BeTrue();
-            principal.FindFirst(ClaimTypes.Role)?.Value.Should().Be("Admin");
+            principal!.IsInRole("Admin").Should().BeTrue();
+            principal!.FindFirst(ClaimTypes.Role)?.Value.Should().Be("Admin");
         }
 
         [Theory]
@@ -244,7 +244,7 @@ namespace Tests.Services.Security
         {
             // Arrange
             var emptyConfigMock = new Mock<IConfiguration>();
-            emptyConfigMock.Setup(x => x[It.IsAny<string>()]).Returns((string)null);
+            emptyConfigMock.Setup(x => x[It.IsAny<string>()]).Returns((string?)null);
 
             // Act & Assert - Should not throw
             var service = new JwtTokenService(emptyConfigMock.Object, _loggerMock.Object);
@@ -264,7 +264,7 @@ namespace Tests.Services.Security
             
             // Mock configuration to return null (simulating missing appsettings)
             var configMock = new Mock<IConfiguration>();
-            configMock.Setup(x => x[It.IsAny<string>()]).Returns((string)null);
+            configMock.Setup(x => x[It.IsAny<string>()]).Returns((string?)null);
             
             // Set environment variables
             Environment.SetEnvironmentVariable("JWT_SECRET_KEY", envSecretKey);
@@ -335,9 +335,9 @@ namespace Tests.Services.Security
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("JWT configured")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("JWT configured")),
                     It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
         }
 
@@ -356,9 +356,9 @@ namespace Tests.Services.Security
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Invalid JWT token")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Invalid JWT token")),
                     It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
         }
 
@@ -381,10 +381,13 @@ namespace Tests.Services.Security
             var principal1 = _jwtTokenService.ValidateToken(token1);
             var principal2 = _jwtTokenService.ValidateToken(token2);
             
-            principal1.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId1);
-            principal2.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId2);
-            principal1.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email1);
-            principal2.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email2);
+            principal1.Should().NotBeNull();
+            principal2.Should().NotBeNull();
+
+            principal1!.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId1);
+            principal2!.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(userId2);
+            principal1!.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email1);
+            principal2!.FindFirst(ClaimTypes.Email)?.Value.Should().Be(email2);
         }
     }
 }

@@ -185,9 +185,10 @@ namespace ALOud.Controllers.MVC
         /// <param name="email">The email address</param>
         /// <param name="code">The verification code</param>
         /// <returns>Redirect to login or verification view with errors</returns>
-        [HttpGet("/Account/Verify", Name = "MvcAccountVerify")]
-        public IActionResult Verify()
+        [HttpGet("/Account/Verify", Name = "MvcAccountVerifyGet")]
+        public IActionResult Verify(string email)
         {
+            SetViewDataEmail(email);
             return View();
         }
 

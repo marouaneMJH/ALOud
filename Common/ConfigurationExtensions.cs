@@ -77,7 +77,8 @@ namespace ALOud.Common
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<Program>>();
-                var redisConnection = configuration.GetSection("Redis")["ConnectionString"];
+                var redisConnection = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")
+                                     ?? configuration.GetSection("Redis")["ConnectionString"];
 
                 if (string.IsNullOrWhiteSpace(redisConnection))
                     throw new InvalidOperationException("Redis connection string is missing");

@@ -318,7 +318,7 @@ public class PasswordHasherServiceTests
     }
 
     [Fact]
-    public void Hash_MultipleCallsInParallel_ShouldProduceDifferentHashes()
+    public async Task Hash_MultipleCallsInParallel_ShouldProduceDifferentHashes()
     {
         // Arrange
         var password = "TestPassword123";
@@ -330,7 +330,7 @@ public class PasswordHasherServiceTests
             tasks.Add(Task.Run(() => _passwordHasherService.Hash(password)));
         }
 
-        var hashes = Task.WhenAll(tasks).Result;
+        var hashes = await Task.WhenAll(tasks);
 
         // Assert
         hashes.Should().HaveCount(10);
