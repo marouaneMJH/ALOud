@@ -24,11 +24,8 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+      - name: Build & Run tests
+        run: dotnet test ALOud.sln --configuration Release --verbosity normal
 
   create-pr:
     needs: build-test
