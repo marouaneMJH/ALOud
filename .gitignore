@@ -393,4 +393,5 @@ raw-data/scrapers/src/*.ts
 
 
 /coverage-*/
+#ignoring the global.json file
 /global.json
