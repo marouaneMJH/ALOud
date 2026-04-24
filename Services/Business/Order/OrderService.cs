@@ -28,162 +28,147 @@ namespace ALOud.Services
         /// </summary>
         public async Task<OrderDto> CreateOrderFromCheckoutAsync(Guid checkoutId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            
-            try
+            // SqlServerRetryingExecutionStrategy requires wrapping manual transactions
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                // Get checkout with all required data
-                var checkout = await _context.Checkouts
-                    .Include(c => c.CheckoutAddresses)
-                    .Include(c => c.StockReservations)
-                    .ThenInclude(sr => sr.Perfume)
-                    .ThenInclude(p => p.Brand)
-                    .FirstOrDefaultAsync(c => c.Id == checkoutId);
-
-                if (checkout == null)
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    throw new InvalidOperationException($"Checkout {checkoutId} not found");
-                }
+                    // Get checkout with all required data
+                    var checkout = await _context.Checkouts
+                        .Include(c => c.CheckoutAddresses)
+                        .Include(c => c.StockReservations)
+                        .ThenInclude(sr => sr.Perfume)
+                        .ThenInclude(p => p.Brand)
+                        .FirstOrDefaultAsync(c => c.Id == checkoutId);
 
-                if (checkout.Status != "Completed")
-                {
-                    throw new InvalidOperationException($"Cannot create order from checkout with status {checkout.Status}");
-                }
+                    if (checkout == null)
+                        throw new InvalidOperationException($"Checkout {checkoutId} not found");
 
-                // Check if order already exists for this checkout
-                var existingOrder = await _context.Orders
-                    .FirstOrDefaultAsync(o => o.CheckoutId == checkoutId);
-                
-                if (existingOrder != null)
-                {
-                    _logger.LogWarning("Order already exists for checkout {CheckoutId}. Returning existing order {OrderId}", 
-                        checkoutId, existingOrder.Id);
-                    return await MapToOrderDtoAsync(existingOrder);
-                }
+                    if (checkout.Status != "Completed")
+                        throw new InvalidOperationException($"Cannot create order from checkout with status {checkout.Status}");
 
-                // Get addresses
-                var shippingAddress = checkout.CheckoutAddresses
-                    .FirstOrDefault(a => a.AddressType == "Shipping");
-                var billingAddress = checkout.CheckoutAddresses
-                    .FirstOrDefault(a => a.AddressType == "Billing") ?? shippingAddress;
+                    // Return existing order if already created (idempotency)
+                    var existingOrder = await _context.Orders
+                        .FirstOrDefaultAsync(o => o.CheckoutId == checkoutId);
 
-                if (shippingAddress == null || billingAddress == null)
-                {
-                    throw new InvalidOperationException("Shipping address not found in checkout");
-                }
+                    if (existingOrder != null)
+                    {
+                        _logger.LogWarning("Order already exists for checkout {CheckoutId}. Returning existing order {OrderId}",
+                            checkoutId, existingOrder.Id);
+                        await transaction.RollbackAsync();
+                        return await MapToOrderDtoAsync(existingOrder);
+                    }
 
-                // Create order
-                var order = new Order
-                {
-                    Id = Guid.NewGuid(),
-                    OrderNumber = GenerateOrderNumber(),
-                    CheckoutId = checkoutId,
-                    UserId = checkout.UserId,
-                    CustomerEmail = checkout.Email,
-                    Status = "Pending",
-                    
-                    // Financial information
-                    SubtotalAmount = checkout.SubtotalAmount,
-                    TaxAmount = checkout.TaxAmount,
-                    ShippingAmount = checkout.ShippingAmount,
-                    DiscountAmount = checkout.DiscountAmount,
-                    TotalAmount = checkout.TotalAmount,
-                    TaxRate = checkout.TaxRate,
-                    
-                    // Methods
-                    ShippingMethod = checkout.ShippingMethod,
-                    PaymentMethod = checkout.PaymentMethod,
-                    PaymentIntentId = checkout.PaymentIntentId,
-                    PaymentStatus = "Pending",
-                    
-                    // Shipping address
-                    ShippingFirstName = shippingAddress.FirstName,
-                    ShippingLastName = shippingAddress.LastName,
-                    ShippingCompany = shippingAddress.Company ?? string.Empty,
-                    ShippingAddressLine1 = shippingAddress.AddressLine1,
-                    ShippingAddressLine2 = shippingAddress.AddressLine2,
-                    ShippingCity = shippingAddress.City,
-                    ShippingState = shippingAddress.State,
-                    ShippingPostalCode = shippingAddress.PostalCode,
-                    ShippingCountry = shippingAddress.Country,
-                    ShippingPhoneNumber = shippingAddress.PhoneNumber,
-                    
-                    // Billing address
-                    BillingFirstName = billingAddress.FirstName,
-                    BillingLastName = billingAddress.LastName,
-                    BillingCompany = billingAddress.Company ?? string.Empty,
-                    BillingAddressLine1 = billingAddress.AddressLine1,
-                    BillingAddressLine2 = billingAddress.AddressLine2,
-                    BillingCity = billingAddress.City,
-                    BillingState = billingAddress.State,
-                    BillingPostalCode = billingAddress.PostalCode,
-                    BillingCountry = billingAddress.Country,
-                    BillingPhoneNumber = billingAddress.PhoneNumber,
-                    
-                    IsGuestOrder = checkout.IsGuestCheckout,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    // Get addresses
+                    var shippingAddress = checkout.CheckoutAddresses
+                        .FirstOrDefault(a => a.AddressType == "Shipping");
+                    var billingAddress = checkout.CheckoutAddresses
+                        .FirstOrDefault(a => a.AddressType == "Billing") ?? shippingAddress;
 
-                _context.Orders.Add(order);
+                    if (shippingAddress == null || billingAddress == null)
+                        throw new InvalidOperationException("Shipping address not found in checkout");
 
-                // Create order items from stock reservations
-                var orderItems = new List<OrderItem>();
-                foreach (var reservation in checkout.StockReservations.Where(sr => sr.Status == "Reserved"))
-                {
-                    var orderItem = new OrderItem
+                    // Create order
+                    var order = new Order
                     {
                         Id = Guid.NewGuid(),
-                        OrderId = order.Id,
-                        ProductId = reservation.PerfumeId,
-                        ProductName = reservation.Perfume.Name,
-                        BrandName = reservation.Perfume.Brand.Name,
-                        ProductSku = null, // SKU not available in Perfume model
-                        UnitPrice = reservation.UnitPrice,
-                        Quantity = reservation.Quantity,
-                        LineTotal = reservation.UnitPrice * reservation.Quantity,
-                        Size = null, // Size not available in Perfume model
-                        ProductDescription = reservation.Perfume.Description,
-                        ProductImageUrl = reservation.Perfume.ImageUrl,
-                        Status = "Ordered",
+                        OrderNumber = GenerateOrderNumber(),
+                        CheckoutId = checkoutId,
+                        UserId = checkout.UserId,
+                        CustomerEmail = checkout.Email,
+                        Status = "Pending",
+                        SubtotalAmount = checkout.SubtotalAmount,
+                        TaxAmount = checkout.TaxAmount,
+                        ShippingAmount = checkout.ShippingAmount,
+                        DiscountAmount = checkout.DiscountAmount,
+                        TotalAmount = checkout.TotalAmount,
+                        TaxRate = checkout.TaxRate,
+                        ShippingMethod = checkout.ShippingMethod,
+                        PaymentMethod = checkout.PaymentMethod,
+                        PaymentIntentId = checkout.PaymentIntentId,
+                        PaymentStatus = "Pending",
+                        ShippingFirstName = shippingAddress.FirstName,
+                        ShippingLastName = shippingAddress.LastName,
+                        ShippingCompany = shippingAddress.Company ?? string.Empty,
+                        ShippingAddressLine1 = shippingAddress.AddressLine1,
+                        ShippingAddressLine2 = shippingAddress.AddressLine2,
+                        ShippingCity = shippingAddress.City,
+                        ShippingState = shippingAddress.State,
+                        ShippingPostalCode = shippingAddress.PostalCode,
+                        ShippingCountry = shippingAddress.Country,
+                        ShippingPhoneNumber = shippingAddress.PhoneNumber,
+                        BillingFirstName = billingAddress.FirstName,
+                        BillingLastName = billingAddress.LastName,
+                        BillingCompany = billingAddress.Company ?? string.Empty,
+                        BillingAddressLine1 = billingAddress.AddressLine1,
+                        BillingAddressLine2 = billingAddress.AddressLine2,
+                        BillingCity = billingAddress.City,
+                        BillingState = billingAddress.State,
+                        BillingPostalCode = billingAddress.PostalCode,
+                        BillingCountry = billingAddress.Country,
+                        BillingPhoneNumber = billingAddress.PhoneNumber,
+                        IsGuestOrder = checkout.IsGuestCheckout,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
 
-                    orderItems.Add(orderItem);
-                    _context.OrderItems.Add(orderItem);
+                    _context.Orders.Add(order);
+
+                    // Create order items from stock reservations
+                    foreach (var reservation in checkout.StockReservations.Where(sr => sr.Status == "Reserved"))
+                    {
+                        _context.OrderItems.Add(new OrderItem
+                        {
+                            Id = Guid.NewGuid(),
+                            OrderId = order.Id,
+                            ProductId = reservation.PerfumeId,
+                            ProductName = reservation.Perfume.Name,
+                            BrandName = reservation.Perfume.Brand.Name,
+                            ProductSku = null,
+                            UnitPrice = reservation.UnitPrice,
+                            Quantity = reservation.Quantity,
+                            LineTotal = reservation.UnitPrice * reservation.Quantity,
+                            Size = null,
+                            ProductDescription = reservation.Perfume.Description,
+                            ProductImageUrl = reservation.Perfume.ImageUrl,
+                            Status = "Ordered",
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+
+                    // Create initial status history entry
+                    _context.OrderStatusHistory.Add(new OrderStatusHistory
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = order.Id,
+                        PreviousStatus = null,
+                        NewStatus = "Pending",
+                        ChangeReason = "Order created from checkout completion",
+                        ChangeSource = "System",
+                        Notes = $"Order created from checkout {checkoutId}",
+                        CustomerNotified = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Order {OrderId} created successfully from checkout {CheckoutId}",
+                        order.Id, checkoutId);
+
+                    return await MapToOrderDtoAsync(order);
                 }
-
-                // Create initial status history
-                var statusHistory = new OrderStatusHistory
+                catch (Exception ex)
                 {
-                    Id = Guid.NewGuid(),
-                    OrderId = order.Id,
-                    PreviousStatus = null,
-                    NewStatus = "Pending",
-                    ChangeReason = "Order created from checkout completion",
-                    ChangeSource = "System",
-                    Notes = $"Order created from checkout {checkoutId}",
-                    CustomerNotified = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _context.OrderStatusHistory.Add(statusHistory);
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                _logger.LogInformation("Order {OrderId} created successfully from checkout {CheckoutId}", 
-                    order.Id, checkoutId);
-
-                return await MapToOrderDtoAsync(order);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error creating order from checkout {CheckoutId}", checkoutId);
-                throw;
-            }
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error creating order from checkout {CheckoutId}", checkoutId);
+                    throw;
+                }
+            });
         }
 
         /// <summary>
@@ -439,71 +424,69 @@ namespace ALOud.Services
         /// </summary>
         public async Task<bool> CancelOrderAsync(CancelOrderDto dto, Guid? cancelledByUserId = null)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            
-            try
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                var order = await _context.Orders
-                    .Include(o => o.OrderItems)
-                    .FirstOrDefaultAsync(o => o.Id == dto.OrderId);
-
-                if (order == null) return false;
-
-                if (!await CanCancelOrderAsync(dto.OrderId))
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    _logger.LogWarning("Order {OrderId} cannot be cancelled in current status {Status}", 
-                        dto.OrderId, order.Status);
-                    return false;
+                    var order = await _context.Orders
+                        .Include(o => o.OrderItems)
+                        .FirstOrDefaultAsync(o => o.Id == dto.OrderId);
+
+                    if (order == null) return false;
+
+                    if (!await CanCancelOrderAsync(dto.OrderId))
+                    {
+                        _logger.LogWarning("Order {OrderId} cannot be cancelled in current status {Status}",
+                            dto.OrderId, order.Status);
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    var previousStatus = order.Status;
+
+                    var updateStatusDto = new UpdateOrderStatusDto
+                    {
+                        OrderId = dto.OrderId,
+                        NewStatus = "Cancelled",
+                        ChangeReason = dto.Reason,
+                        Notes = dto.CustomerNote,
+                        NotifyCustomer = dto.NotifyCustomer
+                    };
+
+                    var statusUpdated = await UpdateOrderStatusAsync(updateStatusDto, cancelledByUserId);
+                    if (!statusUpdated)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    if (order.Status != "Delivered" && previousStatus != "Pending")
+                        await RestoreStockAsync(dto.OrderId, "Order cancelled");
+
+                    foreach (var item in order.OrderItems)
+                    {
+                        item.Status = "Cancelled";
+                        item.CancelledQuantity = item.Quantity;
+                        item.CancelledAt = DateTime.UtcNow;
+                        item.UpdatedAt = DateTime.UtcNow;
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Order {OrderId} cancelled successfully", dto.OrderId);
+                    return true;
                 }
-
-
-                var previousStatus = order.Status;
-
-                // Update order status
-                var updateStatusDto = new UpdateOrderStatusDto
-                {
-                    OrderId = dto.OrderId,
-                    NewStatus = "Cancelled",
-                    ChangeReason = dto.Reason,
-                    Notes = dto.CustomerNote,
-                    NotifyCustomer = dto.NotifyCustomer
-                };
-
-                var statusUpdated = await UpdateOrderStatusAsync(updateStatusDto, cancelledByUserId);
-                if (!statusUpdated)
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error cancelling order {OrderId}", dto.OrderId);
                     return false;
                 }
-
-                // Restore stock for cancelled items
-                // Only restore stock if the order progressed past Pending, meaning ProcessStockDeduction was likely executed
-                if (order.Status != "Delivered" && previousStatus != "Pending") 
-                {
-                    await RestoreStockAsync(dto.OrderId, "Order cancelled");
-                }
-
-                // Mark all order items as cancelled
-                foreach (var item in order.OrderItems)
-                {
-                    item.Status = "Cancelled";
-                    item.CancelledQuantity = item.Quantity;
-                    item.CancelledAt = DateTime.UtcNow;
-                    item.UpdatedAt = DateTime.UtcNow;
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                _logger.LogInformation("Order {OrderId} cancelled successfully", dto.OrderId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error cancelling order {OrderId}", dto.OrderId);
-                return false;
-            }
+            });
         }
 
         /// <summary>

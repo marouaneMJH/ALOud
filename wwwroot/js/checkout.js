@@ -344,6 +344,13 @@ class CheckoutManager {
     async proceedToStep(stepNumber) {
         if (!await this.validateCurrentStep()) return;
         await this.captureStepData();
+
+        // If moving to Review step, sync all data to server first
+        if (stepNumber === 4) {
+            const success = await this.syncCheckoutData();
+            if (!success) return;
+        }
+
         this.goToStep(stepNumber);
     }
 
@@ -431,8 +438,101 @@ class CheckoutManager {
     }
 
     /**
-     * Complete the order — starts checkout session, sets address/shipping/payment, then completes
+     * Synchronizes local checkout data with the server
      */
+    async syncCheckoutData() {
+        const button = document.getElementById('continue-to-review');
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Preparing Review...';
+        }
+
+        try {
+            // Helper to throw on bad responses
+            const checkRes = async (res, stepName) => {
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || err.error || err.title || `Failed to sync ${stepName} (${res.status})`);
+                }
+                return res;
+            };
+
+            // Step 1: Start/Get checkout session
+            const startRes = await fetch('/api/v1/checkout/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: this.isAuthenticated ? null : (this.checkoutData.address?.email || 'guest@aloud.ma'),
+                    isGuestCheckout: !this.isAuthenticated
+                })
+            });
+
+            await checkRes(startRes, 'checkout session');
+            const startResult = await startRes.json();
+            const checkoutId = startResult.data?.id || startResult.id;
+            this.checkoutData.sessionId = checkoutId;
+
+            // Step 2: Set shipping address
+            const addr = this.checkoutData.address;
+            const shipRes = await fetch(`/api/v1/checkout/${checkoutId}/shipping-address`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    firstName: addr.firstName,
+                    lastName: addr.lastName,
+                    addressLine1: addr.addressLine1,
+                    city: addr.city,
+                    state: addr.state || addr.city,
+                    postalCode: addr.postalCode,
+                    country: addr.country || 'MA', // Fallback for safety
+                    phoneNumber: addr.phoneNumber
+                })
+            });
+            await checkRes(shipRes, 'shipping address');
+
+            // Step 3: Copy shipping to billing
+            const billRes = await fetch(`/api/v1/checkout/${checkoutId}/copy-shipping-to-billing`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            await checkRes(billRes, 'billing address');
+
+            // Step 4: Set shipping method
+            const shippingMethod = this.checkoutData.delivery?.method || 'standard';
+            const methodRes = await fetch(`/api/v1/checkout/${checkoutId}/shipping-method`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(shippingMethod)
+            });
+            await checkRes(methodRes, 'shipping method');
+
+            // Step 5: Set payment method
+            const paymentMethod = this.checkoutData.payment?.method || 'stripe';
+            const payRes = await fetch(`/api/v1/checkout/${checkoutId}/payment-method`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ paymentMethod: paymentMethod })
+            });
+            await checkRes(payRes, 'payment method');
+
+            return true;
+        } catch (error) {
+            console.error('Checkout sync error:', error);
+            this.showError(error.message || 'Unable to sync checkout data. Please try again.');
+            return false;
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Continue to Review';
+            }
+        }
+    }
+
     async completeOrder() {
         const button = document.getElementById('complete-order');
         const buttonText = button?.querySelector('.button-text');
@@ -446,81 +546,17 @@ class CheckoutManager {
         if (buttonSpinner) buttonSpinner.style.display = 'inline-block';
 
         try {
-            // Step 1: Start checkout session
-            const startRes = await fetch('/api/v1/checkout/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    email: this.isAuthenticated ? '' : (this.checkoutData.address?.email || 'guest@aloud.ma'),
-                    isGuestCheckout: !this.isAuthenticated
-                })
-            });
+            const checkoutId = this.checkoutData.sessionId;
+            if (!checkoutId) throw new Error('No checkout session found. Please go back and try again.');
 
-            if (!startRes.ok) {
-                const err = await startRes.json().catch(() => ({}));
-                throw new Error(err.message || `Failed to start checkout (${startRes.status})`);
-            }
-
-            const startResult = await startRes.json();
-            const checkoutId = startResult.data?.id || startResult.id;
-            if (!checkoutId) throw new Error('No checkout ID returned');
-
-            this.checkoutData.sessionId = checkoutId;
-
-            // Step 2: Set shipping address
-            const addr = this.checkoutData.address;
-            await fetch(`/api/v1/checkout/${checkoutId}/shipping-address`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    checkoutId: checkoutId,
-                    addressType: 'Shipping',
-                    firstName: addr.firstName,
-                    lastName: addr.lastName,
-                    addressLine1: addr.addressLine1,
-                    city: addr.city,
-                    state: addr.state || addr.city,
-                    postalCode: addr.postalCode,
-                    country: addr.country,
-                    phoneNumber: addr.phoneNumber
-                })
-            });
-
-            // Step 3: Copy shipping to billing
-            await fetch(`/api/v1/checkout/${checkoutId}/copy-shipping-to-billing`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include'
-            });
-
-            // Step 4: Set shipping method
-            const shippingMethod = this.checkoutData.delivery?.method || 'standard';
-            await fetch(`/api/v1/checkout/${checkoutId}/shipping-method`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ shippingMethod: shippingMethod })
-            });
-
-            // Step 5: Set payment method
-            const paymentMethod = this.checkoutData.payment?.method || 'stripe';
-            await fetch(`/api/v1/checkout/${checkoutId}/payment-method`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ paymentMethod: paymentMethod })
-            });
-
-            // Step 6: Complete checkout
+            // Complete checkout
             const completeRes = await fetch(`/api/v1/checkout/${checkoutId}/complete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
                     checkoutId: checkoutId,
-                    paymentMethod: paymentMethod,
+                    paymentMethod: this.checkoutData.payment?.method || 'stripe',
                     saveAddressForFuture: this.checkoutData.address?.saveAddress || false
                 })
             });

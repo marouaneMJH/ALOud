@@ -322,9 +322,7 @@ namespace ALOud.Controllers.MVC
 
         private string GetCartId()
         {
-            return HttpContext.Session.GetString("CartId") ??
-                   HttpContext.Request.Cookies["CartId"] ??
-                   string.Empty;
+            return HttpContext.Request.Cookies["CartId"] ?? string.Empty;
         }
 
         #endregion
