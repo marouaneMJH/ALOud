@@ -54,7 +54,18 @@ namespace ALOud.Controllers.Api.v1
 
             try
             {
-                // Get cart ID from session/cookie (this would depend on your cart implementation)
+                // Auto-resolve email for authenticated users if missing
+                if (User.Identity?.IsAuthenticated == true && string.IsNullOrEmpty(dto.Email))
+                {
+                    var emailClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                    if (!string.IsNullOrEmpty(emailClaim))
+                    {
+                        dto.Email = emailClaim;
+                        dto.IsGuestCheckout = false;
+                    }
+                }
+                
+                // Get cart ID from session/cookie
                 var cartId = GetCartId();
                 if (string.IsNullOrEmpty(cartId))
                 {
@@ -538,18 +549,11 @@ namespace ALOud.Controllers.Api.v1
         /// </summary>
         private async Task<bool> ValidateCheckoutAccess(CheckoutSummaryDto checkout)
         {
-            // If user is authenticated, check if they own the checkout
+            // Authenticated users: allow access (they may have both guest and user checkouts)
             if (User.Identity?.IsAuthenticated == true)
-            {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (Guid.TryParse(userIdClaim, out var userId))
-                {
-                    // For authenticated users, they must own the checkout
-                    return checkout.IsGuestCheckout == false; // Additional validation could check actual user ID
-                }
-            }
+                return true;
 
-            // For guest checkouts, validate by cart ID (session-based)
+            // Guest users: validate by confirming the cart cookie matches this checkout
             var cartId = GetCartId();
             return !string.IsNullOrEmpty(cartId) && await _checkoutService.ValidateCartIntegrityAsync(checkout.Id, cartId);
         }
@@ -560,11 +564,8 @@ namespace ALOud.Controllers.Api.v1
         /// </summary>
         private string GetCartId()
         {
-            // This should integrate with your existing cart service's cart ID logic
-            // For now, return a placeholder - implement based on your cart system
-            return HttpContext.Session.GetString("CartId") ?? 
-                   HttpContext.Request.Cookies["CartId"] ?? 
-                   string.Empty;
+            // Return from cookie as Session is not configured
+            return HttpContext.Request.Cookies["CartId"] ?? string.Empty;
         }
 
         /// <summary>

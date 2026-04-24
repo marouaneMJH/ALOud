@@ -11,7 +11,7 @@ namespace ALOud.Models
 
         // Order identification
         [Required]
-        [MaxLength(20)]
+        [MaxLength(30)]
         public required string OrderNumber { get; set; } // ALO-20260403-ABC12345
 
         // Link to original checkout

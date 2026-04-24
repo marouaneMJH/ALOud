@@ -66,10 +66,13 @@ namespace ALOud.Services
                 User? user = null;
                 bool isGuestCheckout = dto.IsGuestCheckout;
 
-                if (!isGuestCheckout)
+                if (!string.IsNullOrEmpty(dto.Email))
                 {
                     user = await _userService.GetByEmailAsync(dto.Email);
-                    isGuestCheckout = user == null;
+                    if (user != null)
+                    {
+                        isGuestCheckout = false;
+                    }
                 }
 
                 // Create checkout record
@@ -77,7 +80,7 @@ namespace ALOud.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = user?.Id,
-                    Email = dto.Email,
+                    Email = dto.Email ?? "guest@aloud.ma", // Use provided email or fallback
                     CartId = cartId,
                     Status = "InProgress",
                     IsGuestCheckout = isGuestCheckout,

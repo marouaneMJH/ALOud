@@ -4,9 +4,8 @@ namespace ALOud.DTOs
 {
     public class StartCheckoutDto
     {
-        [Required]
         [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
         public bool IsGuestCheckout { get; set; } = false;
     }
