@@ -86,9 +86,13 @@
     </div>
 </div>
 
+@Html.AntiForgeryToken()
+
 @section Scripts {
 <script>
-    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    function getToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
 
     function showAddForm() {
         document.getElementById('modalTitle').textContent = 'Add Address';
@@ -114,7 +118,46 @@
         document.getElementById('addressModal').style.display = 'none';
     }
 
-    // Close modal on overlay click
+    function hideAddressForm() {
+        closeModal();
+    }
+
+    // Called by the _AddressForm partial's onsubmit
+    async function submitAddressForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        // Determine if this is create or edit based on whether Id field exists
+        const idField = form.querySelector('input[name="Id"]');
+        const url = idField ? '/Address/Edit' : '/Address/Create';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const contentType = res.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await res.json();
+                if (data.success) {
+                    closeModal();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Operation failed');
+                }
+            } else {
+                // Returned partial view (validation errors)
+                const html = await res.text();
+                document.getElementById('modalBody').innerHTML = html;
+            }
+        } catch (err) {
+            console.error('Address form error:', err);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
     document.getElementById('addressModal')?.addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
@@ -124,7 +167,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': token
+                'RequestVerificationToken': getToken()
             },
             body: 'id=' + id
         });
@@ -139,7 +182,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': token
+                'RequestVerificationToken': getToken()
             },
             body: 'id=' + id
         });
@@ -147,34 +190,6 @@
         if (data.success) location.reload();
         else alert('Failed to delete address');
     }
-
-    // Handle form submission from modal (uses event delegation)
-    document.addEventListener('submit', async function(e) {
-        const form = e.target;
-        if (!form.closest('#modalBody')) return;
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const res = await fetch(form.action, {
-            method: 'POST',
-            body: formData
-        });
-
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const data = await res.json();
-            if (data.success) {
-                closeModal();
-                location.reload();
-            } else {
-                alert(data.message || 'Operation failed');
-            }
-        } else {
-            // Returned a partial view (validation errors)
-            const html = await res.text();
-            document.getElementById('modalBody').innerHTML = html;
-        }
-    });
 </script>
 }
 

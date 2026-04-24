@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using ViewModels;
 using ALOud.Services.Infrastructure.Cache;
 
@@ -110,7 +110,7 @@ namespace ALOud.Services
                 httpContext.Response.Cookies.Append(CartIdCookie, cartId, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true, // Use HTTPS
+                    Secure = httpContext.Request.IsHttps,
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddDays(30)
                 });
