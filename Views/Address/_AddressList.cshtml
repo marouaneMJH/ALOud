@@ -19,7 +19,7 @@
                                 <span class="badge bg-light text-dark mb-2">@address.AddressType</span>
                                 @if (address.IsDefault)
                                 {
-                                    <span class="badge bg-primary ms-1">Default</span>
+                                    <span class="default-badge badge bg-secondary ms-1">Default</span>
                                 }
                             </div>
                         </div>
@@ -42,14 +42,7 @@
                             </p>
                         }
                     </div>
-                    <div class="card-footer bg-transparent border-0 d-flex justify-content-end gap-2 pb-3">
-                        @if (!address.IsDefault)
-                        {
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="setDefaultAddress('@address.Id')">Set Default</button>
-                        }
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadAddressForm('@address.Id')">Edit</button>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAddress('@address.Id')">Delete</button>
-                    </div>
+
                 </div>
             </div>
         }
