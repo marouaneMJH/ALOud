@@ -393,3 +393,4 @@ raw-data/scrapers/src/*.ts
 
 
 /coverage-*/
+/global.json
