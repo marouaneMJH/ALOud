@@ -24,6 +24,27 @@ namespace ALOud.Controllers.MVC
         }
 
         /// <summary>
+        /// Displays the standalone "My Addresses" management page
+        /// </summary>
+        [HttpGet]
+        [Route("Address", Name = "MvcAddressIndex")]
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var addresses = await _addressService.GetUserAddressesAsync(userId);
+                return View(addresses);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading address management page");
+                TempData["Error"] = "Failed to load addresses";
+                return RedirectToAction("Index", "Perfume");
+            }
+        }
+
+        /// <summary>
         /// Returns the address list partial view
         /// </summary>
         [HttpGet]
@@ -39,6 +60,27 @@ namespace ALOud.Controllers.MVC
             {
                 _logger.LogError(ex, "Error retrieving address list partial");
                 return StatusCode(500, "Error loading addresses");
+            }
+        }
+
+        /// <summary>
+        /// Returns the user's default address as JSON (for AJAX use by checkout, etc.)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetDefault()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var address = await _addressService.GetDefaultAddressAsync(userId);
+                if (address == null)
+                    return Json(new { success = false, message = "No default address" });
+                return Json(new { success = true, data = address });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving default address");
+                return Json(new { success = false, message = "Error loading default address" });
             }
         }
 

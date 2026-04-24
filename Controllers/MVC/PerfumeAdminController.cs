@@ -16,8 +16,10 @@ using ALOud.DTOs.Accords;
 using ALOud.DTOs.Tags;
 using ALOud.DTOs.Seasons;
 using ALOud.DTOs.Occasions;
+using ALOud.DTOs;
 using ALOud.Services;
 using ALOud.Constants;
+using System.Security.Claims;
 
 namespace ALOud.Controllers.MVC
 {
@@ -36,6 +38,7 @@ namespace ALOud.Controllers.MVC
         private readonly ITagService _tagService;
         private readonly ISeasonService _seasonService;
         private readonly IOccasionService _occasionService;
+        private readonly IOrderService _orderService;
         private readonly ILogger<PerfumeAdminController> _logger;
 
         /// <summary>
@@ -51,6 +54,7 @@ namespace ALOud.Controllers.MVC
             ITagService tagService,
             ISeasonService seasonService,
             IOccasionService occasionService,
+            IOrderService orderService,
             ILogger<PerfumeAdminController> logger)
         {
             _brandService = brandService;
@@ -61,6 +65,7 @@ namespace ALOud.Controllers.MVC
             _tagService = tagService;
             _seasonService = seasonService;
             _occasionService = occasionService;
+            _orderService = orderService;
             _logger = logger;
         }
 
@@ -1251,7 +1256,277 @@ namespace ALOud.Controllers.MVC
 
         #endregion
 
+        #region Stock Management
+
+        /// <summary>
+        /// Displays the admin stock monitoring dashboard.
+        /// Data is loaded client-side via /api/v1/stock endpoints.
+        /// </summary>
+        [HttpGet("Stock", Name = "MvcPerfumeAdminStock")]
+        public IActionResult Stock()
+        {
+            try
+            {
+                return View("~/Views/Admin/Stock/Index.cshtml");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading stock management view");
+                SetErrorMessage("Failed to load stock management");
+                return RedirectToRoute("MvcAdminIndex");
+            }
+        }
+
+        #endregion
+
+        #region Orders Management
+
+        /// <summary>
+        /// Displays list of all orders for admin management
+        /// </summary>
+        [HttpGet("Orders", Name = "MvcPerfumeAdminOrders")]
+        public async Task<IActionResult> Orders(int page = 1, int pageSize = 50)
+        {
+            try
+            {
+                page = Math.Max(1, page);
+                // Use SearchOrders with empty criteria to get all orders
+                var searchDto = new OrderSearchDto
+                {
+                    Page = page,
+                    PageSize = pageSize
+                };
+                var orders = await _orderService.SearchOrdersAsync(searchDto);
+
+                // Convert OrderSummaryDto list to full OrderDto list for the view
+                var fullOrders = new List<OrderDto>();
+                foreach (var summary in orders)
+                {
+                    var order = await _orderService.GetOrderAsync(summary.Id);
+                    if (order != null) fullOrders.Add(order);
+                }
+
+                ViewBag.CurrentPage = page;
+                ViewBag.PageSize = pageSize;
+                ViewBag.HasPagination = orders.Count == pageSize;
+                ViewBag.TotalPages = Math.Max(1, (int)Math.Ceiling(orders.Count / (double)pageSize));
+
+                return View("~/Views/Admin/Orders/Index.cshtml", fullOrders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading admin orders");
+                SetErrorMessage("Failed to load orders");
+                return View("~/Views/Admin/Orders/Index.cshtml", new List<OrderDto>());
+            }
+        }
+
+        /// <summary>
+        /// Displays details for a specific order (admin view)
+        /// </summary>
+        [HttpGet("Orders/{id:guid}", Name = "MvcPerfumeAdminOrderDetails")]
+        public async Task<IActionResult> OrderDetails(Guid id)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderAsync(id);
+                if (order == null)
+                {
+                    SetErrorMessage("Order not found");
+                    return RedirectToRoute("MvcPerfumeAdminOrders");
+                }
+
+                return View("~/Views/Admin/Orders/Details.cshtml", order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading order details: {OrderId}", id);
+                SetErrorMessage("Failed to load order details");
+                return RedirectToRoute("MvcPerfumeAdminOrders");
+            }
+        }
+
+        /// <summary>
+        /// Updates the status of a single order via AJAX
+        /// </summary>
+        [HttpPost("Orders/UpdateStatus", Name = "MvcPerfumeAdminUpdateOrderStatus")]
+        public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest request)
+        {
+            try
+            {
+                var userId = GetAdminUserId();
+                var dto = new UpdateOrderStatusDto
+                {
+                    OrderId = request.OrderId,
+                    NewStatus = request.NewStatus,
+                    ChangeReason = request.Notes ?? "Status updated by admin via dashboard",
+                    Notes = request.Notes ?? "Status updated by admin via dashboard"
+                };
+
+                var success = await _orderService.UpdateOrderStatusAsync(dto, userId);
+                return Json(new { success, message = success ? "Order status updated" : "Failed to update status" });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating order status: {OrderId}", request.OrderId);
+                return Json(new { success = false, message = "An error occurred while updating the order status" });
+            }
+        }
+
+        /// <summary>
+        /// Bulk updates the status of multiple orders via AJAX
+        /// </summary>
+        [HttpPost("Orders/BulkUpdateStatus", Name = "MvcPerfumeAdminBulkUpdateOrderStatus")]
+        public async Task<IActionResult> BulkUpdateOrderStatus([FromBody] BulkUpdateStatusRequest request)
+        {
+            try
+            {
+                var userId = GetAdminUserId();
+                int updated = 0;
+                int failed = 0;
+
+                foreach (var orderId in request.OrderIds)
+                {
+                    try
+                    {
+                        if (Guid.TryParse(orderId, out var id))
+                        {
+                            var dto = new UpdateOrderStatusDto
+                            {
+                                OrderId = id,
+                                NewStatus = request.NewStatus,
+                                ChangeReason = "Bulk status update by admin",
+                                Notes = "Bulk status update by admin"
+                            };
+                            var success = await _orderService.UpdateOrderStatusAsync(dto, userId);
+                            if (success) updated++;
+                            else failed++;
+                        }
+                    }
+                    catch
+                    {
+                        failed++;
+                    }
+                }
+
+                return Json(new { success = updated > 0, message = $"{updated} order(s) updated, {failed} failed" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during bulk order status update");
+                return Json(new { success = false, message = "An error occurred during bulk update" });
+            }
+        }
+
+        /// <summary>
+        /// Marks an order as shipped (admin only)
+        /// </summary>
+        [HttpPost("Orders/{id:guid}/Ship", Name = "MvcPerfumeAdminShipOrder")]
+        public async Task<IActionResult> ShipOrder(Guid id, [FromBody] ShipOrderDto dto)
+        {
+            try
+            {
+                var success = await _orderService.MarkOrderAsShippedAsync(
+                    id, dto.TrackingNumber, dto.Carrier, dto.ShippingMethod);
+                return Json(new { success, message = success ? "Order marked as shipped" : "Failed to ship order" });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error shipping order: {OrderId}", id);
+                return Json(new { success = false, message = "An error occurred" });
+            }
+        }
+
+        /// <summary>
+        /// Marks an order as delivered (admin only)
+        /// </summary>
+        [HttpPost("Orders/{id:guid}/Deliver", Name = "MvcPerfumeAdminDeliverOrder")]
+        public async Task<IActionResult> DeliverOrder(Guid id)
+        {
+            try
+            {
+                var success = await _orderService.MarkOrderAsDeliveredAsync(id);
+                return Json(new { success, message = success ? "Order marked as delivered" : "Failed to mark as delivered" });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking order delivered: {OrderId}", id);
+                return Json(new { success = false, message = "An error occurred" });
+            }
+        }
+
+        /// <summary>
+        /// Cancels an order (admin only)
+        /// </summary>
+        [HttpPost("Orders/{id:guid}/Cancel", Name = "MvcPerfumeAdminCancelOrder")]
+        public async Task<IActionResult> CancelOrder(Guid id, [FromBody] CancelOrderDto? dto)
+        {
+            try
+            {
+                var userId = GetAdminUserId();
+                var cancelDto = dto ?? new CancelOrderDto
+                {
+                    OrderId = id,
+                    Reason = "Cancelled by administrator",
+                    NotifyCustomer = true,
+                    RefundPayment = true
+                };
+                cancelDto.OrderId = id;
+
+                var success = await _orderService.CancelOrderAsync(cancelDto, userId);
+                return Json(new { success, message = success ? "Order cancelled" : "Failed to cancel order" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order: {OrderId}", id);
+                return Json(new { success = false, message = "An error occurred" });
+            }
+        }
+
+        /// <summary>
+        /// Gets admin user ID from claims
+        /// </summary>
+        private Guid GetAdminUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.TryParse(claim, out var id) ? id : Guid.Empty;
+        }
+
+        /// <summary>
+        /// Request model for single order status update
+        /// </summary>
+        public class UpdateOrderStatusRequest
+        {
+            public Guid OrderId { get; set; }
+            public string NewStatus { get; set; } = string.Empty;
+            public string? Notes { get; set; }
+        }
+
+        /// <summary>
+        /// Request model for bulk order status update
+        /// </summary>
+        public class BulkUpdateStatusRequest
+        {
+            public List<string> OrderIds { get; set; } = new();
+            public string NewStatus { get; set; } = string.Empty;
+        }
+
+        #endregion
+
         #region Private Helper Methods
+
 
         /// <summary>
         /// Populates ViewBag with perfume-related dropdown data

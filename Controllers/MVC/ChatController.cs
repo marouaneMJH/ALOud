@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ALOud.Controllers.MVC
@@ -17,7 +18,7 @@ namespace ALOud.Controllers.MVC
         }
 
         /// <summary>
-        /// Displays the chat interface
+        /// Displays the RAG-powered shopping assistant chat interface (anonymous)
         /// </summary>
         /// <returns>Chat view</returns>
         [HttpGet]
@@ -26,5 +27,19 @@ namespace ALOud.Controllers.MVC
         {
             return View();
         }
+
+        /// <summary>
+        /// Displays the AI-powered cart assistant chat interface (requires login).
+        /// Backed by /api/v1/ai/cart/chat which uses IChatOrchestratorService with user context.
+        /// </summary>
+        /// <returns>AiCart view</returns>
+        [HttpGet]
+        [Route("Chat/AiCart", Name = "MvcChatAiCart")]
+        [Authorize]
+        public IActionResult AiCart()
+        {
+            return View();
+        }
     }
 }
+
