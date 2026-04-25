@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);1701;1702;1705</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Watch Include="**/*.cs"
+          Exclude="
+            bin/**;
+            obj/**;
+            TestResults/**;
+            coverage-html/**;
+            docs/**;
+            backups/**;
+            Migrations/**;
+            wwwroot/**
+          " />
+  </ItemGroup>
+
+</Project>

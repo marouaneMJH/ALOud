@@ -14,19 +14,19 @@ namespace ALOud.Models
 
         [Required]
         [MaxLength(20)]
-        public string FirstName { get; set; }
+        public required string FirstName { get; set; }
 
         [Required]
         [MaxLength(20)]
-        public string LastName { get; set; }
+        public required string LastName { get; set; }
 
         [Required]
         [EmailAddress]
         [MaxLength(150)]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; }
+        public required string PasswordHash { get; set; }
 
         public bool IsActive { get; set; } = true;
         public bool IsEmailVerified { get; set; } = false;
@@ -41,6 +41,10 @@ namespace ALOud.Models
 
 
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
+        public virtual ICollection<Checkout> Checkouts { get; set; } = new List<Checkout>();
     }
 }

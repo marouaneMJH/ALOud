@@ -1,0 +1,948 @@
+@model ALOud.DTOs.Perfumes.PerfumeDetailsDto
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = $"{Model.Name} - {Model.BrandName}";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+    
+    var topNotes = Model.Notes.Where(n => n.NoteLevel == "Top").ToList();
+    var middleNotes = Model.Notes.Where(n => n.NoteLevel == "Middle" || n.NoteLevel == "Heart").ToList();
+    var baseNotes = Model.Notes.Where(n => n.NoteLevel == "Base").ToList();
+    var otherNotes = Model.Notes.Where(n => string.IsNullOrEmpty(n.NoteLevel) || 
+        (n.NoteLevel != "Top" && n.NoteLevel != "Middle" && n.NoteLevel != "Heart" && n.NoteLevel != "Base")).ToList();
+}
+
+<style>
+    .perfume-detail-page {
+        padding: var(--spacing-2xl) 0;
+    }
+
+    .breadcrumb-nav {
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .breadcrumb-nav a {
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color var(--transition-fast);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .breadcrumb-nav a:hover {
+        color: var(--color-accent);
+    }
+
+    .perfume-detail-grid {
+        display: grid;
+        grid-template-columns: 45% 55%;
+        gap: var(--spacing-3xl);
+        margin-bottom: var(--spacing-3xl);
+        align-items: start;
+    }
+
+    .perfume-image-section {
+        position: sticky;
+        top: var(--spacing-xl);
+        align-self: start;
+    }
+
+    .perfume-main-image {
+        aspect-ratio: 1;
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        overflow: hidden;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .perfume-main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .perfume-info-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xl);
+    }
+
+    /* Header Section */
+    .perfume-header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .perfume-brand-name-by {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.05em;
+    }
+
+    .perfume-brand-name {
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-accent);
+        font-weight: 600;
+    }
+
+    .perfume-title {
+        font-family: var(--font-heading);
+        font-size: 2.75rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        line-height: 1.1;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+
+    /* Badges */
+    .perfume-badges {
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .perfume-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--color-primary);
+        color: var(--color-white);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+    }
+
+    .perfume-badge.accent {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Description */
+    .perfume-description {
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: var(--color-text-secondary);
+        padding: var(--spacing-xl) 0;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Price and Stock Section */
+    .price-stock-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-xl) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .perfume-price-label {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-weight: 600;
+    }
+
+    .price-large {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        letter-spacing: -0.02em;
+    }
+
+    .stock-status {
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stock-status::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .stock-status.in-stock {
+        color: #2e7d32;
+    }
+
+    .stock-status.in-stock::before {
+        background: #2e7d32;
+    }
+
+    .stock-status.low-stock {
+        color: #f57c00;
+    }
+
+    .stock-status.low-stock::before {
+        background: #f57c00;
+    }
+
+    .stock-status.out-of-stock {
+        color: #c62828;
+    }
+
+    .stock-status.out-of-stock::before {
+        background: #c62828;
+    }
+
+    /* Add to Cart Section */
+    .add-to-cart-section {
+        padding: var(--spacing-xl) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .quantity-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        font-weight: 600;
+        min-width: 80px;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--color-border);
+        background: var(--color-white);
+    }
+
+    .quantity-btn {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: var(--color-primary);
+        transition: all var(--transition-fast);
+        font-weight: 300;
+    }
+
+    .quantity-btn:hover {
+        background: var(--color-background);
+    }
+
+    .quantity-btn:active {
+        background: var(--color-border);
+    }
+
+    .quantity-input {
+        width: 70px;
+        height: 44px;
+        text-align: center;
+        border: none;
+        border-left: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border);
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .quantity-input:focus {
+        outline: none;
+        background: var(--color-background);
+    }
+
+    .add-to-cart-btn {
+        display: block;
+        width: 100%;
+        padding: var(--spacing-md) var(--spacing-xl);
+        background: var(--color-accent);
+        color: var(--color-primary);
+        border: 2px solid var(--color-accent);
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+    }
+
+    .add-to-cart-btn:hover {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .add-to-cart-btn:active {
+        transform: translateY(0);
+    }
+
+    .add-to-cart-btn:disabled {
+        background: var(--color-border);
+        border-color: var(--color-border);
+        color: var(--color-text-secondary);
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .cart-message {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        font-size: 0.9rem;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .cart-message.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+    }
+
+    .cart-message.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+    }
+
+    /* Characteristics Section */
+    .characteristics-section {
+        padding: var(--spacing-xl) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .characteristics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .characteristic-item {
+        text-align: center;
+        padding: var(--spacing-lg);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        transition: all var(--transition-fast);
+    }
+
+    .characteristic-item:hover {
+        border-color: var(--color-accent);
+        background: var(--color-white);
+    }
+
+    .characteristic-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-text-secondary);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 600;
+    }
+
+    .characteristic-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    /* Families Section */
+    .families-section {
+        padding: var(--spacing-xl) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .section-subtitle {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: var(--spacing-md);
+        font-weight: 600;
+    }
+
+    .families-list {
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .family-badge {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        background: transparent;
+        border: 2px solid var(--color-accent);
+        color: var(--color-accent);
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all var(--transition-fast);
+    }
+
+    .family-badge:hover {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Tags Section - Compact */
+    .tags-compact {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+        padding: var(--spacing-xl) 0;
+    }
+
+    .tag-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .tag-group-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-text-secondary);
+        font-weight: 600;
+    }
+
+    .tag-list {
+        display: flex;
+        gap: var(--spacing-xs);
+        flex-wrap: wrap;
+    }
+
+    .tag-item {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background: var(--color-primary);
+        color: var(--color-white);
+        font-size: 0.8rem;
+        transition: all var(--transition-fast);
+    }
+
+    .tag-item:hover {
+        opacity: 0.85;
+    }
+
+    .tag-item.gold {
+        background: var(--color-accent);
+        color: var(--color-primary);
+    }
+
+    /* Notes Pyramid Section */
+    .notes-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--color-background);
+    }
+
+    .section-title {
+        font-family: var(--font-heading);
+        font-size: 1.75rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-2xl);
+        text-align: center;
+        letter-spacing: -0.01em;
+    }
+
+    .notes-pyramid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xl);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .notes-level {
+        text-align: center;
+        padding: var(--spacing-xl);
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+    }
+
+    .notes-level-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-md);
+        font-weight: 600;
+    }
+
+    .notes-list {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .note-tag {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        font-size: 0.85rem;
+        color: var(--color-primary);
+        transition: all var(--transition-fast);
+    }
+
+    .note-tag:hover {
+        border-color: var(--color-accent);
+        background: var(--color-white);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Accords Section */
+    .accords-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--color-white);
+    }
+
+    .accords-grid {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        flex-wrap: wrap;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .accord-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-lg) var(--spacing-xl);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        min-width: 120px;
+        transition: all var(--transition-fast);
+    }
+
+    .accord-item:hover {
+        border-color: var(--color-accent);
+        background: var(--color-white);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .accord-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .accord-intensity {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    /* Tags Section - Full Width */
+    .tags-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--color-background);
+    }
+
+    .tags-display {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .tags-display .tag-list {
+        justify-content: center;
+    }
+
+    .tags-display .note-tag {
+        background: var(--color-white);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1200px) {
+        .perfume-detail-grid {
+            grid-template-columns: 40% 60%;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .perfume-detail-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-2xl);
+        }
+
+        .perfume-image-section {
+            position: relative;
+            top: 0;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .perfume-title {
+            font-size: 2.25rem;
+        }
+
+        .characteristics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .tags-compact {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .perfume-title {
+            font-size: 1.85rem;
+        }
+
+        .price-large {
+            font-size: 1.85rem;
+        }
+
+        .characteristics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quantity-selector {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+
+        .quantity-label {
+            min-width: auto;
+        }
+
+        .notes-pyramid {
+            gap: var(--spacing-lg);
+        }
+
+        .notes-level {
+            padding: var(--spacing-lg);
+        }
+    }
+</style>
+
+<section class="perfume-detail-page">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-nav">
+            <a asp-action="Index" asp-controller="Perfume">← Back to collection</a>
+        </nav>
+
+        <!-- Main Detail Grid -->
+        <div class="perfume-detail-grid">
+            <!-- Image Section -->
+            <div class="perfume-image-section">
+                <div class="perfume-main-image">
+                    <img src="@(Model.ImageUrl ?? fallback)" 
+                         alt="@Model.Name perfume image"
+                         loading="lazy" />
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="perfume-info-section">
+                <!-- Header -->
+                <div class="perfume-header">
+                    <h1 class="perfume-title">@Model.Name</h1>
+                    <div class="perfume-brand-name-by">
+                        By <span class="perfume-brand-name">@Model.BrandName</span>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="perfume-badges">
+                    @if (!string.IsNullOrEmpty(Model.GenderProfile))
+                    {
+                        <span class="perfume-badge">@Model.GenderProfile</span>
+                    }
+                    @foreach (var family in Model.Families.Take(2))
+                    {
+                        <span class="perfume-badge accent">@family</span>
+                    }
+                </div>
+
+                <!-- Description -->
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="perfume-description">
+                        @Model.Description
+                    </div>
+                }
+
+                <!-- Price and Stock -->
+                <div class="price-stock-section">
+                    <div class="perfume-price-label">Price</div>
+                    <div class="price-large">@Model.Price.ToString("N0") MAD</div>
+                    @{
+                        var stockClass = Model.StockQuantity > 10 ? "in-stock" 
+                            : Model.StockQuantity > 0 ? "low-stock" 
+                            : "out-of-stock";
+                        var stockText = Model.StockQuantity > 10 
+                            ? $"In stock ({Model.StockQuantity} available)"
+                            : Model.StockQuantity > 0 
+                                ? $"Limited stock ({Model.StockQuantity} remaining)"
+                                : "Out of stock";
+                    }
+                    <div class="stock-status @stockClass">
+                        @stockText
+                    </div>
+                </div>
+
+                <!-- Add to Cart -->
+                <div class="add-to-cart-section">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="cart-message success">
+                            <span>✓</span> @TempData["Success"]
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="cart-message error">
+                            <span>✗</span> @TempData["Error"]
+                        </div>
+                    }
+                    
+                    <form method="post" asp-action="AddToCart" asp-controller="Perfume" asp-route-id="@Model.Id">
+                        <div class="quantity-selector">
+                            <span class="quantity-label">Quantity</span>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn" onclick="decreaseQuantity()">−</button>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="@Model.StockQuantity" class="quantity-input" />
+                                <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                            </div>
+                        </div>
+                        <button type="submit" 
+                                class="add-to-cart-btn"
+                                @(Model.StockQuantity <= 0 ? "disabled" : "")>
+                            @(Model.StockQuantity > 0 ? "Add to cart" : "Unavailable")
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Characteristics -->
+                @if (!string.IsNullOrEmpty(Model.Intensity) || 
+                     !string.IsNullOrEmpty(Model.Longevity) || 
+                     !string.IsNullOrEmpty(Model.Sillage))
+                {
+                    <div class="characteristics-section">
+                        <div class="characteristics-grid">
+                            @if (!string.IsNullOrEmpty(Model.Intensity))
+                            {
+                                <div class="characteristic-item">
+                                    <div class="characteristic-label">Intensity</div>
+                                    <div class="characteristic-value">@Model.Intensity</div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Longevity))
+                            {
+                                <div class="characteristic-item">
+                                    <div class="characteristic-label">Longevity</div>
+                                    <div class="characteristic-value">@Model.Longevity</div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.Sillage))
+                            {
+                                <div class="characteristic-item">
+                                    <div class="characteristic-label">Sillage</div>
+                                    <div class="characteristic-value">@Model.Sillage</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Families -->
+                @if (Model.Families.Any())
+                {
+                    <div class="families-section">
+                        <div class="section-subtitle">Olfactory Families</div>
+                        <div class="families-list">
+                            @foreach (var family in Model.Families)
+                            {
+                                <span class="family-badge">@family</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Seasons & Occasions - Compact Layout -->
+                @if (Model.Seasons.Any() || Model.Occasions.Any())
+                {
+                    <div class="tags-compact">
+                        @if (Model.Seasons.Any())
+                        {
+                            <div class="tag-group">
+                                <div class="tag-group-title">Seasons</div>
+                                <div class="tag-list">
+                                    @foreach (var season in Model.Seasons)
+                                    {
+                                        <span class="tag-item gold">@season</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (Model.Occasions.Any())
+                        {
+                            <div class="tag-group">
+                                <div class="tag-group-title">Occasions</div>
+                                <div class="tag-list">
+                                    @foreach (var occasion in Model.Occasions)
+                                    {
+                                        <span class="tag-item">@occasion</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Notes Pyramid Section -->
+        @if (Model.Notes.Any())
+        {
+            <section class="notes-section">
+                <div class="container">
+                    <h2 class="section-title">Pyramide Olfactive</h2>
+                    <div class="notes-pyramid">
+                        @if (topNotes.Any())
+                        {
+                            <div class="notes-level">
+                                <div class="notes-level-title">Notes de Tête</div>
+                                <div class="notes-list">
+                                    @foreach (var note in topNotes)
+                                    {
+                                        <span class="note-tag">@note.NoteName</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (middleNotes.Any())
+                        {
+                            <div class="notes-level">
+                                <div class="notes-level-title">Notes de Cœur</div>
+                                <div class="notes-list">
+                                    @foreach (var note in middleNotes)
+                                    {
+                                        <span class="note-tag">@note.NoteName</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (baseNotes.Any())
+                        {
+                            <div class="notes-level">
+                                <div class="notes-level-title">Notes de Fond</div>
+                                <div class="notes-list">
+                                    @foreach (var note in baseNotes)
+                                    {
+                                        <span class="note-tag">@note.NoteName</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (otherNotes.Any())
+                        {
+                            <div class="notes-level">
+                                <div class="notes-level-title">Autres Notes</div>
+                                <div class="notes-list">
+                                    @foreach (var note in otherNotes)
+                                    {
+                                        <span class="note-tag">@note.NoteName</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+
+        <!-- Accords Section -->
+        @if (Model.Accords.Any())
+        {
+            <section class="accords-section">
+                <div class="container">
+                    <h2 class="section-title">Accords</h2>
+                    <div class="accords-grid">
+                        @foreach (var accord in Model.Accords)
+                        {
+                            <div class="accord-item">
+                                <span class="accord-name">@accord.AccordName</span>
+                                @if (!string.IsNullOrEmpty(accord.Intensity))
+                                {
+                                    <span class="accord-intensity">@accord.Intensity</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        }
+
+        <!-- Tags Section -->
+        @if (Model.Tags.Any())
+        {
+            <section class="tags-section">
+                <div class="container">
+                    <h2 class="section-title">Tags</h2>
+                    <div class="tags-display">
+                        <div class="tag-list">
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <span class="note-tag">@tag</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+    </div>
+</section>
+
+<script>
+    const maxStock = @Model.StockQuantity;
+    
+    function increaseQuantity() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value) || 1;
+        if (currentValue < maxStock) {
+            input.value = currentValue + 1;
+        }
+    }
+    
+    function decreaseQuantity() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value) || 1;
+        if (currentValue > 1) {
+            input.value = currentValue - 1;
+        }
+    }
+    
+    // Ensure quantity stays within bounds on manual input
+    document.getElementById('quantity')?.addEventListener('change', function() {
+        let value = parseInt(this.value) || 1;
+        if (value < 1) value = 1;
+        if (value > maxStock) value = maxStock;
+        this.value = value;
+    });
+</script>

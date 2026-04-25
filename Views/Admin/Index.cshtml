@@ -1,297 +1,442 @@
 @model ALOud.DTOs.Admin.DashboardStatsDto
 @{
     ViewData["Title"] = "Admin Dashboard";
+    ViewData["ActiveNav"] = "Dashboard";
+    ViewData["TotalPerfumes"] = Model.TotalPerfumes;
+    ViewData["TotalBrands"] = Model.TotalBrands;
+    ViewData["TotalFamilies"] = Model.TotalFamilies;
+    ViewData["TotalNotes"] = Model.TotalNotes;
+    ViewData["TotalAccords"] = Model.TotalAccords;
+    ViewData["TotalTags"] = Model.TotalTags;
+    ViewData["TotalSeasons"] = Model.TotalSeasons;
+    ViewData["TotalOccasions"] = Model.TotalOccasions;
 }
 
-<style>
-    .admin-header {
-        padding: var(--spacing-2xl) 0 var(--spacing-xl);
-        border-bottom: 1px solid var(--color-border);
-        margin-bottom: var(--spacing-2xl);
-    }
-
-    .admin-title {
-        font-family: var(--font-heading);
-        font-size: 2.25rem;
-        font-weight: 400;
-        letter-spacing: -0.02em;
-        color: var(--color-primary);
-        margin: 0;
-    }
-
-    .admin-nav {
-        display: flex;
-        gap: var(--spacing-md);
-    }
-
-    .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: var(--spacing-lg);
-        margin-bottom: var(--spacing-2xl);
-    }
-
-    .kpi-card {
-        background: var(--color-white);
-        padding: var(--spacing-xl);
-        border: 1px solid var(--color-border);
-        transition: all var(--transition-normal);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-card);
-    }
-
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: var(--color-accent);
-        transform: scaleX(0);
-        transition: transform var(--transition-normal);
-    }
-
-    .kpi-card:hover::before {
-        transform: scaleX(1);
-    }
-
-    .kpi-label {
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--color-text-secondary);
-        margin-bottom: var(--spacing-sm);
-        font-weight: 500;
-    }
-
-    .kpi-value {
-        font-family: var(--font-heading);
-        font-size: 2.5rem;
-        font-weight: 400;
-        color: var(--color-primary);
-        line-height: 1;
-    }
-
-    .kpi-card.warning .kpi-value {
-        color: #c9a24d;
-    }
-
-    .kpi-card.danger .kpi-value {
-        color: #8b5a3c;
-    }
-
-    .kpi-card.success .kpi-value {
-        color: #4a5d4e;
-    }
-
-    .stats-section {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: var(--spacing-xl);
-        margin-bottom: var(--spacing-2xl);
-    }
-
-    @@media (min-width: 768px) {
-        .stats-section {
-            grid-template-columns: 2fr 1fr;
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
         }
-    }
 
-    .stats-card {
-        background: var(--color-white);
-        border: 1px solid var(--color-border);
-    }
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            color: var(--color-primary);
+        }
 
-    .stats-header {
-        padding: var(--spacing-lg);
-        border-bottom: 1px solid var(--color-border);
-    }
+        .page-header .breadcrumb {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
 
-    .stats-title {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        margin: 0;
-        color: var(--color-primary);
-    }
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-    .stats-body {
-        padding: var(--spacing-lg);
-    }
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--color-border);
+        }
 
-    .stats-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
 
-    .stats-table th {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--color-text-secondary);
-        font-weight: 600;
-        padding: var(--spacing-sm) var(--spacing-md);
-        text-align: left;
-        border-bottom: 1px solid var(--color-border);
-    }
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
 
-    .stats-table td {
-        padding: var(--spacing-md);
-        border-bottom: 1px solid rgba(0,0,0,0.03);
-        color: var(--color-primary);
-    }
+        .stat-card .icon.gold { background: var(--accent-color); color: var(--color-primary); }
+        .stat-card .icon.dark { background: var(--color-primary); color: #fff; }
+        .stat-card .icon.muted { background: #2a2a2a; color: var(--accent-color); }
+        .stat-card .icon.light { background: var(--body-bg); color: var(--color-primary); border: 1px solid var(--color-border); }
 
-    .stats-table tr:hover {
-        background: var(--color-hover);
-    }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            color: var(--color-primary);
+            line-height: 1;
+        }
 
-    .stats-table tr:last-child td {
-        border-bottom: none;
-    }
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
 
-    .alert-card {
-        background: var(--color-white);
-        border: 1px solid var(--color-accent);
-        max-height: 500px;
-        overflow-y: auto;
-    }
+        /* Content Cards */
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--color-border);
+        }
 
-    .alert-header {
-        padding: var(--spacing-lg);
-        background: var(--color-accent);
-        color: var(--color-white);
-        border-bottom: 1px solid var(--color-accent);
-    }
+        .content-card .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .alert-title {
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
+        .content-card .card-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            color: var(--color-primary);
+            margin: 0;
+        }
 
-    .alert-list {
-        padding: var(--spacing-md);
-    }
+        .content-card .card-body {
+            padding: 1.5rem;
+        }
 
-    .alert-item {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        padding: var(--spacing-md);
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        transition: background var(--transition-fast);
-    }
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    .alert-item:hover {
-        background: var(--color-hover);
-    }
+        .data-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--color-border);
+            font-weight: 600;
+        }
 
-    .alert-item:last-child {
-        border-bottom: none;
-    }
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9rem;
+        }
 
-    .alert-image {
-        width: 48px;
-        height: 48px;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
 
-    .alert-info {
-        flex: 1;
-    }
+        .data-table tr:hover {
+            background: rgba(201, 162, 77, 0.05);
+        }
 
-    .alert-name {
-        font-weight: 500;
-        color: var(--color-primary);
-        margin-bottom: var(--spacing-xs);
-    }
+        /* List Items */
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
 
-    .alert-stock {
-        font-size: 0.875rem;
-        color: #8b5a3c;
-        font-weight: 500;
-    }
+        .list-item:last-child {
+            border-bottom: none;
+        }
 
-    .empty-state {
-        text-align: center;
-        padding: var(--spacing-2xl);
-        color: var(--color-text-secondary);
-    }
-</style>
+        .list-item .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+        }
 
-<div class="container">
-    <div class="admin-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="admin-title">Dashboard</h1>
-            <div class="admin-nav">
-                <a asp-action="Products" class="btn btn-primary">
-                    Manage Products
-                </a>
-                <a asp-action="Categories" class="btn btn-secondary">
-                    Manage Categories
-                </a>
+        .list-item .info {
+            flex: 1;
+        }
+
+        .list-item .info .name {
+            font-weight: 600;
+            color: var(--color-primary);
+            font-size: 0.9rem;
+        }
+
+        .list-item .info .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .list-item .count {
+            background: var(--accent-color);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.25rem;
+            background: var(--body-bg);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--color-primary);
+            transition: all 0.2s ease;
+            border: 1px solid var(--color-border);
+        }
+
+        .quick-action:hover {
+            background: #fff;
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 162, 77, 0.15);
+        }
+
+        .quick-action i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .quick-action span {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Perfume Image Placeholder */
+        .perfume-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--color-primary);
+        }
+    </style>
+}
+
+<div class="page-header">
+            <div>
+                <h1>Dashboard</h1>
+                <span class="breadcrumb">Welcome back, Admin</span>
+            </div>
+            <div>
+                <span class="text-muted">@DateTime.Now.ToString("dddd, MMMM d, yyyy")</span>
             </div>
         </div>
-    </div>
 
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <div class="kpi-label">Total Products</div>
-            <div class="kpi-value">@Model.TotalProducts</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-label">Total Categories</div>
-            <div class="kpi-value">@Model.TotalCategories</div>
-        </div>
-        <div class="kpi-card warning">
-            <div class="kpi-label">Low Stock</div>
-            <div class="kpi-value">@Model.LowStockProducts</div>
-        </div>
-        <div class="kpi-card danger">
-            <div class="kpi-label">Out of Stock</div>
-            <div class="kpi-value">@Model.OutOfStockProducts</div>
-        </div>
-    </div>
-
-    <div class="kpi-grid" style="grid-template-columns: 1fr;">
-        <div class="kpi-card success">
-            <div class="kpi-label">Total Inventory Value</div>
-            <div class="kpi-value">@Model.TotalInventoryValue.ToString("C")</div>
-        </div>
-    </div>
-
-    <!-- Statistics Section -->
-    <div class="stats-section">
-        <div class="stats-card">
-            <div class="stats-header">
-                <h3 class="stats-title">Products by Category</h3>
+        <!-- Primary Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon gold">
+                    <i class="bi bi-droplet-fill"></i>
+                </div>
+                <div class="value">@Model.TotalPerfumes</div>
+                <div class="label">Total Perfumes</div>
             </div>
-            <div class="stats-body">
-                <table class="stats-table">
+            <div class="stat-card">
+                <div class="icon dark">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="value">@Model.TotalBrands</div>
+                <div class="label">Brands</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon gold">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div class="value">@Model.TotalFamilies</div>
+                <div class="label">Fragrance Families</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon dark">
+                    <i class="bi bi-music-note-beamed"></i>
+                </div>
+                <div class="value">@Model.TotalNotes</div>
+                <div class="label">Scent Notes</div>
+            </div>
+        </div>
+
+        <!-- Secondary Stats -->
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <div class="icon muted">
+                    <i class="bi bi-palette"></i>
+                </div>
+                <div class="value">@Model.TotalAccords</div>
+                <div class="label">Accords</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon light">
+                    <i class="bi bi-tags"></i>
+                </div>
+                <div class="value">@Model.TotalTags</div>
+                <div class="label">Tags</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon muted">
+                    <i class="bi bi-sun"></i>
+                </div>
+                <div class="value">@Model.TotalSeasons</div>
+                <div class="label">Seasons</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon light">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="value">@Model.TotalOccasions</div>
+                <div class="label">Occasions</div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Top Brands -->
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-trophy me-2"></i>Top Brands</h3>
+                        <a href="@Url.Action("Brands", "PerfumeAdmin")" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.TopBrands != null && Model.TopBrands.Any())
+                        {
+                            @foreach (var brand in Model.TopBrands)
+                            {
+                                <div class="list-item">
+                                    <div class="avatar">@brand.BrandName?.Substring(0, Math.Min(2, brand.BrandName.Length)).ToUpper()</div>
+                                    <div class="info">
+                                        <div class="name">@brand.BrandName</div>
+                                        <div class="meta">@brand.PerfumeCount perfumes</div>
+                                    </div>
+                                    <div class="count">@brand.PerfumeCount</div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center py-3">No brands found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Families -->
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-star me-2"></i>Top Families</h3>
+                        <a href="@Url.Action("Families", "PerfumeAdmin")" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.TopFamilies != null && Model.TopFamilies.Any())
+                        {
+                            @foreach (var family in Model.TopFamilies)
+                            {
+                                <div class="list-item">
+                                    <div class="avatar" style="background: var(--accent-color); color: var(--color-primary);">@family.FamilyName?.Substring(0, Math.Min(2, family.FamilyName.Length)).ToUpper()</div>
+                                    <div class="info">
+                                        <div class="name">@family.FamilyName</div>
+                                        <div class="meta">@family.PerfumeCount perfumes</div>
+                                    </div>
+                                    <div class="count">@family.PerfumeCount</div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center py-3">No families found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Perfumes -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3><i class="bi bi-clock-history me-2"></i>Recent Perfumes</h3>
+                <a href="@Url.Action("Perfumes", "PerfumeAdmin")" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Category</th>
-                            <th style="text-align: center;">Products</th>
-                            <th style="text-align: center;">Total Stock</th>
+                            <th>Perfume</th>
+                            <th>Brand</th>
+                            <th>Gender</th>
+                            <th>Added</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var cat in Model.CategoryStats)
+                        @if (Model.RecentPerfumes != null && Model.RecentPerfumes.Any())
+                        {
+                            @foreach (var perfume in Model.RecentPerfumes)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(perfume.ImageUrl))
+                                            {
+                                                <img src="@perfume.ImageUrl" class="perfume-img me-3" alt="@perfume.PerfumeName">
+                                            }
+                                            else
+                                            {
+                                                <div class="perfume-img me-3 d-flex align-items-center justify-content-center text-white">
+                                                    <i class="bi bi-droplet"></i>
+                                                </div>
+                                            }
+                                            <strong>@perfume.PerfumeName</strong>
+                                        </div>
+                                    </td>
+                                    <td>@perfume.BrandName</td>
+                                    <td>
+                                        <span class="badge bg-secondary">@(perfume.GenderProfile ?? "N/A")</span>
+                                    </td>
+                                    <td>@perfume.CreatedAt.ToString("MMM d, yyyy")</td>
+                                    <td>
+                                        <a href="@Url.Action("EditPerfume", "PerfumeAdmin", new { id = perfume.PerfumeId })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td style="font-weight: 500;">@cat.CategoryName</td>
-                                <td style="text-align: center;">@cat.ProductCount</td>
-                                <td style="text-align: center;">@cat.TotalStock</td>
+                                <td colspan="5" class="text-center text-muted py-4">No perfumes found</td>
                             </tr>
                         }
                     </tbody>
@@ -299,38 +444,38 @@
             </div>
         </div>
 
-        <!-- Stock Alerts -->
-        <div class="alert-card">
-            <div class="alert-header">
-                <h3 class="alert-title">
-                    <span>⚠</span>
-                    <span>Stock Alerts</span>
-                </h3>
+        <!-- Quick Actions -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3><i class="bi bi-lightning me-2"></i>Quick Actions</h3>
             </div>
-            <div class="alert-list">
-                @if (Model.LowStockAlerts.Any())
-                {
-                    @foreach (var alert in Model.LowStockAlerts)
-                    {
-                        <div class="alert-item">
-                            @if (!string.IsNullOrEmpty(alert.ImageUrl))
-                            {
-                                <img src="@alert.ImageUrl" alt="@alert.ProductName" class="alert-image" />
-                            }
-                            <div class="alert-info">
-                                <div class="alert-name">@alert.ProductName</div>
-                                <div class="alert-stock">Stock: @alert.Stock units</div>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        All products have sufficient stock
-                    </div>
-                }
+            <div class="card-body">
+                <div class="quick-actions">
+                    <a href="@Url.Action("CreatePerfume", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add Perfume</span>
+                    </a>
+                    <a href="@Url.Action("CreateBrand", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-building-add"></i>
+                        <span>Add Brand</span>
+                    </a>
+                    <a href="@Url.Action("CreateFamily", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>Add Family</span>
+                    </a>
+                    <a href="@Url.Action("CreateNote", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-music-note-beamed"></i>
+                        <span>Add Note</span>
+                    </a>
+                    <a href="@Url.Action("CreateAccord", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-palette"></i>
+                        <span>Add Accord</span>
+                    </a>
+                    <a href="@Url.Action("CreateTag", "PerfumeAdmin")" class="quick-action">
+                        <i class="bi bi-tag"></i>
+                        <span>Add Tag</span>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+

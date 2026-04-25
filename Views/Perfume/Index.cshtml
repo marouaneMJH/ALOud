@@ -1,0 +1,729 @@
+@model ViewModels.PerfumeCatalogViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Collection";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+    var searchQuery = Model.SearchQuery ?? "";
+    var selectedBrandId = Model.SelectedBrandId;
+    var selectedFamilyId = Model.SelectedFamilyId;
+    var selectedGender = Model.SelectedGender ?? "";
+    var brands = Model.Brands;
+    var families = Model.Families;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="toast-notification success" id="toast-success">
+        <span>✓ @TempData["Success"]</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 1rem;">✕</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="toast-notification error" id="toast-error">
+        <span>✗ @TempData["Error"]</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 1rem;">✕</button>
+    </div>
+}
+
+<!-- Search Section -->
+<section style="margin-bottom: var(--spacing-lg); margin-top: var(--spacing-2xl);">
+    <div class="container">
+        <form method="get" class="premium-search-form">
+            <div class="search-wrapper">
+                <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <label for="query" class="visually-hidden">Search for perfumes</label>
+                <input type="text"
+                       id="query"
+                       name="query"
+                       value="@searchQuery"
+                       class="search-input"
+                       placeholder="Search for a perfume or brand..." />
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Filter Section -->
+<section class="filter-section" style="margin-bottom: var(--spacing-3xl);">
+    <div class="container">
+        <div class="filter-row">
+            <!-- Brand Filter -->
+            <div class="filter-group">
+                <h3 class="filter-label">Brand</h3>
+                <div class="filter-pills">
+                    <a class="filter-pill @(selectedBrandId == null ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-familyId="@selectedFamilyId"
+                       asp-route-gender="@selectedGender">
+                        All
+                    </a>
+                    @if (brands != null)
+                    {
+                        @foreach (var brand in brands.Take(10))
+                        {
+                            var brandId = brand.Id;
+                            <a class="filter-pill @(selectedBrandId == brandId ? "active" : "")" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
+                               asp-route-brandId="@brandId"
+                               asp-route-query="@searchQuery"
+                               asp-route-familyId="@selectedFamilyId"
+                               asp-route-gender="@selectedGender">
+                                @brand.Name
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Family Filter -->
+            <div class="filter-group">
+                <h3 class="filter-label">Olfactory Family</h3>
+                <div class="filter-pills">
+                    <a class="filter-pill @(selectedFamilyId == null ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-gender="@selectedGender">
+                        All
+                    </a>
+                    @if (families != null)
+                    {
+                        @foreach (var family in families.Take(10))
+                        {
+                            var familyId = family.Id;
+                            <a class="filter-pill @(selectedFamilyId == familyId ? "active" : "")" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
+                               asp-route-familyId="@familyId"
+                               asp-route-query="@searchQuery"
+                               asp-route-brandId="@selectedBrandId"
+                               asp-route-gender="@selectedGender">
+                                @family.Name
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Gender Filter -->
+            <div class="filter-group">
+                <h3 class="filter-label">Gender</h3>
+                <div class="filter-pills">
+                    <a class="filter-pill @(string.IsNullOrEmpty(selectedGender) ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
+                        All
+                    </a>
+                    <a class="filter-pill @(selectedGender == "Male" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-gender="Male"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
+                        Men
+                    </a>
+                    <a class="filter-pill @(selectedGender == "Female" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-gender="Female"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
+                        Women
+                    </a>
+                    <a class="filter-pill @(selectedGender == "Unisex" ? "active" : "")" 
+                       asp-action="Index"
+                       asp-controller="Perfume"
+                       asp-route-gender="Unisex"
+                       asp-route-query="@searchQuery"
+                       asp-route-brandId="@selectedBrandId"
+                       asp-route-familyId="@selectedFamilyId">
+                        Unisex
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Accessibility */
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Toast Notifications */
+    .toast-notification {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        box-shadow: var(--shadow-elevated);
+    }
+
+    .toast-notification.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+    }
+
+    .toast-notification.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef9a9a;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .premium-search-form {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid var(--color-border);
+        transition: all var(--transition-normal);
+    }
+
+    .search-wrapper:focus-within {
+        border-bottom-color: var(--color-accent);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 0;
+        color: var(--color-text-secondary);
+        pointer-events: none;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: var(--spacing-md) 0 var(--spacing-md) 2.5rem;
+        border: none;
+        font-family: var(--font-body);
+        font-size: 1.1rem;
+        color: var(--color-primary);
+        background: transparent;
+        outline: none;
+    }
+
+    .search-input::placeholder {
+        color: var(--color-text-secondary);
+        opacity: 0.5;
+        font-weight: 300;
+    }
+
+    .filter-section {
+        background: var(--color-background);
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        padding: var(--spacing-lg) 0;
+    }
+
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+        font-weight: 600;
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+    }
+
+    .filter-pill {
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--color-white);
+        color: var(--color-primary);
+        border: 1px solid var(--color-border);
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all var(--transition-normal);
+    }
+
+    .filter-pill:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+    }
+
+    .filter-pill.active {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    /* Perfume Grid */
+    .perfume-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--spacing-xl);
+    }
+
+    .perfume-card {
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        transition: all var(--transition-normal);
+        overflow: hidden;
+    }
+
+    .perfume-card:hover {
+        border-color: var(--color-accent);
+        box-shadow: var(--shadow-elevated);
+        transform: translateY(-4px);
+    }
+
+    .perfume-image-container {
+        position: relative;
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: var(--color-background);
+    }
+
+    .perfume-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-slow);
+    }
+
+    .perfume-card:hover .perfume-image {
+        transform: scale(1.05);
+    }
+
+    .perfume-badge {
+        position: absolute;
+        top: var(--spacing-md);
+        left: var(--spacing-md);
+        background: var(--color-primary);
+        color: var(--color-white);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .perfume-info {
+        padding: var(--spacing-lg);
+    }
+
+    .perfume-brand {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-xs);
+        font-weight: 600;
+    }
+
+    .perfume-name {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 400;
+        line-height: 1.3;
+    }
+
+    .perfume-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .perfume-families {
+        font-size: 0.8rem;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-xs);
+        font-weight: 500;
+    }
+
+    .perfume-description {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .perfume-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: var(--spacing-sm);
+        border-top: 1px solid var(--color-border);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .perfume-stock {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .perfume-stock.in-stock {
+        color: #2e7d32;
+    }
+
+    .perfume-stock.out-of-stock {
+        color: #c62828;
+    }
+
+    .view-details-btn {
+        display: block;
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: transparent;
+        color: var(--color-primary);
+        border: 1px solid var(--color-primary);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-align: center;
+        text-decoration: none;
+        margin-top: var(--spacing-md);
+        transition: all var(--transition-normal);
+    }
+
+    .view-details-btn:hover {
+        background: var(--color-primary);
+        color: var(--color-white);
+    }
+
+    .add-to-cart-btn {
+        display: block;
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-accent);
+        color: var(--color-primary);
+        border: 1px solid var(--color-accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-align: center;
+        cursor: pointer;
+        margin-top: var(--spacing-sm);
+        transition: all var(--transition-normal);
+    }
+
+    .add-to-cart-btn:hover {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    .add-to-cart-btn:disabled {
+        background: var(--color-border);
+        border-color: var(--color-border);
+        color: var(--color-text-secondary);
+        cursor: not-allowed;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .pagination-info {
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+    }
+
+    .pagination-nav {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .pagination-link {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-white);
+        color: var(--color-primary);
+        border: 1px solid var(--color-border);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all var(--transition-normal);
+    }
+
+    .pagination-link:hover {
+        border-color: var(--color-accent);
+    }
+
+    .pagination-link.active {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--color-border);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @@media (max-width: 768px) {
+        .search-input {
+            font-size: 1rem;
+            padding: var(--spacing-sm) 0 var(--spacing-sm) 2.5rem;
+        }
+
+        .perfume-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: var(--spacing-md);
+        }
+    }
+</style>
+
+<!-- Perfumes Grid -->
+<section>
+    <div class="container">
+        @if (Model.Items.Any())
+        {
+            <div class="perfume-grid">
+                @foreach (var perfume in Model.Items)
+                {
+                    <article class="perfume-card">
+                        <!-- Perfume Image -->
+                        <a asp-action="Details" 
+                           asp-controller="Perfume" 
+                           asp-route-id="@perfume.Id" 
+                           class="text-decoration-none">
+                            <div class="perfume-image-container">
+                                @if (!string.IsNullOrEmpty(perfume.GenderProfile))
+                                {
+                                    <span class="perfume-badge">@perfume.GenderProfile</span>
+                                }
+                                 <img src="@(perfume.ImageUrl ?? fallback)" 
+                                     alt="@perfume.Name"
+                                     class="perfume-image" 
+                                     data-fallback="@fallback" />
+                            </div>
+                        </a>
+
+                        <!-- Perfume Info -->
+                        <div class="perfume-info">
+                            <div class="perfume-brand">@perfume.BrandName</div>
+                           <a asp-action="Details" 
+                               asp-controller="Perfume" 
+                               asp-route-id="@perfume.Id" 
+                               class="text-decoration-none">
+                                <h3 class="perfume-name">@perfume.Name</h3>
+                            </a>
+                            
+                            @if (perfume.Families.Any())
+                            {
+                                <div class="perfume-families">
+                                    @string.Join(" • ", perfume.Families.Take(2))
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(perfume.Description))
+                            {
+                                <p class="perfume-description">@(perfume.Description.Length > 80 ? perfume.Description.Substring(0, 80) + "..." : perfume.Description)</p>
+                            }
+
+                            <div class="perfume-footer">
+                                <div class="perfume-price">@perfume.Price.ToString("N0") MAD</div>
+                                <div class="perfume-stock @(perfume.StockQuantity > 0 ? "in-stock" : "out-of-stock")">
+                                    @(perfume.StockQuantity > 0 ? $"In stock ({perfume.StockQuantity})" : "Out of stock")
+                                </div>
+                            </div>
+
+                            <form method="post" asp-action="AddToCart" asp-controller="Perfume" asp-route-id="@perfume.Id">
+                                <button type="submit" 
+                                        class="add-to-cart-btn" 
+                                        @(perfume.StockQuantity <= 0 ? "disabled" : "")>
+                                    @(perfume.StockQuantity > 0 ? "Add to cart" : "Unavailable")
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">🌸</div>
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">No perfumes found</h3>
+                <p style="color: var(--color-text-secondary);">
+                    Try changing your search criteria or explore our entire collection.
+                </p>
+                <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary mt-3">
+                    View full collection
+                </a>
+            </div>
+        }
+
+        @* Pagination *@
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Page @Model.PageIndex of @Model.TotalPages (@Model.TotalCount perfumes)
+                </div>
+                <nav class="pagination-nav">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a class="pagination-link" 
+                           asp-action="Index"
+                           asp-controller="Perfume"
+                           asp-route-pageIndex="@(Model.PageIndex - 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           asp-route-query="@searchQuery"
+                           asp-route-brandId="@selectedBrandId"
+                           asp-route-familyId="@selectedFamilyId"
+                           asp-route-gender="@selectedGender">
+                            ← Previous
+                        </a>
+                    }
+
+                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                    {
+                        if (i == Model.PageIndex)
+                        {
+                            <span class="pagination-link active">@i</span>
+                        }
+                        else
+                        {
+                            <a class="pagination-link" 
+                               asp-action="Index"
+                               asp-controller="Perfume"
+                               asp-route-pageIndex="@i"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-query="@searchQuery"
+                               asp-route-brandId="@selectedBrandId"
+                               asp-route-familyId="@selectedFamilyId"
+                               asp-route-gender="@selectedGender">
+                                @i
+                            </a>
+                        }
+                    }
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a class="pagination-link" 
+                           asp-action="Index"
+                           asp-controller="Perfume"
+                           asp-route-pageIndex="@(Model.PageIndex + 1)"
+                           asp-route-pageSize="@Model.PageSize"
+                           asp-route-query="@searchQuery"
+                           asp-route-brandId="@selectedBrandId"
+                           asp-route-familyId="@selectedFamilyId"
+                           asp-route-gender="@selectedGender">
+                            Next →
+                        </a>
+                    }
+                </nav>
+            </div>
+        }
+    </div>
+</section>
+
+<script>
+    // Handle image load errors with fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.perfume-image[data-fallback]');
+        images.forEach(img => {
+            img.addEventListener('error', function() {
+                if (this.src !== this.dataset.fallback) {
+                    this.src = this.dataset.fallback;
+                }
+            });
+        });
+
+        // Handle search form submission
+        const searchInput = document.getElementById('query');
+        if (searchInput) {
+            searchInput.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+    });
+
+    // Auto-dismiss toast notifications after 4 seconds
+    setTimeout(() => {
+        const toasts = document.querySelectorAll('.toast-notification');
+        toasts.forEach(toast => {
+            toast.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        });
+    }, 4000);
+</script>
+
+<style>
+    @@keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+</style>

@@ -1,0 +1,123 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.5.2 Chrome/142.0.7444.265 Electron/39.6.1 Safari/537.36" version="29.5.2">
+  <diagram name="Page-1" id="0j4L6zopPw19DRQLsubp">
+    <mxGraphModel dx="1095" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-2" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" value="Syst&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;emExpertService&lt;/span&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="250" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-5" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.07;entryY=0.042;entryDx=0;entryDy=0;entryPerimeter=0;" target="UnSA4lu3DCAS0gy-ns2p-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="67.7" y="320" as="sourcePoint" />
+            <mxPoint x="412.2999999999999" y="381.27" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-7" connectable="0" parent="UnSA4lu3DCAS0gy-ns2p-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Fill Form (UserProfleDto&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;)&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.1543" y="-5" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-3" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Actor" vertex="1">
+          <mxGeometry height="60" width="30" x="50" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-16" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-17" connectable="0" parent="UnSA4lu3DCAS0gy-ns2p-16" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Recomendation Dom&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ain&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.123" y="-6" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-9" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="Expert System Raw Recomendation" vertex="1">
+          <mxGeometry height="140" width="140" x="400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-12" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.462;entryY=0.951;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0;exitDx=160;exitDy=65;exitPerimeter=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="339" y="255" as="sourcePoint" />
+            <mxPoint x="463.68000000000006" y="163.14" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-13" connectable="0" parent="UnSA4lu3DCAS0gy-ns2p-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="R&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ecomendation Domain&lt;/span&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.0792" y="-4" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-15" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" value="&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="500" width="790" x="700" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-19" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="Recomendation Web Interface (RAW)" vertex="1">
+          <mxGeometry height="120" width="120" x="160" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-20" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.049;entryY=0.524;entryDx=0;entryDy=0;entryPerimeter=0;" target="UnSA4lu3DCAS0gy-ns2p-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-62" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-61" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-22" parent="1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" value="LLM" vertex="1">
+          <mxGeometry height="80" width="120" x="1215" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-42" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-41" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-44" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-43" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="755" y="360" />
+              <mxPoint x="760" y="360" />
+              <mxPoint x="760" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-24" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Rec" vertex="1">
+          <mxGeometry height="30" width="30" x="740" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-58" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-41" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="Explaination" vertex="1">
+          <mxGeometry height="60" width="120" x="780" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-43" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="Pure Recomendation" vertex="1">
+          <mxGeometry height="60" width="120" x="770" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-53" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-51">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="865" y="115" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-55" connectable="0" parent="UnSA4lu3DCAS0gy-ns2p-53" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Search" vertex="1">
+          <mxGeometry relative="1" x="-0.127" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-57" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-56" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-51" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" value="VecDB&lt;div&gt;QDRANT&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="60" x="950" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-59" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="UnSA4lu3DCAS0gy-ns2p-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-56" parent="1" style="whiteSpace=wrap;html=1;" value="Top&amp;nbsp; K Products" vertex="1">
+          <mxGeometry height="60" width="120" x="1060" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-61" parent="1" style="whiteSpace=wrap;html=1;" value="LLM Resp" vertex="1">
+          <mxGeometry height="60" width="120" x="1415" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-63" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;fillColor=#e3c800;fontColor=#000000;strokeColor=#B09500;" value="Recommended Products (WEB UI)" vertex="1">
+          <mxGeometry height="150" width="150" x="1700" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="UnSA4lu3DCAS0gy-ns2p-64" edge="1" parent="1" source="UnSA4lu3DCAS0gy-ns2p-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.061;entryY=0.594;entryDx=0;entryDy=0;entryPerimeter=0;" target="UnSA4lu3DCAS0gy-ns2p-63">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

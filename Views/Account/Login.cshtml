@@ -1,22 +1,20 @@
 ﻿@model ALOud.DTOs.LoginDto
 @{
-    ViewData["Title"] = "Connexion";
+    ViewData["Title"] = "Login";
+    Layout = "_AuthLayout";
 }
 
-<!-- Auth Container -->
-<section class="py-6">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <!-- Header -->
-                <div class="text-center mb-5">
-                    <h1 class="mb-3">Connexion</h1>
-                    <p class="text-muted">Accédez à votre espace personnel ALOud</p>
-                </div>
-
-                <!-- Login Form -->
-                <div class="auth-card">
-                    <form asp-action="Login" method="post" novalidate>
+<!-- Auth Card -->
+<div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+        <h1>ALOud</h1>
+        <p class="text-muted mb-0">Sign in to your account</p>
+    </div>
+    
+    <!-- Login Form -->
+    <div>
+                    <form asp-route="MvcAccountLoginPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -27,7 +25,7 @@
                             <input asp-for="Email" 
                                    type="email" 
                                    class="form-control" 
-                                   placeholder="votre@email.com" 
+                                   placeholder="your@email.com" 
                                    autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
@@ -35,11 +33,11 @@
                         <!-- Password Field -->
                         <div class="mb-4">
                             <label asp-for="Password" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Mot de passe</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Password</label>
                             <input asp-for="Password" 
                                    type="password" 
                                    class="form-control" 
-                                   placeholder="Votre mot de passe" 
+                                   placeholder="Your password" 
                                    autocomplete="current-password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
@@ -47,23 +45,20 @@
                         <!-- Submit Button -->
                         <div class="mb-4">
                             <button type="submit" class="btn btn-primary w-100">
-                                Se connecter
+                                Sign in
                             </button>
                         </div>
 
                         <!-- Register Link -->
                         <div class="text-center">
                             <p class="mb-0 text-muted">
-                                Pas encore de compte ? 
-                                <a href="Register" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Créer un compte</a>
+                                Don't have an account? 
+                                <a asp-route="MvcAccountRegisterGet" class="text-decoration-none" style="color: var(--color-accent);cursor:pointer;">Create an account</a>
                             </p>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

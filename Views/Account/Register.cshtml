@@ -1,22 +1,21 @@
 ﻿@model ALOud.DTOs.CreateUserDto
 @{
-    ViewData["Title"] = "Créer un compte";
+    ViewData["Title"] = "Create an account";
+    Layout = "_AuthLayout";
+    ViewData["WideLayout"] = "true";
 }
 
-<!-- Auth Container -->
-<section class="py-6">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <!-- Header -->
-                <div class="text-center mb-5">
-                    <h1 class="mb-3">Créer un compte</h1>
-                    <p class="text-muted">Rejoignez la communauté ALOud et découvrez nos fragrances exclusives</p>
-                </div>
-
-                <!-- Register Form -->
-                <div class="auth-card">
-                    <form asp-action="Register" method="post" novalidate>
+<!-- Auth Card -->
+<div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+        <h1>ALOud</h1>
+        <p class="text-muted mb-0">Create an account</p>
+    </div>
+    
+    <!-- Register Form -->
+    <div>
+                    <form asp-route="MvcAccountRegisterPost" method="post" novalidate>
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -25,11 +24,11 @@
                             <!-- First Name -->
                             <div class="col-md-6 mb-4">
                                 <label asp-for="FirstName" class="form-label small text-uppercase" 
-                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Prénom *</label>
+                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">First Name *</label>
                                 <input asp-for="FirstName" 
                                        type="text" 
                                        class="form-control" 
-                                       placeholder="Votre prénom" 
+                                       placeholder="Your first name" 
                                        autocomplete="given-name" />
                                 <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
@@ -37,11 +36,11 @@
                             <!-- Last Name -->
                             <div class="col-md-6 mb-4">
                                 <label asp-for="LastName" class="form-label small text-uppercase" 
-                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Nom *</label>
+                                       style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Last Name *</label>
                                 <input asp-for="LastName" 
                                        type="text" 
                                        class="form-control" 
-                                       placeholder="Votre nom de famille" 
+                                       placeholder="Your last name" 
                                        autocomplete="family-name" />
                                 <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
@@ -54,7 +53,7 @@
                             <input asp-for="Email" 
                                    type="email" 
                                    class="form-control" 
-                                   placeholder="votre@email.com" 
+                                   placeholder="your@email.com" 
                                    autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
@@ -62,11 +61,11 @@
                         <!-- Address Field -->
                         <div class="mb-4">
                             <label asp-for="Address" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Adresse *</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Address *</label>
                             <input asp-for="Address" 
                                    type="text" 
                                    class="form-control" 
-                                   placeholder="Votre adresse complète" 
+                                   placeholder="Your complete address" 
                                    autocomplete="street-address" />
                             <span asp-validation-for="Address" class="text-danger small"></span>
                         </div>
@@ -74,49 +73,72 @@
                         <!-- Password Field -->
                         <div class="mb-4">
                             <label asp-for="Password" class="form-label small text-uppercase" 
-                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Mot de passe *</label>
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Password *</label>
                             <input asp-for="Password" 
                                    type="password" 
                                    class="form-control" 
-                                   placeholder="Minimum 8 caractères" 
+                                   placeholder="Minimum 8 characters" 
                                    autocomplete="new-password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                             <div class="form-text text-muted small mt-1">
-                                Votre mot de passe doit contenir au minimum 8 caractères
+                                Your password must contain:
+                                <ul class="mb-0 mt-1" style="font-size: 0.875rem;">
+                                    <li>At least 8 characters</li>
+                                    <li>One uppercase letter (A-Z)</li>
+                                    <li>One lowercase letter (a-z)</li>
+                                    <li>One digit (0-9)</li>
+                                    <li>One special character (@@$!%*?&)</li>
+                                </ul>
                             </div>
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label small text-uppercase" 
+                                   style="color: var(--color-text-secondary); font-weight: 600; letter-spacing: 0.05em;">Confirm Password *</label>
+                            <input asp-for="ConfirmPassword" 
+                                   type="password" 
+                                   class="form-control" 
+                                   placeholder="Re-enter your password" 
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
 
                         <!-- Terms & Conditions -->
                         <div class="mb-4">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="termsAccepted" required>
-                                <label class="form-check-label text-muted small" for="termsAccepted">
-                                    J'accepte les <a href="#" class="text-decoration-none" style="color: var(--color-accent);">conditions générales</a> 
-                                    et la <a asp-page="/Privacy" class="text-decoration-none" style="color: var(--color-accent);">politique de confidentialité</a>
+                                <input asp-for="AcceptedTerms" 
+                                       class="form-check-input" 
+                                       type="checkbox" 
+                                       id="acceptedTerms" />
+                                <label class="form-check-label text-muted small" for="acceptedTerms">
+                                    I accept the <a href="#" class="text-decoration-none" style="color: var(--color-accent);">terms and conditions</a> 
+                                    and the <a asp-controller="Home" asp-action="Privacy" class="text-decoration-none" style="color: var(--color-accent);">privacy policy</a> *
                                 </label>
+                                <span asp-validation-for="AcceptedTerms" class="text-danger small d-block mt-1"></span>
+                            </div>
+                            <div class="form-text text-muted small mt-2">
+                                <strong>Important:</strong> You must accept the terms and conditions to create an account.
                             </div>
                         </div>
 
                         <!-- Submit Button -->
                         <div class="mb-4">
                             <button type="submit" class="btn btn-primary w-100">
-                                Créer mon compte
+                                Create my account
                             </button>
                         </div>
 
                         <!-- Login Link -->
                         <div class="text-center">
                             <p class="mb-0 text-muted">
-                                Déjà un compte ? 
-                                <a asp-action="Login" class="text-decoration-none" style="color: var(--color-accent);">Se connecter</a>
+                                Already have an account? 
+                                <a asp-route="MvcAccountLoginGet" class="text-decoration-none" style="color: var(--color-accent);">Sign in</a>
                             </p>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

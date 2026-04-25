@@ -1,0 +1,90 @@
+@model ALOud.DTOs.CreateAddressDto
+
+<form id="addressForm" onsubmit="submitAddressForm(event)">
+    @Html.AntiForgeryToken()
+    @if (Model is ALOud.DTOs.UpdateAddressDto updateDto)
+    {
+        <input type="hidden" name="Id" value="@updateDto.Id" />
+    }
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="FirstName" class="form-label small fw-bold">First Name</label>
+            <input asp-for="FirstName" class="form-control" placeholder="John" required />
+            <span asp-validation-for="FirstName" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="LastName" class="form-label small fw-bold">Last Name</label>
+            <input asp-for="LastName" class="form-control" placeholder="Doe" required />
+            <span asp-validation-for="LastName" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-12">
+            <label asp-for="AddressLine1" class="form-label small fw-bold">Address Line 1</label>
+            <input asp-for="AddressLine1" class="form-control" placeholder="123 Luxury Ave" required />
+            <span asp-validation-for="AddressLine1" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-12">
+            <label asp-for="AddressLine2" class="form-label small fw-bold">Address Line 2 (Optional)</label>
+            <input asp-for="AddressLine2" class="form-control" placeholder="Apt, Suite, Room" />
+            <span asp-validation-for="AddressLine2" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="City" class="form-label small fw-bold">City</label>
+            <input asp-for="City" class="form-control" placeholder="Casablanca" required />
+            <span asp-validation-for="City" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="State" class="form-label small fw-bold">State / Province</label>
+            <input asp-for="State" class="form-control" placeholder="Grand Casablanca" required />
+            <span asp-validation-for="State" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="PostalCode" class="form-label small fw-bold">Postal Code</label>
+            <input asp-for="PostalCode" class="form-control" placeholder="20000" required />
+            <span asp-validation-for="PostalCode" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="Country" class="form-label small fw-bold">Country</label>
+            <input asp-for="Country" class="form-control" placeholder="Morocco" required />
+            <span asp-validation-for="Country" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="PhoneNumber" class="form-label small fw-bold">Phone Number</label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="+212 ..." />
+            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-md-6">
+            <label asp-for="AddressType" class="form-label small fw-bold">Address Type</label>
+            <select asp-for="AddressType" class="form-select">
+                <option value="Home">Home</option>
+                <option value="Work">Work</option>
+                <option value="Other">Other</option>
+            </select>
+            <span asp-validation-for="AddressType" class="text-danger small"></span>
+        </div>
+        
+        <div class="col-12">
+            <div class="form-check">
+                <input asp-for="IsDefault" class="form-check-input" type="checkbox" id="isDefaultCheck">
+                <label class="form-check-label small" for="isDefaultCheck">
+                    Set as default address
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" onclick="hideAddressForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+            @(Model is ALOud.DTOs.UpdateAddressDto ? "Update Address" : "Save Address")
+        </button>
+    </div>
+</form>

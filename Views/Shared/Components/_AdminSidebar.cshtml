@@ -1,0 +1,118 @@
+@{
+    // These are optional — sidebar badges will just be hidden if not provided.
+    int totalPerfumes    = ViewData.ContainsKey("TotalPerfumes")    ? (int)ViewData["TotalPerfumes"]!    : 0;
+    int totalBrands      = ViewData.ContainsKey("TotalBrands")      ? (int)ViewData["TotalBrands"]!      : 0;
+    int totalFamilies    = ViewData.ContainsKey("TotalFamilies")    ? (int)ViewData["TotalFamilies"]!    : 0;
+    int totalNotes       = ViewData.ContainsKey("TotalNotes")       ? (int)ViewData["TotalNotes"]!       : 0;
+    int totalAccords     = ViewData.ContainsKey("TotalAccords")     ? (int)ViewData["TotalAccords"]!     : 0;
+    int totalTags        = ViewData.ContainsKey("TotalTags")        ? (int)ViewData["TotalTags"]!        : 0;
+    int totalSeasons     = ViewData.ContainsKey("TotalSeasons")     ? (int)ViewData["TotalSeasons"]!     : 0;
+    int totalOccasions   = ViewData.ContainsKey("TotalOccasions")   ? (int)ViewData["TotalOccasions"]!   : 0;
+
+    // Each page sets this so the correct nav-link gets the "active" class.
+    string activeNav = ViewData.ContainsKey("ActiveNav") ? (string)ViewData["ActiveNav"]! : "";
+}
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <!-- Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="sidebar-brand">
+        <h2>
+            <i class="bi bi-droplet-fill"></i> 
+            <span class="sidebar-text">ALOud</span>
+        </h2>
+        <span class="sidebar-text sidebar-subtitle">Perfume Admin Panel</span>
+    </div>
+
+    <nav>
+        <!-- Overview -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">Overview</div>
+            <a href="@Url.Action("Index", "Admin")" class="nav-link @(activeNav == "Dashboard" ? "active" : "")" title="Dashboard">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Catalog -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">Catalog</div>
+            <a href="@Url.Action("Perfumes", "PerfumeAdmin")" class="nav-link @(activeNav == "Perfumes" ? "active" : "")" title="Perfumes">
+                <i class="bi bi-droplet"></i>
+                <span class="sidebar-text">Perfumes</span>
+                @if (totalPerfumes > 0) { <span class="badge sidebar-text">@totalPerfumes</span> }
+            </a>
+            <a href="@Url.Action("Brands", "PerfumeAdmin")" class="nav-link @(activeNav == "Brands" ? "active" : "")" title="Brands">
+                <i class="bi bi-building"></i>
+                <span class="sidebar-text">Brands</span>
+                @if (totalBrands > 0) { <span class="badge sidebar-text">@totalBrands</span> }
+            </a>
+        </div>
+
+        <!-- Classifications -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">Classifications</div>
+            <a href="@Url.Action("Families", "PerfumeAdmin")" class="nav-link @(activeNav == "Families" ? "active" : "")" title="Families">
+                <i class="bi bi-diagram-3"></i>
+                <span class="sidebar-text">Families</span>
+                @if (totalFamilies > 0) { <span class="badge sidebar-text">@totalFamilies</span> }
+            </a>
+            <a href="@Url.Action("Notes", "PerfumeAdmin")" class="nav-link @(activeNav == "Notes" ? "active" : "")" title="Notes">
+                <i class="bi bi-music-note-beamed"></i>
+                <span class="sidebar-text">Notes</span>
+                @if (totalNotes > 0) { <span class="badge sidebar-text">@totalNotes</span> }
+            </a>
+            <a href="@Url.Action("Accords", "PerfumeAdmin")" class="nav-link @(activeNav == "Accords" ? "active" : "")" title="Accords">
+                <i class="bi bi-palette"></i>
+                <span class="sidebar-text">Accords</span>
+                @if (totalAccords > 0) { <span class="badge sidebar-text">@totalAccords</span> }
+            </a>
+        </div>
+
+        <!-- Attributes -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">Attributes</div>
+            <a href="@Url.Action("Tags", "PerfumeAdmin")" class="nav-link @(activeNav == "Tags" ? "active" : "")" title="Tags">
+                <i class="bi bi-tags"></i>
+                <span class="sidebar-text">Tags</span>
+                @if (totalTags > 0) { <span class="badge sidebar-text">@totalTags</span> }
+            </a>
+            <a href="@Url.Action("Seasons", "PerfumeAdmin")" class="nav-link @(activeNav == "Seasons" ? "active" : "")" title="Seasons">
+                <i class="bi bi-sun"></i>
+                <span class="sidebar-text">Seasons</span>
+                @if (totalSeasons > 0) { <span class="badge sidebar-text">@totalSeasons</span> }
+            </a>
+            <a href="@Url.Action("Occasions", "PerfumeAdmin")" class="nav-link @(activeNav == "Occasions" ? "active" : "")" title="Occasions">
+                <i class="bi bi-calendar-event"></i>
+                <span class="sidebar-text">Occasions</span>
+                @if (totalOccasions > 0) { <span class="badge sidebar-text">@totalOccasions</span> }
+            </a>
+        </div>
+
+        <!-- AI & Intelligence -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">AI & Intelligence</div>
+            <a href="@Url.Action("ExpertSystem", "Admin")" class="nav-link @(activeNav == "ExpertSystem" ? "active" : "")" title="Expert System">
+                <i class="bi bi-lightbulb"></i>
+                <span class="sidebar-text">Expert System</span>
+            </a>
+            <a href="@Url.Action("LLMConfig", "Admin")" class="nav-link @(activeNav == "LLMConfig" ? "active" : "")" title="LLM Configuration">
+                <i class="bi bi-robot"></i>
+                <span class="sidebar-text">LLM Configuration</span>
+            </a>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-section">
+            <div class="nav-section-title sidebar-text">Navigation</div>
+            <a href="@Url.Action("Index", "Perfume")" class="nav-link" title="Back to Store">
+                <i class="bi bi-box-arrow-left"></i>
+                <span class="sidebar-text">Back to Store</span>
+            </a>
+        </div>
+    </nav>
+</aside>

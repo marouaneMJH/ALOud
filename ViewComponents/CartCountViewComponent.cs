@@ -1,21 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Services;
+using ALOud.Services;
 
 namespace ViewComponents
 {
     public class CartCountViewComponent : ViewComponent
     {
-        private readonly CartService _cartService;
+        private readonly ICartService _cartService;
 
-        public CartCountViewComponent(CartService cartService)
+        public CartCountViewComponent(ICartService cartService)
         {
             _cartService = cartService;
         }
 
-        public IViewComponentResult Invoke()
+        public async Task<IViewComponentResult> InvokeAsync()
         {
-            var count = _cartService.GetCartItemCount();
-            return View(count);
+            var count = await _cartService.GetCartItemCountAsync();
+            return Content(count.ToString());
         }
     }
 }

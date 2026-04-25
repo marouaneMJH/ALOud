@@ -238,6 +238,17 @@ ClientBin/
 *.jfm
 *.pfx
 *.publishsettings
+
+# Local SonarQube environment variables (contains secrets)
+.env.sonar
+
+# Code coverage reports and artifacts
+coverage.xml
+coverage/
+*.coverage
+OpenCover/
+.sonarqube/
+
 orleans.codegen.cs
 
 # Including strong name files can present a security risk
@@ -367,3 +378,20 @@ FodyWeavers.xsd
 .idea
 
 .config
+
+
+raw-data/scrapers/src/*.ts
+
+/.private/
+/.vscode/
+/backups/
+*issues.json
+
+# Code analysis
+/.sonarqube/
+/.scannerwork/
+
+
+/coverage-*/
+#ignoring the global.json file
+/global.json

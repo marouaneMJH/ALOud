@@ -32,11 +32,14 @@ ALOud is a sophisticated perfume and fragrance e-commerce platform built with **
 ## How to run
 
 1. Clone the repository
-2. Configure connection strings in `appsettings.json`:
-    - SQL Server connection string
-    - Redis connection string
-3. Run database migrations: `dotnet ef database update`
-4. Start the project: `dotnet run`
+2. Restore missing services: `docker compose up -d`
+3. Configure environment variables:
+    - Copy `.env.example` to `.env`
+    - Fill in `DB_CONNECTION_STRING` (Password must match `docker-compose.yml`)
+    - Fill in `SMTP_USER` and `SMTP_PASSWORD` for email features
+    - Fill in `GEMINI_API_KEY` for AI features
+4. Run database migrations: `dotnet ef database update`
+5. Start the project: `make dev` (or `dotnet run`)
 
 ## Database Structure
 

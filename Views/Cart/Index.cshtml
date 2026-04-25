@@ -1,0 +1,174 @@
+@model List<ViewModels.CartItemVM>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Cart";
+    var fallback = Configuration["Images:FallbackUrl"] ?? "/images/placeholder.jpg";
+}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-2 mb-3">Your Cart</h1>
+            @if (Model.Any())
+            {
+                <p style="color: var(--color-text-secondary);">
+                    @Model.Count @(Model.Count > 1 ? "items" : "item") in your selection
+                </p>
+            }
+        </div>
+
+        @if (!Model.Any())
+        {
+            <!-- Empty Cart -->
+            <div class="text-center py-6">
+                <div class="mb-4">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--color-text-secondary); opacity: 0.5;">
+                        <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.4 5.1 16.4H17M17 13V17A2 2 0 0 1 15 19H9A2 2 0 0 1 7 17V13M17 13H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3 class="h4 mb-3" style="color: var(--color-text-secondary);">Your cart is empty</h3>
+                <p class="mb-4" style="color: var(--color-text-secondary);">
+                    Discover our collection of authentic perfumes and add your favorites.
+                </p>
+                <a asp-action="Index" asp-controller="Perfume" class="btn btn-primary">
+                    Discover the collection
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Cart Items -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Cart Table -->
+                    <div class="mb-5">
+                        <table class="cart-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3" style="width: 80px; height: 80px; background: var(--color-background); border-radius: 4px; overflow: hidden;">
+                                                     <img src="@item.ImageUrl" 
+                                                        alt="@item.ProductName"
+                                                        class="cart-item-image"
+                                                        style="width: 100%; height: 100%; object-fit: cover;" 
+                                                        data-fallback="@fallback" />
+                                                </div>
+                                                <div>
+                                                    <p class="small mb-0" style="color: var(--color-accent); text-transform: uppercase; letter-spacing: 0.05em;">
+                                                        @item.BrandName
+                                                    </p>
+                                                    <h4 class="h6 mb-0">@item.ProductName</h4>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-inline-flex align-items-center">
+                                                <form method="post" asp-action="Decrease" asp-controller="Cart" class="d-inline">
+                                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                                    <button type="submit"
+                                                            class="btn btn-minimal p-2"
+                                                            style="border: 1px solid var(--color-border); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                        −
+                                                    </button>
+                                                </form>
+                                                <span class="mx-3 fw-semibold">@item.Quantity</span>
+                                                <form method="post" asp-action="Increase" asp-controller="Cart" class="d-inline">
+                                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                                    <button type="submit"
+                                                            class="btn btn-minimal p-2"
+                                                            style="border: 1px solid var(--color-border); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                        +
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                        <td class="text-end">
+                                            <span style="color: var(--color-text-secondary);">@item.Price.ToString("N0") MAD</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="fw-semibold" style="color: var(--color-accent);">@item.Total.ToString("N0") MAD</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" asp-action="Remove" asp-controller="Cart" class="d-inline">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button type="submit"
+                                                        class="btn btn-minimal p-2"
+                                                        style="color: var(--color-text-secondary);"
+                                                        title="Remove">
+                                                    ✕
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="col-lg-4">
+                    <div class="p-4" style="background: var(--color-white); border: 1px solid var(--color-border);">
+                        <h3 class="h5 mb-4">Order Summary</h3>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Subtotal</span>
+                            <span style="color: var(--color-text-secondary);">@Model.Sum(i => i.Total).ToString("N0") MAD</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Shipping</span>
+                            <span style="color: var(--color-text-secondary);">Free</span>
+                        </div>
+                        
+                        <hr class="my-3" style="border-color: var(--color-border);">
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-semibold">Total</span>
+                            <span class="fw-semibold" style="color: var(--color-accent); font-size: 1.25rem;">
+                                @Model.Sum(i => i.Total).ToString("N0") MAD
+                            </span>
+                        </div>
+                        
+                        <a href="/Checkout" class="btn btn-primary w-100 py-3">
+                            Proceed to checkout
+                        </a>
+                        
+                        <div class="text-center mt-3">
+                            <a asp-action="Index" asp-controller="Perfume" class="btn btn-minimal">
+                                Continue shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<script>
+    // Handle image load errors with fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.cart-item-image[data-fallback]');
+        images.forEach(img => {
+            img.addEventListener('error', function() {
+                if (this.src !== this.dataset.fallback) {
+                    this.src = this.dataset.fallback;
+                }
+            });
+        });
+    });
+</script>

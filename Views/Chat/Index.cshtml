@@ -1,0 +1,504 @@
+@{
+    ViewData["Title"] = "Assistant Shopping";
+    string baseChatApiUrl = "/api/v1/ai/rag/chat";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <!-- Chat Container -->
+        <!-- Messages Area -->
+        <div id="chatMessages" class="chat-messages">
+            <!-- Welcome Message -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-container">
+            <form id="chatForm" class="chat-input-form">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Write your message..." 
+                    autocomplete="off"
+                    required
+                />
+                <button type="submit" class="chat-send-btn" id="sendBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+            <div class="text-center mt-2">
+                <small class="text-muted">Click Enter to send</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Auto-scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Add message to chat
+    function addMessage(text, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        
+        if (!isUser) {
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+            `;
+            messageDiv.appendChild(avatar);
+        }
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        // Render content with inline images
+        contentDiv.innerHTML = formatContentWithInlineImages(text);
+        
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // Format content with inline images at exact positions
+    function formatContentWithInlineImages(text) {
+        // First, extract and protect image placeholders
+        const imagePlaceholders = [];
+        let formatted = text.replace(/\[image:(https?:\/\/[^\]]+)\]/g, (match, url) => {
+            const placeholder = `___IMAGE_${imagePlaceholders.length}___`;
+            
+            // Create image element properly without inline event handler
+            const container = document.createElement('div');
+            container.className = 'product-image-container';
+            
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Product';
+            img.className = 'product-image';
+            img.addEventListener('error', function() {
+                this.parentElement.style.display = 'none';
+            });
+            
+            container.appendChild(img);
+            imagePlaceholders.push(container.outerHTML);
+            return placeholder;
+        });
+
+        // Apply markdown formatting (this will escape HTML but not our placeholders)
+        formatted = formatTextWithMarkdown(formatted);
+
+        // Restore image HTML (placeholders are already escaped-safe)
+        imagePlaceholders.forEach((imgHtml, index) => {
+            formatted = formatted.replace(`___IMAGE_${index}___`, imgHtml);
+        });
+
+        return formatted;
+    }
+
+    // Format text with markdown-like syntax
+    function formatTextWithMarkdown(text) {
+        // Escape HTML first
+        const escapeHtml = (unsafe) => {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        let formatted = escapeHtml(text);
+
+        // Bold text: **text**
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Italic text: *text* (but not **)
+        formatted = formatted.replace(/(?<!\*)\*(?!\*)([^\*]+?)\*(?!\*)/g, '<em>$1</em>');
+
+        // Convert line breaks and handle lists
+        const lines = formatted.split('\n');
+        let html = '';
+        let inOrderedList = false;
+        let inUnorderedList = false;
+
+        lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+
+            // Numbered list: 1., 2., 3., etc.
+            if (/^\d+\.\s+/.test(trimmedLine)) {
+                if (!inOrderedList) {
+                    if (inUnorderedList) {
+                        html += '</ul>';
+                        inUnorderedList = false;
+                    }
+                    html += '<ol>';
+                    inOrderedList = true;
+                }
+                const content = trimmedLine.replace(/^\d+\.\s+/, '');
+                html += `<li>${content}</li>`;
+            }
+            // Bullet list: •, -, *
+            else if (/^[•\-\*]\s+/.test(trimmedLine)) {
+                if (!inUnorderedList) {
+                    if (inOrderedList) {
+                        html += '</ol>';
+                        inOrderedList = false;
+                    }
+                    html += '<ul>';
+                    inUnorderedList = true;
+                }
+                const content = trimmedLine.replace(/^[•\-\*]\s+/, '');
+                html += `<li>${content}</li>`;
+            }
+            // Regular line
+            else {
+                if (inOrderedList) {
+                    html += '</ol>';
+                    inOrderedList = false;
+                }
+                if (inUnorderedList) {
+                    html += '</ul>';
+                    inUnorderedList = false;
+                }
+                
+                if (trimmedLine === '') {
+                    html += '<br>';
+                } else {
+                    html += line + (index < lines.length - 1 ? '<br>' : '');
+                }
+            }
+        });
+
+        // Close any open lists
+        if (inOrderedList) html += '</ol>';
+        if (inUnorderedList) html += '</ul>';
+
+        return html;
+    }
+
+    // Add loading indicator
+    function showLoading() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message bot-message';
+        loadingDiv.id = 'loadingMessage';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        `;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+        
+        loadingDiv.appendChild(avatar);
+        loadingDiv.appendChild(contentDiv);
+        chatMessages.appendChild(loadingDiv);
+        scrollToBottom();
+    }
+
+    function hideLoading() {
+        const loadingMsg = document.getElementById('loadingMessage');
+        if (loadingMsg) {
+            loadingMsg.remove();
+        }
+    }
+
+    // Handle form submission
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessage(message, true);
+        chatInput.value = '';
+        
+        // Disable input while processing
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+        showLoading();
+
+        // Work with raw fetch
+        try {
+            const response = await fetch('@baseChatApiUrl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error communicating with the assistant');
+            }
+
+            const data = await response.json();
+            hideLoading();
+            
+            // Add bot response
+            addMessage(data.answer, false);
+
+            // Cart snapshot is now included in the answer by the LLM when relevant
+            // No automatic cart display - only shown when user asks about cart
+
+        } catch (error) {
+            hideLoading();
+            addMessage('Sorry, an error occurred. Please try again.', false);
+            console.error('Error:', error);
+        } finally {
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            chatInput.focus();
+        }
+    });
+
+    addMessage('Hello! I\'m your shopping assistant. I can help you with:\n- Search and recommend perfumes based on your preferences\n- Show you product details with images\n- Add products to your cart\n- View and manage your cart\n- Modify quantities or remove items\n\nExamples:\n• "Show me fresh perfumes for summer"\n• "I\'d like something woody and spicy"\n• "Tell me about the Dior perfume"\n• "Add 2 vanilla perfumes to my cart"', false);
+    // Focus input on load
+    chatInput.focus();
+</script>
+}
+
+<style>
+    .chat-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(11, 11, 11, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(11, 11, 11, 0.08);
+    }
+
+    .chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        padding: 2rem;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(11, 11, 11, 0.2);
+        border-radius: 3px;
+    }
+
+    .message {
+        display: flex;
+        gap: 0.75rem;
+        animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @@keyframes messageSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .user-message {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--color-accent), #d4a350);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .bot-message .message-content {
+        background: white;
+        color: var(--color-primary);
+        border: 1px solid rgba(11, 11, 11, 0.08);
+    }
+
+    .user-message .message-content {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .message-content {
+        max-width: 75%;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .message-content ul {
+        padding-left: 1.25rem;
+        margin: 0.5rem 0;
+    }
+
+    .message-content > p {
+        margin: 0;
+        padding:0;
+    }
+
+    .message-content li {
+        margin: 0.25rem 0;
+    }
+
+    .chat-input-container {
+        padding: 1.5rem;
+        background: white;
+        border-top: 1px solid rgba(11, 11, 11, 0.08);
+    }
+
+    .chat-input-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 0.875rem 1.25rem;
+        border: 2px solid rgba(11, 11, 11, 0.1);
+        border-radius: 24px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-family: var(--font-body);
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 4px rgba(201, 162, 77, 0.1);
+    }
+
+    .chat-send-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, var(--color-accent), #d4a350);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(201, 162, 77, 0.4);
+    }
+
+    .chat-send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .product-image-container {
+        margin-top: 0.75rem;
+        border-radius: 8px;
+        overflow: hidden;
+        max-width: 300px;
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(11, 11, 11, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .product-image:hover {
+        transform: scale(1.02);
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 0.5rem 0;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .chat-messages {
+            height: 400px;
+            padding: 1.5rem;
+        }
+
+        .message-content {
+            max-width: 85%;
+            padding: 0.875rem 1rem;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+        }
+    }
+</style>

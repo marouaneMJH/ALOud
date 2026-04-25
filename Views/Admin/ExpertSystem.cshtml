@@ -1,0 +1,841 @@
+@using ALOud.Services.Infrastructure.ExpertSystem.Domain
+@{
+    ViewData["Title"] = "Expert System";
+    ViewData["ActiveNav"] = "ExpertSystem";
+}
+
+@section Styles {
+<style>
+    /* Expert System Page Styling - Premium, Minimal, Clean */
+    
+    .expert-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .expert-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .expert-header h1 {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        font-weight: 400;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .expert-header p {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 300;
+    }
+
+    .expert-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: start;
+    }
+
+    /* Form Section - Left Side */
+    .expert-form-section {
+        background: var(--card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 2rem;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .form-section-title {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        color: var(--color-primary);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.01em;
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+        font-family: var(--font-body);
+        color: var(--color-primary);
+        background: #fafafa;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .form-select:hover {
+        border-color: var(--accent-color);
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(201, 162, 77, 0.1);
+        background: #fff;
+    }
+
+    /* Toggle Switch for Boolean */
+    .toggle-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+    }
+
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: var(--accent-color);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Submit Button */
+    .btn-expert-reset {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #fff;
+        background: var(--accent-dark);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 1rem;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-expert-reset:hover:not(:disabled) {
+        background: var(--color-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    /* Submit Button */
+    .btn-expert-submit {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #fff;
+        background: var(--color-primary);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 1rem;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-expert-submit:hover:not(:disabled) {
+        background: var(--accent-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-expert-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Results Section - Right Side */
+    .expert-results-section {
+        min-height: 400px;
+    }
+
+    .results-placeholder {
+        background: var(--card-bg);
+        border: 2px dashed var(--color-border);
+        border-radius: 8px;
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .results-placeholder i {
+        font-size: 3rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .results-placeholder p {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Results Card - When Available */
+    .results-card {
+        background: var(--card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        animation: fadeInUp 0.4s ease;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .results-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .results-header i {
+        font-size: 1.5rem;
+        color: var(--accent-color);
+    }
+
+    .results-header h3 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    .results-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .results-section h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.375rem 0.875rem;
+        font-size: 0.875rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .tag-prefer {
+        background: rgba(34, 197, 94, 0.1);
+        color: #15803d;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .tag-avoid {
+        background: rgba(239, 68, 68, 0.1);
+        color: #991b1b;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .attribute-item {
+        padding: 0.625rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .attribute-item:last-child {
+        border-bottom: none;
+    }
+
+    .attribute-label {
+        font-size: 0.9375rem;
+        color: var(--text-muted);
+    }
+
+    .attribute-value {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--color-primary);
+    }
+
+    .reasons-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .reasons-list li {
+        padding: 0.625rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        color: var(--color-primary);
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+
+    .reasons-list li:before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent-color);
+        font-weight: bold;
+    }
+
+    /* Loading State */
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    .spinner {
+        border: 3px solid rgba(0,0,0,0.1);
+        border-top: 3px solid var(--accent-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Error State */
+    .error-message {
+        display: none;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 6px;
+        padding: 1rem;
+        color: #991b1b;
+        margin-top: 1rem;
+    }
+
+    .error-message.active {
+        display: block;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .expert-layout {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .expert-form-section {
+            position: relative;
+            top: 0;
+        }
+    }
+</style>
+}
+
+<div class="expert-container">
+    <!-- Header -->
+    <div class="expert-header">
+        <h1>Perfume Expert System</h1>
+        <p>Answer a few questions and let our intelligent system recommend the perfect fragrance profile for you</p>
+    </div>
+
+    <div class="expert-layout">
+        <!-- Form Section (Left) -->
+        <div class="expert-form-section">
+            <h2 class="form-section-title">Your Preferences</h2>
+            
+            <form id="expertForm">
+                <!-- Climate -->
+                <div class="form-group">
+                    <label class="form-label" for="climate">Climate</label>
+                    <select class="form-select" id="climate" name="climate" required>
+                        <option value="">Select your climate...</option>
+                        @foreach (var value in Enum.GetValues<EClimate>())
+                        {
+                            <option value="@value">@value.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Occasion -->
+                <div class="form-group">
+                    <label class="form-label" for="occasion">Occasion</label>
+                    <select class="form-select" id="occasion" name="occasion" required>
+                        <option value="">Select an occasion...</option>
+                        @foreach (var value in Enum.GetValues<EOccasion>())
+                        {
+                            <option value="@value">@value.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Skin Type -->
+                <div class="form-group">
+                    <label class="form-label" for="skinType">Skin Type</label>
+                    <select class="form-select" id="skinType" name="skinType" required>
+                        <option value="">Select your skin type...</option>
+                        @foreach (var value in Enum.GetValues<ESkinType>())
+                        {
+                            <option value="@value">@value.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Compliment Desire -->
+                <div class="form-group">
+                    <label class="form-label" for="compliment">Compliment Factor</label>
+                    <select class="form-select" id="compliment" name="compliment" required>
+                        <option value="">Do you want compliments?</option>
+                        @foreach (var value in Enum.GetValues<EComplimentDesire>())
+                        {
+                            <option value="@value">@value.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Season Preference -->
+                <div class="form-group">
+                    <label class="form-label" for="seasonPreference">Season Preference</label>
+                    <select class="form-select" id="seasonPreference" name="seasonPreference" required>
+                        <option value="">Select a season...</option>
+                        @foreach (var value in Enum.GetValues<ESeasonPreference>())
+                        {
+                            <option value="@value">@value.ToString().Replace("AllYear", "All Year")</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Persona -->
+                <div class="form-group">
+                    <label class="form-label" for="persona">Your Persona</label>
+                    <select class="form-select" id="persona" name="persona" required>
+                        <option value="">Select your style...</option>
+                        @foreach (var value in Enum.GetValues<EPersona>())
+                        {
+                            <option value="@value">@value.ToString()</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Sensitivity -->
+                <div class="form-group">
+                    <label class="form-label" for="sensitivity">Sensitivities</label>
+                    <select class="form-select" id="sensitivity" name="sensitivity" required>
+                        <option value="">Any sensitivities?</option>
+                        @foreach (var value in Enum.GetValues<ESensitivity>())
+                        {
+                            var displayText = value.ToString()
+                                .Replace("HatesSweet", "Hates Sweet")
+                                .Replace("HatesSpice", "Hates Spice")
+                                .Replace("HatesFloral", "Hates Floral")
+                                .Replace("HatesFresh", "Hates Fresh")
+                                .Replace("PrefersMinimal", "Prefers Minimal");
+                            <option value="@value">@displayText</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Wants Long Performance (Toggle) -->
+                <div class="form-group">
+                    <div class="toggle-group">
+                        <label class="form-label" for="wantsLongPerformance" style="margin: 0;">Long-Lasting Performance</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="wantsLongPerformance" name="wantsLongPerformance">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-expert-submit" id="submitBtn">
+                    Get Recommendation
+                </button>
+
+                <button  type="reset" class="btn-expert-reset">Reset</button>
+
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
+
+        <!-- Results Section (Right) -->
+        <div class="expert-results-section">
+            <!-- Placeholder State -->
+            <div class="results-placeholder" id="resultsPlaceholder">
+                <i class="bi bi-lightbulb"></i>
+                <p>Your personalized fragrance recommendation will appear here</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <p style="color: var(--text-muted);">Analyzing your preferences...</p>
+            </div>
+
+            <!-- Results Card (Hidden Initially) -->
+            <div class="results-card" id="resultsCard" style="display: none;">
+                <div class="results-header">
+                    <i class="bi bi-stars"></i>
+                    <h3>Your Recommendation</h3>
+                </div>
+
+                <!-- Prefer Section -->
+                <div class="results-section">
+                    <h4>Recommended Notes & Families</h4>
+                    <div class="tag-list" id="preferList"></div>
+                </div>
+
+                <!-- Avoid Section -->
+                <div class="results-section">
+                    <h4>Avoid These Notes</h4>
+                    <div class="tag-list" id="avoidList"></div>
+                </div>
+
+                <!-- Performance Attributes -->
+                <div class="results-section">
+                    <h4>Performance Profile</h4>
+                    <div id="performanceAttributes"></div>
+                </div>
+
+                <!-- LLM Generated Answer  -->
+                <div class="results-section">
+                    <h4>LLM Explaination</h4>
+                    <div id="llmAnswer"></div>
+                </div>
+
+                <!-- Reasons (Explainability) -->
+                <div class="results-section">
+                    <h4>Why This Recommendation?</h4>
+                    <ul class="reasons-list" id="reasonsList"></ul>
+                </div>
+
+                <!-- View Full AI Recommendation Button -->
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
+                    <button type="button" class="btn-expert-submit" id="viewFullRecommendationBtn" style="background: var(--accent-color);">
+                        <i class="bi bi-arrow-right" style="margin-right: 0.5rem;"></i> View Full AI Recommendation
+                    </button>
+                    <form id="hiddenRecommendationForm" style="display: none;" method="POST" action="/Expert/HybridRecommendation">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="recommendationDataInput" name="recommendationJson" aria-label="Recommendation data"  >
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    /**
+     * Expert System Client-Side Logic
+     * 
+     * Architecture:
+     * - Pure fetch-based API call (no jQuery)
+     * - No business logic in the view
+     * - Graceful error handling
+     * - Loading states
+     * - Clean separation of concerns
+     */
+
+    (function() {
+        'use strict';
+
+        // DOM Elements
+        const form = document.getElementById('expertForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsPlaceholder = document.getElementById('resultsPlaceholder');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsCard = document.getElementById('resultsCard');
+
+        // API Configuration
+        const API_ENDPOINT = '/api/v1/ai/expert-system/test';
+
+        /**
+         * Collect form data into a properly structured DTO
+         * Matches server-side UserProfileDto exactly
+         */
+        function collectFormData() {
+            return {
+                climate: document.getElementById('climate').value,
+                occasion: document.getElementById('occasion').value,
+                skinType: document.getElementById('skinType').value,
+                compliment: document.getElementById('compliment').value,
+                seasonPreference: document.getElementById('seasonPreference').value,
+                persona: document.getElementById('persona').value,
+                sensitivity: document.getElementById('sensitivity').value,
+                wantsLongPerformance: document.getElementById('wantsLongPerformance').checked
+            };
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('active');
+        }
+
+        /**
+         * Hide error message
+         */
+        function hideError() {
+            errorMessage.classList.remove('active');
+        }
+
+        /**
+         * Update UI state during request
+         */
+        function setLoadingState(isLoading) {
+            submitBtn.disabled = isLoading;
+            submitBtn.textContent = isLoading ? 'Analyzing...' : 'Get Recommendation';
+
+            if (isLoading) {
+                resultsPlaceholder.style.display = 'none';
+                resultsCard.style.display = 'none';
+                loadingSpinner.classList.add('active');
+                hideError();
+            } else {
+                loadingSpinner.classList.remove('active');
+            }
+        }
+
+        /**
+         * Render the recommendation results
+         * @@param {Object} recommendation - Server response
+         */
+        function renderResults(recommendation) {
+            
+            // Prefer tags
+            const preferList = document.getElementById('preferList');
+            preferList.innerHTML = '';
+            if (recommendation.prefer && recommendation.prefer.length > 0) {
+                recommendation.prefer.forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag tag-prefer';
+                    tag.textContent = item.replace(/_/g, ' ');
+                    preferList.appendChild(tag);
+                });
+            } else {
+                preferList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.875rem;">No specific preferences</span>';
+            }
+
+            // Avoid tags
+            const avoidList = document.getElementById('avoidList');
+            avoidList.innerHTML = '';
+            if (recommendation.avoid && recommendation.avoid.length > 0) {
+                recommendation.avoid.forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag tag-avoid';
+                    tag.textContent = item.replace(/_/g, ' ');
+                    avoidList.appendChild(tag);
+                });
+            } else {
+                avoidList.innerHTML = '<span style="color: var(--text-muted); font-size: 0.875rem;">No restrictions</span>';
+            }
+
+            // Performance attributes
+            const performanceAttributes = document.getElementById('performanceAttributes');
+            performanceAttributes.innerHTML = '';
+            
+            if (recommendation.sillage) {
+                performanceAttributes.innerHTML += `
+                    <div class="attribute-item">
+                        <span class="attribute-label">Sillage</span>
+                        <span class="attribute-value">${recommendation.sillage}</span>
+                    </div>
+                `;
+            }
+
+            if (recommendation.longevity) {
+                performanceAttributes.innerHTML += `
+                    <div class="attribute-item">
+                        <span class="attribute-label">Longevity</span>
+                        <span class="attribute-value">${recommendation.longevity}</span>
+                    </div>
+                `;
+            }
+
+            if (!recommendation.sillage && !recommendation.longevity) {
+                performanceAttributes.innerHTML = '<span style="color: var(--text-muted); font-size: 0.875rem;">Standard performance</span>';
+            }
+
+            // Reasons (explainability)
+            const reasonsList = document.getElementById('reasonsList');
+            reasonsList.innerHTML = '';
+            if (recommendation.reasons && recommendation.reasons.length > 0) {
+                recommendation.reasons.forEach(reason => {
+                    const li = document.createElement('li');
+                    li.textContent = reason;
+                    reasonsList.appendChild(li);
+                });
+            } else {
+                reasonsList.innerHTML = '<li style="list-style: none; padding-left: 0;">No specific reasoning provided</li>';
+            }
+
+
+            const llmAnswer = document.getElementById('llmAnswer');
+            llmAnswer.innerHTML = `<p style="margin: 0; line-height: 1.6;">${recommendation.result}</p>`;
+
+            // Store recommendation data for later use
+            window.currentRecommendation = recommendation;
+
+            // Show results card
+            resultsPlaceholder.style.display = 'none';
+            resultsCard.style.display = 'block';
+        }
+
+        /**
+         * Handle form submission
+         */
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            setLoadingState(true);
+
+            const formData = collectFormData();
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+
+                const recommendation = await response.json();
+
+                // Debug: Log the API response to console
+                console.log('API Response:', recommendation);
+
+                renderResults(recommendation);
+
+            } catch (error) {
+                console.error('Expert System Error:', error);
+                showError('Failed to get recommendation. Please try again.');
+                resultsPlaceholder.style.display = 'block';
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // Event Listeners
+        form.addEventListener('submit', handleSubmit);
+
+        // Hide error when user starts typing
+        form.addEventListener('input', hideError);
+
+        // View Full Recommendation Button
+        const viewFullRecommendationBtn = document.getElementById('viewFullRecommendationBtn');
+        viewFullRecommendationBtn.addEventListener('click', function() {
+            console.log('View Full Recommendation clicked');
+            console.log('window.currentRecommendation:', window.currentRecommendation);
+            if (window.currentRecommendation) {
+                const form = document.getElementById('hiddenRecommendationForm');
+                const input = document.getElementById('recommendationDataInput');
+                const jsonData = JSON.stringify(window.currentRecommendation);
+                console.log('JSON stringified:', jsonData);
+                console.log('JSON size:', jsonData.length, 'bytes');
+                console.log('Sending JSON data to form input');
+                input.value = jsonData;
+                console.log('Input value after assignment:', input.value.substring(0, 100) + '...');
+                console.log('Form action:', form.action);
+                console.log('Form method:', form.method);
+                console.log('Form HTML before submit:', form.outerHTML.substring(0, 200) + '...');
+                console.log('About to call form.submit()');
+                form.submit();
+            } else {
+                console.warn('No recommendation data available');
+                alert('No recommendation data available. Please get a recommendation first.');
+            }
+        });
+
+    })();
+</script>
+}

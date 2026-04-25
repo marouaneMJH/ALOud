@@ -1,0 +1,156 @@
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="text-center">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                             style="width: 80px; height: 80px; background-color: var(--color-accent); color: white;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m9 12 2 2 4-4"/>
+                                <circle cx="12" cy="12" r="9"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Success Message -->
+                    <h1 class="display-4 mb-3" style="color: var(--color-accent);">Order Confirmed!</h1>
+                    <p class="lead mb-4" style="color: var(--color-text-secondary);">
+                        Thank you for your purchase. Your order has been successfully placed and is being processed.
+                    </p>
+
+                    <!-- Order Details -->
+                    <div class="p-4 rounded mb-4" style="background: var(--color-background); border: 1px solid var(--color-border);">
+                        <div class="row text-start">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Order Number</div>
+                                    <div class="fw-semibold">@ViewBag.OrderNumber</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Order Date</div>
+                                    <div class="fw-semibold">@DateTime.Now.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Checkout ID</div>
+                                    <div class="fw-semibold small">@ViewBag.CheckoutId</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <div class="small text-muted">Status</div>
+                                    <div class="fw-semibold" style="color: var(--color-accent);">Processing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- What's Next -->
+                    <div class="mb-4">
+                        <h4 class="h5 mb-3">What happens next?</h4>
+                        <div class="text-start">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                         style="width: 32px; height: 32px; background-color: var(--color-accent); color: white; font-size: 14px;">
+                                        1
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">Order Confirmation</div>
+                                    <div class="small text-muted">You'll receive an email confirmation shortly with your order details.</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                         style="width: 32px; height: 32px; background-color: var(--color-text-secondary); color: white; font-size: 14px;">
+                                        2
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">Processing</div>
+                                    <div class="small text-muted">We'll prepare your order for shipping within 1-2 business days.</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                         style="width: 32px; height: 32px; background-color: var(--color-text-secondary); color: white; font-size: 14px;">
+                                        3
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">Shipping</div>
+                                    <div class="small text-muted">Your order will be shipped and you'll receive tracking information.</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                         style="width: 32px; height: 32px; background-color: var(--color-text-secondary); color: white; font-size: 14px;">
+                                        4
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">Delivery</div>
+                                    <div class="small text-muted">Your authentic perfumes will arrive within 3-5 business days.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-block">
+                        @if (ViewBag.OrderId != null)
+                        {
+                            <a asp-controller="Order" asp-action="Details" asp-route-id="@ViewBag.OrderId" class="btn btn-primary">
+                                View Order Details
+                            </a>
+                        }
+                        <a asp-action="Index" asp-controller="Perfume" class="btn btn-outline-primary">
+                            Continue Shopping
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                            Print Order Details
+                        </button>
+                    </div>
+
+                    <!-- Support Info -->
+                    <div class="mt-5 pt-4" style="border-top: 1px solid var(--color-border);">
+                        <p class="small text-muted mb-2">
+                            Need help with your order?
+                        </p>
+                        <p class="small">
+                            Contact us at <a href="mailto:support@aloud.com" style="color: var(--color-accent);">support@aloud.com</a> 
+                            or call <a href="tel:+212123456789" style="color: var(--color-accent);">+212 1 23 45 67 89</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Clear cart after successful order
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update cart count to 0
+            const cartCountElements = document.querySelectorAll('.cart-count');
+            cartCountElements.forEach(el => {
+                el.textContent = '0';
+                el.style.display = 'none';
+            });
+        });
+    </script>
+}

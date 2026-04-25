@@ -1,0 +1,148 @@
+@* Reusable Admin Pagination Component *@
+@model dynamic
+
+@{
+    var pageIndex = (int)Model.PageIndex;
+    var totalPages = (int)Model.TotalPages;
+    var totalCount = (int)Model.TotalCount;
+    var baseUrl = (string)Model.BaseUrl;
+}
+
+@if (totalPages > 1)
+{
+    <div class="admin-pagination">
+        <div class="pagination-info">
+            Showing page @pageIndex of @totalPages (@totalCount total items)
+        </div>
+        
+        <div class="pagination-controls">
+            @if (pageIndex > 1)
+            {
+                <a href="@baseUrl?pageIndex=1@Model.QueryString" class="pagination-btn" title="First">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                </a>
+                <a href="@baseUrl?pageIndex=@(pageIndex - 1)@Model.QueryString" class="pagination-btn" title="Previous">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </a>
+            }
+            else
+            {
+                <span class="pagination-btn disabled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                </span>
+                <span class="pagination-btn disabled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </span>
+            }
+
+            @{
+                var startPage = Math.Max(1, pageIndex - 2);
+                var endPage = Math.Min(totalPages, pageIndex + 2);
+            }
+
+            @for (var i = startPage; i <= endPage; i++)
+            {
+                if (i == pageIndex)
+                {
+                    <span class="pagination-btn active">@i</span>
+                }
+                else
+                {
+                    <a href="@baseUrl?pageIndex=@i@Model.QueryString" class="pagination-btn">@i</a>
+                }
+            }
+
+            @if (pageIndex < totalPages)
+            {
+                <a href="@baseUrl?pageIndex=@(pageIndex + 1)@Model.QueryString" class="pagination-btn" title="Next">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+                <a href="@baseUrl?pageIndex=@totalPages@Model.QueryString" class="pagination-btn" title="Last">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </a>
+            }
+            else
+            {
+                <span class="pagination-btn disabled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+                <span class="pagination-btn disabled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </span>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .admin-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+        background: var(--color-white);
+        border: 1px solid var(--color-border);
+        border-top: none;
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: var(--color-text-secondary);
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: var(--spacing-xs);
+    }
+
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 var(--spacing-sm);
+        border: 1px solid var(--color-border);
+        background: var(--color-white);
+        color: var(--color-text);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all var(--transition-fast);
+    }
+
+    .pagination-btn:hover:not(.disabled):not(.active) {
+        background: var(--color-bg);
+        border-color: var(--color-primary);
+    }
+
+    .pagination-btn.active {
+        background: var(--color-primary);
+        color: var(--color-white);
+        border-color: var(--color-primary);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>

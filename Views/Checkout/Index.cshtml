@@ -1,0 +1,397 @@
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-2 mb-3">Secure Checkout</h1>
+            <p style="color: var(--color-text-secondary);">
+                Complete your order in a few simple steps
+            </p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="checkout-progress mb-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Shipping</div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Delivery</div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Payment</div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Review</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Checkout Forms -->
+            <div class="col-lg-8">
+                <div class="checkout-container">
+                    <!-- Step 1: Shipping Address -->
+                    <div class="checkout-step" id="step-1">
+                        <div class="step-header mb-4">
+                            <h3 class="h4 mb-2">Shipping Address</h3>
+                            <p class="text-muted mb-0">Where should we deliver your order?</p>
+                        </div>
+
+                        <!-- Authentication Status -->
+                        <div class="auth-section mb-4">
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded" 
+                                 style="background: var(--color-background); border: 1px solid var(--color-border);">
+                                <div class="d-flex align-items-center">
+                                    <div id="auth-status-icon" class="me-3"></div>
+                                    <div>
+                                        <div id="auth-status-text" class="fw-semibold"></div>
+                                        <div id="auth-status-subtitle" class="small text-muted"></div>
+                                    </div>
+                                </div>
+                                <div id="auth-actions"></div>
+                            </div>
+                        </div>
+
+                        <!-- Saved Addresses (for authenticated users) -->
+                        <div id="saved-addresses-section" class="mb-4" style="display: none;">
+                            <h5 class="h6 mb-3">Saved Addresses</h5>
+                            <div id="saved-addresses-list" class="row g-3"></div>
+                        </div>
+
+                        <!-- Address Form -->
+                        <div class="address-form-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="h6 mb-0" id="address-form-title">Shipping Address</h5>
+                                <button type="button" id="add-new-address-btn" class="btn btn-outline-primary btn-sm" style="display: none;">
+                                    Add New Address
+                                </button>
+                            </div>
+
+                            <form id="address-form">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="street" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="street" name="street" 
+                                               placeholder="e.g., 123 Main Street, Apt 4B" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="city" name="city" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="postalCode" class="form-label">Postal Code</label>
+                                        <input type="text" class="form-control" id="postalCode" name="postalCode" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="country" class="form-label">Country</label>
+                                        <select class="form-select" id="country" name="country" required>
+                                            <option value="">Select country</option>
+                                            <option value="MA" selected>Morocco</option>
+                                            <option value="FR">France</option>
+                                            <option value="ES">Spain</option>
+                                            <option value="US">United States</option>
+                                            <option value="CA">Canada</option>
+                                        </select>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
+                                               placeholder="+212 6 12 34 56 78" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="saveAddress" name="saveAddress">
+                                            <label class="form-check-label" for="saveAddress">
+                                                Save this address for future orders
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Step Navigation -->
+                        <div class="step-navigation mt-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='/Cart'">
+                                    Back to Cart
+                                </button>
+                                <button type="button" class="btn btn-primary" id="continue-to-delivery">
+                                    Continue to Delivery
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Delivery Options -->
+                    <div class="checkout-step" id="step-2" style="display: none;">
+                        <div class="step-header mb-4">
+                            <h3 class="h4 mb-2">Delivery Options</h3>
+                            <p class="text-muted mb-0">Choose your preferred delivery method</p>
+                        </div>
+
+                        <div id="delivery-options">
+                            <div class="delivery-option active" data-method="standard">
+                                <div class="d-flex justify-content-between align-items-center p-4 rounded border">
+                                    <div class="d-flex align-items-start">
+                                        <input type="radio" name="delivery" value="standard" checked class="form-check-input mt-1 me-3">
+                                        <div>
+                                            <h6 class="mb-1">Standard Delivery</h6>
+                                            <p class="text-muted small mb-0">3-5 business days</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-semibold" style="color: var(--color-accent);">Free</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step Navigation -->
+                        <div class="step-navigation mt-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="back-to-shipping">
+                                    Back to Shipping
+                                </button>
+                                <button type="button" class="btn btn-primary" id="continue-to-payment">
+                                    Continue to Payment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Payment Method -->
+                    <div class="checkout-step" id="step-3" style="display: none;">
+                        <div class="step-header mb-4">
+                            <h3 class="h4 mb-2">Payment Method</h3>
+                            <p class="text-muted mb-0">How would you like to pay?</p>
+                        </div>
+
+                        <div id="payment-methods" class="mb-4">
+                            <div class="payment-method" data-method="stripe">
+                                <div class="p-4 rounded border mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <input type="radio" name="payment" value="stripe" class="form-check-input me-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10S2 17.52 2 12z" fill="#6772E5"/>
+                                                    <path d="M12 8.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z" fill="white"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Credit Card</h6>
+                                                <p class="text-muted small mb-0">Visa, Mastercard, American Express</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="payment-method" data-method="paypal">
+                                <div class="p-4 rounded border mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <input type="radio" name="payment" value="paypal" class="form-check-input me-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#00457C">
+                                                    <path d="M7.076 21.337H2.47l.396-2.5h1.51l1.18-7.503H2.47L2.874 9.1h4.606c.838 0 1.542.29 2.114.864.572.575.857 1.295.857 2.16 0 .734-.164 1.41-.493 2.028-.329.618-.78 1.122-1.354 1.513-.574.39-1.234.586-1.982.586H5.69l-.614 4.086zm2.638-7.59c0-.396-.128-.711-.385-.944-.256-.233-.6-.35-1.031-.35H7.52l-.55 3.47h.773c.432 0 .82-.134 1.166-.401.346-.268.52-.63.52-1.086v-.689z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">PayPal</h6>
+                                                <p class="text-muted small mb-0">Pay securely with PayPal</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Details Container -->
+                        <div id="payment-details-container"></div>
+
+                        <!-- Step Navigation -->
+                        <div class="step-navigation mt-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="back-to-delivery">
+                                    Back to Delivery
+                                </button>
+                                <button type="button" class="btn btn-primary" id="continue-to-review">
+                                    Continue to Review
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Review & Confirm -->
+                    <div class="checkout-step" id="step-4" style="display: none;">
+                        <div class="step-header mb-4">
+                            <h3 class="h4 mb-2">Review Your Order</h3>
+                            <p class="text-muted mb-0">Please review your order details before completing your purchase</p>
+                        </div>
+
+                        <!-- Order Review Sections -->
+                        <div class="order-review mb-4">
+                            <!-- Shipping Address Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Shipping Address</h6>
+                                        <div id="review-shipping-address" class="text-muted small"></div>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-sm p-0" data-edit-step="1">Edit</button>
+                                </div>
+                            </div>
+
+                            <!-- Delivery Method Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Delivery Method</h6>
+                                        <div id="review-delivery-method" class="text-muted small"></div>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-sm p-0" data-edit-step="2">Edit</button>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method Review -->
+                            <div class="review-section mb-4">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-2">Payment Method</h6>
+                                        <div id="review-payment-method" class="text-muted small"></div>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-sm p-0" data-edit-step="3">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final Confirmation -->
+                        <div class="final-confirmation mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms-acceptance" required>
+                                <label class="form-check-label" for="terms-acceptance">
+                                    I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+                                </label>
+                                <div class="invalid-feedback">You must accept the terms and conditions.</div>
+                            </div>
+                        </div>
+
+                        <!-- Step Navigation -->
+                        <div class="step-navigation mt-4">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="back-to-payment">
+                                    Back to Payment
+                                </button>
+                                <button type="button" class="btn btn-success btn-lg" id="complete-order">
+                                    <span class="button-text">Complete Order</span>
+                                    <span class="button-spinner spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="order-summary sticky-top" style="top: 2rem;">
+                    <div class="p-4" style="background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px;">
+                        <h4 class="h5 mb-4">Order Summary</h4>
+                        
+                        <!-- Cart Items -->
+                        <div class="cart-items mb-4">
+                            @if (ViewBag.CartItems != null)
+                            {
+                                @foreach (var item in ViewBag.CartItems)
+                                {
+                                    <div class="cart-item d-flex mb-3">
+                                        <div class="item-image me-3" style="width: 60px; height: 60px; background: var(--color-background); border-radius: 4px; overflow: hidden;">
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" 
+                                                 style="width: 100%; height: 100%; object-fit: cover;" />
+                                        </div>
+                                        <div class="item-details flex-grow-1">
+                                            <div class="item-name small fw-semibold">@item.ProductName</div>
+                                            <div class="item-brand small text-muted">@item.BrandName</div>
+                                            <div class="item-quantity-price small">
+                                                Qty: @item.Quantity × @item.Price.ToString("N0") MAD
+                                            </div>
+                                        </div>
+                                        <div class="item-total text-end">
+                                            <div class="fw-semibold" style="color: var(--color-accent);">
+                                                @item.Total.ToString("N0") MAD
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        
+                        <!-- Order Totals -->
+                        <div class="order-totals">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span id="summary-subtotal">@(ViewBag.Subtotal?.ToString("N0") ?? "0") MAD</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping</span>
+                                <span id="summary-shipping" style="color: var(--color-accent);">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+                                <span id="summary-tax">@(ViewBag.Tax?.ToString("N0") ?? "0") MAD</span>
+                            </div>
+                            <hr class="my-3" style="border-color: var(--color-border);">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-semibold">Total</span>
+                                <span class="fw-semibold" style="color: var(--color-accent); font-size: 1.25rem;" id="summary-total">
+                                    @(ViewBag.Total?.ToString("N0") ?? "0") MAD
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Security Badge -->
+                        <div class="security-badge mt-4 text-center">
+                            <div class="d-flex align-items-center justify-content-center text-muted small">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                    <path d="M12 1l9 4v7c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V5l9-4z"/>
+                                </svg>
+                                Secure SSL encryption
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
+}
