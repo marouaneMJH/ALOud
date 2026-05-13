@@ -37,22 +37,22 @@ public class RetrievalService : IRetrievalService
         );
     }
 
-    private static Dictionary<string, object>? BuildFilter(RetrievalFilter? filter)
+    private static QdrantFilter? BuildFilter(RetrievalFilter? filter)
     {
         if (filter == null)
             return null;
 
-        var dict = new Dictionary<string, object>();
+        var qdrantFilter = new QdrantFilter();
 
         if (!string.IsNullOrWhiteSpace(filter.Brand))
-            dict["brand"] = filter.Brand;
+            qdrantFilter.Must.Add(new FilterCondition { Key = "brand", Value = filter.Brand });
 
         if (!string.IsNullOrWhiteSpace(filter.GenderProfile))
-            dict["genderProfile"] = filter.GenderProfile;
+            qdrantFilter.Must.Add(new FilterCondition { Key = "genderProfile", Value = filter.GenderProfile });
 
         if (!string.IsNullOrWhiteSpace(filter.PriceRange))
-            dict["priceRange"] = filter.PriceRange;
+            qdrantFilter.Must.Add(new FilterCondition { Key = "priceRange", Value = filter.PriceRange });
 
-        return dict.Count > 0 ? dict : null;
+        return qdrantFilter.Must.Count > 0 ? qdrantFilter : null;
     }
 }

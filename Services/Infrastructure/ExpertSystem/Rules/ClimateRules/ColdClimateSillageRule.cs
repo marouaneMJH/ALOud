@@ -21,7 +21,8 @@ public class ColdClimateSillageRule : Rule
 
     private static void Apply(Recommendation rec)
     {
-        rec.Sillage = "!= intimate";
+        if (string.IsNullOrWhiteSpace(rec.Sillage))
+            rec.Sillage = "!= intimate";
         rec.Reasons.Add("Cold climate → avoid intimate sillage, project more");
     }
 }

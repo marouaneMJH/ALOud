@@ -25,22 +25,42 @@ public sealed class QdrantVectorSearchClient : IVectorSearchClient
     public async Task<IReadOnlyList<RagRetrievedChunk>> SearchAsync(
         float[] vector,
         int topK,
-        Dictionary<string, object>? filter,
+        QdrantFilter? filter,
         CancellationToken cancellationToken = default)
     {
+        object? qdrantFilter = null;
+
+        if (filter != null && (filter.Must.Count > 0 || filter.MustNot.Count > 0))
+        {
+            var filterObj = new Dictionary<string, object>();
+
+            if (filter.Must.Count > 0)
+            {
+                filterObj["must"] = filter.Must.Select(c => new
+                {
+                    key = c.Key,
+                    match = new { value = c.Value }
+                }).ToArray();
+            }
+
+            if (filter.MustNot.Count > 0)
+            {
+                filterObj["must_not"] = filter.MustNot.Select(c => new
+                {
+                    key = c.Key,
+                    match = new { value = c.Value }
+                }).ToArray();
+            }
+
+            qdrantFilter = filterObj;
+        }
+
         var payload = new
         {
             vector,
             limit = topK,
             with_payload = true,
-            filter = filter == null ? null : new
-            {
-                must = filter.Select(f => new
-                {
-                    key = f.Key,
-                    match = new { value = f.Value }
-                })
-            }
+            filter = qdrantFilter
         };
 
         var response = await _http.PostAsJsonAsync(

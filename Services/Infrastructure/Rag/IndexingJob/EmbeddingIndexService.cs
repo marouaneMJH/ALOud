@@ -29,7 +29,7 @@ public class EmbeddingIndexService : IEmbeddingIndexService
 
             results.Add(new VectorRecord
             {
-                Id = chunk.SourceId.ToString(),
+                Id = $"{chunk.SourceId}_{chunk.ChunkIndex}",
                 Vector = vector,
                 Content = chunk.Content,
                 Metadata = BuildMetadata(chunk)
@@ -42,13 +42,21 @@ public class EmbeddingIndexService : IEmbeddingIndexService
     private static Dictionary<string, object> BuildMetadata(
         RagDocumentChunk chunk)
     {
-        return new Dictionary<string, object>
+        var meta = new Dictionary<string, object>
         {
-            ["sourceId"] = chunk.SourceId.ToString(),
-            ["chunkIndex"] = chunk.ChunkIndex,
-            ["brand"] = chunk.Brand ?? string.Empty,
+            ["sourceId"]      = chunk.SourceId.ToString(),
+            ["chunkIndex"]    = chunk.ChunkIndex,
+            ["brand"]         = chunk.Brand         ?? string.Empty,
             ["genderProfile"] = chunk.GenderProfile ?? string.Empty,
-            ["priceRange"] = chunk.PriceRange ?? string.Empty
+            ["priceRange"]    = chunk.PriceRange    ?? string.Empty
         };
+
+        if (!string.IsNullOrWhiteSpace(chunk.Sillage))
+            meta["sillage"] = chunk.Sillage;
+
+        if (!string.IsNullOrWhiteSpace(chunk.Longevity))
+            meta["longevity"] = chunk.Longevity;
+
+        return meta;
     }
 }

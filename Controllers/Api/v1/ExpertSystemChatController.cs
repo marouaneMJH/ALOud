@@ -1,7 +1,5 @@
 using ALOud.DTOs.ExpertSystem;
-using ALOud.DTOs.Rag;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
-using ALOud.Services.Rag;
 using ALOud.Services.Infrastructure.ExpertSystem;
 using Microsoft.AspNetCore.Mvc;
 
@@ -136,29 +134,5 @@ namespace ALOud.Controllers.Api.v1
                 return StatusCode(500, new { error = "Hybrid expert system evaluation failed." });
             }
         }
-    }
-
-    /// <summary>
-    /// DTO for expert system recommendations
-    /// </summary>
-    public class RecommendationDto
-    {
-        /// <summary>Preferred characteristics</summary>
-        public List<string>? Prefer { get; set; }
-
-        /// <summary>Characteristics to avoid</summary>
-        public List<string>? Avoid { get; set; }
-
-        /// <summary>Preferred sillage</summary>
-        public string? Sillage { get; set; }
-
-        /// <summary>Preferred longevity</summary>
-        public string? Longevity { get; set; }
-
-        /// <summary>Recommendation reasons</summary>
-        public List<string>? Reasons { get; set; }
-
-        /// <summary>LLM generated result</summary>
-        public string? Result { get; set; }
     }
 }

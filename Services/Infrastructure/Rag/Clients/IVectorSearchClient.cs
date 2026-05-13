@@ -8,7 +8,7 @@ public interface IVectorSearchClient
     Task<IReadOnlyList<RagRetrievedChunk>> SearchAsync(
         float[] vector,
         int topK,
-        Dictionary<string, object>? filter,
+        QdrantFilter? filter,
         CancellationToken cancellationToken = default
     );
 }
