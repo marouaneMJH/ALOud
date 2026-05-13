@@ -115,7 +115,8 @@ namespace ALOud.Controllers.MVC
                 var viewModel = new HybridRecommendationViewModel
                 {
                     Recommendation = recommendation,
-                    LlmGeneratedResponse = result
+                    LlmGeneratedResponse = result.LlmResponse,
+                    Products = result.Products
                 };
 
                 SetSuccessMessage("Recommendation generated successfully");

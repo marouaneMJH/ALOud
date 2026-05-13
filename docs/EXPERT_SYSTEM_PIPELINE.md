@@ -1,100 +1,105 @@
-# Expert System — Recommendation Pipeline
+# Expert System — Full Pipeline Documentation
 
-This document describes the complete flow from the user filling the form to receiving a perfume recommendation. It covers every service, every transformation, all known bugs, and the best-available fix for each.
+This document explains the complete flow from a user filling the recommendation form to receiving perfume recommendations with images. Every step explains both **what** happens and **why** it was designed that way.
 
 ---
 
 ## Table of Contents
 
-1. [Big Picture](#1-big-picture)
-2. [Phase 0 — RAG Indexing (background, runs once)](#2-phase-0--rag-indexing-background-runs-once)
-3. [Phase 1 — User Form → UserProfileDto](#3-phase-1--user-form--userprofiledto)
+1. [Architecture Overview](#1-architecture-overview)
+2. [Phase 0 — RAG Indexing Pipeline](#2-phase-0--rag-indexing-pipeline)
+3. [Phase 1 — User Form → UserProfile](#3-phase-1--user-form--userprofile)
 4. [Phase 2 — NRules Engine → Recommendation](#4-phase-2--nrules-engine--recommendation)
-5. [Phase 3 — Qdrant Filter Search → RagRetrievedChunk\[\]](#5-phase-3--qdrant-filter-search--ragretrievedchunk)
+5. [Phase 3 — Vector Search → Top-5 Perfumes](#5-phase-3--vector-search--top-5-perfumes)
 6. [Phase 4 — LLM Generation → Final Answer](#6-phase-4--llm-generation--final-answer)
-7. [Known Bugs & Fixes](#7-known-bugs--fixes)
+7. [Phase 5 — Response to the View](#7-phase-5--response-to-the-view)
 
 ---
 
-## 1. Big Picture
+## 1. Architecture Overview
+
+The system is a **Hybrid Expert System**: a classical rule engine (NRules) that understands perfumery domain knowledge, combined with semantic vector search (Qdrant + Ollama embeddings) and an LLM (Gemini / Groq / Grok) that generates the human-readable recommendation.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  BACKGROUND (once on startup)                                           │
-│                                                                         │
-│  SQL Server ──► ProductDataExtractor ──► DocumentBuilderService         │
-│                      │                         │                        │
-│                      ▼                         ▼                        │
-│              PerfumeRagSource          plain-text document              │
-│                                                │                        │
-│                                       ChunkingService                   │
-│                                                │                        │
-│                                       RagDocumentChunk[]                │
-│                                                │                        │
-│                                    OllamaEmbeddingClient                │
-│                                    (nomic-embed-text, 768d)             │
-│                                                │                        │
-│                                       VectorRecord[]                    │
-│                                                │                        │
-│                                    QdrantVectorDbClient.UpsertAsync     │
-│                                                │                        │
-│                                           QDRANT DB                     │
-└─────────────────────────────────────────────────────────────────────────┘
+                         ┌──────────────────────────────────────┐
+                         │  PHASE 0  (once on app startup)      │
+                         │                                      │
+  SQL Server             │  ProductDataExtractor                │
+  Perfumes ──────────────►  ↓ PerfumeRagSource                 │
+  + Brands               │  DocumentBuilderService              │
+  + Notes                │  ↓ plain-text document               │
+  + Accords              │  ChunkingService                     │
+  + Families             │  ↓ RagDocumentChunk[]               │
+  + Seasons              │  OllamaEmbeddingClient               │
+  + Occasions            │  (nomic-embed-text, 768 dims)        │
+  + Tags                 │  ↓ float[768] per chunk              │
+                         │  QdrantVectorDbClient.UpsertAsync    │
+                         │  ↓                                   │
+                         │  QDRANT  ← stored permanently        │
+                         └──────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│  REQUEST PATH (per user request)                                        │
-│                                                                         │
-│  HybridRecommendation.cshtml (form)                                     │
-│      │  POST recommendationJson                                         │
-│      ▼                                                                  │
-│  ExpertController.HybridRecommendation (MVC)                            │
-│    OR                                                                   │
-│  ExpertSystemChatController.Test (API)                                  │
-│      │                                                                  │
-│      ▼  UserProfileDto                                                  │
-│  ExpertSystemService.Evaluate                                           │
-│      │  UserProfileMapper.ToDomain                                      │
-│      │  ExpertSystemEngine.Run  ◄── NRules (40+ rules)                  │
-│      │                                                                  │
-│      ▼  Recommendation { Prefer, Avoid, Sillage, Longevity, Reasons }  │
-│                                                                         │
-│  HybridExpertSystemService.EvaluateAsync                                │
-│      │                                                                  │
-│      ├─ BuildQdrantFilter(Recommendation)                               │
-│      │     └─ QdrantFilter { Must[], MustNot[] }          ⚠ BUG #1     │
-│      │                                                                  │
-│      ├─ QdrantPayloadSearchClient.SearchByFilterAsync     ⚠ BUG #2     │
-│      │     └─ Qdrant /points/scroll (no vector scoring)                 │
-│      │                                                                  │
-│      ├─ Deduplicate by sourceId → top 5 RagRetrievedChunk[]             │
-│      │                                                                  │
-│      └─ IRagLLMClient.ExecuteAsync (Gemini / Groq / Grok)               │
-│            └─ final answer string                                       │
-│                                                                         │
-│  HybridRecommendationViewModel → View                                   │
-└─────────────────────────────────────────────────────────────────────────┘
+                         ┌──────────────────────────────────────┐
+                         │  PHASES 1–5  (per user request)      │
+                         │                                      │
+  Browser form           │  ExpertController (MVC)              │
+  ──────────────────────►│  or ExpertSystemChatController (API) │
+                         │  ↓ UserProfileDto                    │
+                         │  ExpertSystemService                 │
+                         │  ↓ UserProfileMapper.ToDomain        │
+                         │  ExpertSystemEngine (NRules)         │
+                         │  ↓ fires 40+ rules                   │
+                         │  Recommendation                      │
+                         │  { Prefer, Avoid, Sillage,           │
+                         │    Longevity, Reasons }              │
+                         │  ↓                                   │
+                         │  HybridExpertSystemService           │
+                         │  ├─ embed Prefer terms               │
+                         │  │  (OllamaEmbeddingClient)          │
+                         │  ├─ QdrantVectorSearchClient         │
+                         │  │  SearchAsync(vector, filter)      │
+                         │  │  → top-5 RagRetrievedChunk[]      │
+                         │  ├─ extract product DTOs + images    │
+                         │  └─ IRagLLMClient.ExecuteAsync       │
+                         │     → LLM-generated text             │
+                         │  ↓ HybridEvaluationResult            │
+                         │  { LlmResponse, Products[] }         │
+                         │  ↓                                   │
+                         │  HybridRecommendationViewModel       │
+                         │  → View (product cards + LLM text)   │
+                         └──────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Phase 0 — RAG Indexing (background, runs once)
+## 2. Phase 0 — RAG Indexing Pipeline
 
-**Entry point:** `RagIndexingHostedService` — a `BackgroundService` that fires on startup when `OnStartIndexing = true`.
+**Entry point:** `RagIndexingHostedService` — a .NET `BackgroundService` that runs once when the app starts (controlled by `OnStartIndexing` env flag). It waits a few seconds (`DelaySeconds`) for Qdrant to be ready before beginning.
 
-### Steps
+**Why index at all?**  
+The LLM has no knowledge of your specific perfume catalogue. By converting every perfume into a vector and storing it in Qdrant, we can later find the most semantically relevant perfumes for any query — without the LLM needing to see every product.
 
-#### 2.1 Extract from SQL — `ProductDataExtractor`
+---
+
+### Step 1 — Extract from SQL (`ProductDataExtractor`)
+
 ```
 ALOudDbContext.Perfumes
   .Include(Brand, Families, Notes, Accords, Tags, Seasons, Occasions)
-  → PerfumeRagSource { Id, Name, Brand, Intensity, Longevity, Sillage,
-                       GenderProfile, PriceRange, Price, Description,
-                       Families[], Notes[], Accords[], Tags[],
-                       Seasons[], Occasions[] }
+  → PerfumeRagSource {
+      Id, Name, Brand, Intensity, Longevity, Sillage,
+      GenderProfile, PriceRange, Price, Description, ImageUrl,
+      Families[], Notes[], Accords[], Tags[], Seasons[], Occasions[]
+    }
 ```
 
-#### 2.2 Build document — `DocumentBuilderService`
-Converts one `PerfumeRagSource` into a multi-line plain-text document:
+**Why a dedicated extractor?** It cleanly separates the SQL concern (EF Core, lazy loading, N+1 prevention) from the text-building concern. The `.AsNoTracking()` call ensures EF doesn't cache these objects in memory during what could be a large batch.
+
+---
+
+### Step 2 — Build a text document (`DocumentBuilderService`)
+
+Each `PerfumeRagSource` is serialised into a structured plain-text document:
+
 ```
 Perfume Name: Aventus
 Brand: Creed
@@ -102,7 +107,7 @@ Gender Profile: Masculine
 Price: 1800 MAD
 
 Description:
-A timeless chypre-fruity fragrance...
+A timeless chypre-fruity fragrance inspired by Napoleon Bonaparte...
 
 Performance Characteristics:
 - Intensity: Moderate
@@ -114,12 +119,13 @@ Chypre, Fruity
 
 Notes:
 - Blackcurrant (Top, level: top)
+- Pineapple (Top, level: top)
 - Birch (Base, level: base)
-...
+- Ambergris (Base, level: base)
 
 Main Accords:
 - Fruity (intensity: strong)
-...
+- Woody (intensity: medium)
 
 Best Seasons:
 Spring, Fall
@@ -128,155 +134,274 @@ Best Occasions:
 Office, Formal
 
 Tags:
-masculine, designer
+masculine, designer, classic
 ```
-This text is what gets embedded and stored in Qdrant. It is the only content available for retrieval.
 
-#### 2.3 Chunk — `ChunkingService`
-- Max chunk size: **900 chars**
-- Overlap: **120 chars** (last 120 chars of previous chunk prepended to next)
-- Split boundary: `\n\n` (paragraph break)
-- Each chunk carries: `SourceId` (perfume Guid), `ChunkIndex`, `Brand`, `GenderProfile`, `PriceRange`
-
-#### 2.4 Embed — `OllamaEmbeddingClient`
-Calls `POST http://localhost:11434/api/embeddings` with model `nomic-embed-text`.  
-Returns a `float[768]` vector per chunk.
-
-#### 2.5 Store — `QdrantVectorDbClient.UpsertAsync`
-Each `VectorRecord` is upserted into Qdrant collection `perfumes` with:
-- `id`: `chunk.SourceId.ToString()` ← **⚠ Bug #3** (overrides sibling chunks)
-- `vector`: `float[768]`
-- `payload.content`: the chunk text
-- `payload.sourceId`, `payload.chunkIndex`, `payload.brand`, `payload.genderProfile`, `payload.priceRange`
-
-> **Missing payload fields:** `characteristics`, `sillage`, `longevity` are **never stored** in Qdrant — ← **⚠ Bug #4** (the filter phase relies on these fields)
+**Why plain text and not JSON?** Embedding models are trained on natural language. A sentence like "Olfactory Families: Chypre, Fruity" is closer to the training distribution than `{"families":["Chypre","Fruity"]}`, so the resulting vector is more semantically meaningful.
 
 ---
 
-## 3. Phase 1 — User Form → UserProfileDto
+### Step 3 — Split into chunks (`ChunkingService`)
+
+| Parameter | Value |
+|---|---|
+| Max chunk size | 900 characters |
+| Overlap | 120 characters |
+| Split boundary | `\n\n` (paragraph break) |
+
+The chunker fills a buffer paragraph by paragraph. When adding the next paragraph would exceed 900 chars, it flushes the buffer as a chunk, then starts the next chunk with the last 120 characters of the previous one (the overlap).
+
+**Why chunk at all?** Embedding models have a token limit. A long perfume description might exceed it, and even if it doesn't, a single vector for a 2000-character document loses fine-grained meaning. Smaller chunks produce more precise vectors.
+
+**Why overlap?** A sentence that straddles a chunk boundary should appear in both chunks, so neither loses half its context. 120 characters (~2 short sentences) is enough to preserve continuity without duplicating too much data.
+
+Each chunk carries metadata forwarded from the source:
+
+```
+SourceId    → perfume GUID (for deduplication at query time)
+ChunkIndex  → 0, 1, 2… (distinguishes chunks of the same perfume)
+Brand, GenderProfile, PriceRange
+Sillage, Longevity    ← used for exact-match filtering at query time
+ImageUrl              ← surfaced in the recommendation view
+```
+
+---
+
+### Step 4 — Generate embeddings (`OllamaEmbeddingClient`)
+
+```
+POST http://localhost:11434/api/embeddings
+Body: { "model": "nomic-embed-text", "prompt": "<chunk text>" }
+Response: { "embedding": [0.023, -0.14, …] }  // float[768]
+```
+
+**What is an embedding?**  
+An embedding is a list of 768 floating-point numbers that encode the *semantic meaning* of the text. The model was trained so that texts with similar meanings land close together in this 768-dimensional space (measured by cosine similarity), regardless of exact wording. "Citrus woody scent for summer" and "fresh bergamot oak fragrance warm season" end up close together.
+
+**Why `nomic-embed-text`?** It is a free, locally-run model with strong semantic quality at 768 dimensions. Running it locally (Ollama) avoids API costs and latency for batch indexing.
+
+---
+
+### Step 5 — Store in Qdrant (`QdrantVectorDbClient.UpsertAsync`)
+
+```
+PUT /collections/perfumes/points
+Body: {
+  "points": [
+    {
+      "id": "<deterministic-uuid>",
+      "vector": [0.023, -0.14, …],
+      "payload": {
+        "content": "<chunk text>",
+        "sourceId": "<perfume-guid>",
+        "chunkIndex": 0,
+        "brand": "Creed",
+        "genderProfile": "Masculine",
+        "priceRange": "Luxury",
+        "sillage": "Moderate",
+        "longevity": "Long",
+        "imageUrl": "/images/aventus.jpg"
+      }
+    }
+  ]
+}
+```
+
+**Why a deterministic UUID as point ID?**  
+Qdrant requires every point to have either a UUID or an unsigned integer as its ID. We need the ID to be stable across re-indexes (so upsert overwrites rather than duplicates). We can't use the perfume GUID directly because one perfume produces several chunks and Qdrant IDs must be unique. The solution is to derive a UUID per chunk by hashing `"<perfumeGuid>:<chunkIndex>"` with MD5 (16 bytes → valid Guid):
+
+```csharp
+// EmbeddingIndexService.DeriveChunkId
+var input = Encoding.UTF8.GetBytes($"{sourceId}:{chunkIndex}");
+var hash  = MD5.HashData(input);
+return new Guid(hash);
+```
+
+This is deterministic (same input → same UUID every time), unique per (perfume, chunk) pair, and valid for Qdrant.
+
+**Why `PUT` (upsert) instead of `POST` (insert)?** Re-indexing is safe: if a perfume already exists in Qdrant with that ID, the upsert replaces it. The hosted service also calls `DeleteBySourceIdAsync` before indexing each perfume to clean up any old chunks whose count may have changed.
+
+---
+
+## 3. Phase 1 — User Form → UserProfile
 
 ### Entry points
 
-| Path | Controller |
-|---|---|
-| `GET /Expert/HybridRecommendation` | `ExpertController.HybridRecommendation()` → renders the form |
-| `POST /Expert/HybridRecommendation` | `ExpertController.HybridRecommendation([FromForm] string recommendationJson)` |
-| `POST /api/v1/ai/expert-system/test` | `ExpertSystemChatController.Test([FromBody] UserProfileDto)` |
-| `POST /api/v1/ai/expert-system/evaluate` | `ExpertSystemChatController.Evaluate([FromBody] RecommendationDto)` |
+| URL | Controller | Input |
+|---|---|---|
+| `GET /Expert/HybridRecommendation` | `ExpertController` | — renders the form |
+| `POST /Expert/HybridRecommendation` | `ExpertController` | `[FromForm] string recommendationJson` |
+| `POST /api/v1/ai/expert-system/test` | `ExpertSystemChatController` | `[FromBody] UserProfileDto` |
+| `POST /api/v1/ai/expert-system/evaluate` | `ExpertSystemChatController` | `[FromBody] RecommendationDto` |
 
-### MVC flow (main UI path)
+### MVC path (main UI)
 
-The Razor view `Views/Expert/HybridRecommendation.cshtml` renders a form.  
-On submit it serializes user choices to JSON and POSTs the string in a hidden field `recommendationJson`.
+The Razor view serialises the user's choices to JSON and POSTs them as a hidden form field. The controller deserialises that JSON into `RecommendationDto` (pre-built preferences) and maps it directly to a `Recommendation` domain object, then calls the hybrid service.
 
-The controller deserializes it into `RecommendationDto` (the DTO in `DTOs/ExpertSystem/RecommendationDto.cs`):
+### API `/test` path
 
-```csharp
-public class RecommendationDto {
-    public List<string>? Prefer { get; set; }   // e.g. ["citrus","woody"]
-    public List<string>? Avoid  { get; set; }   // e.g. ["oud"]
-    public string?       Sillage    { get; set; }
-    public string?       Longevity  { get; set; }
-    public List<string>? Reasons    { get; set; }
-    public string?       Result     { get; set; }  // filled on response
-}
-```
-
-### API flow (Test endpoint)
-
-The API `/test` endpoint receives `UserProfileDto` — the full profile form:
+The `/test` endpoint receives a `UserProfileDto` — the full 8-field profile — runs the NRules engine to derive preferences, then calls the hybrid service. This is the path that goes through the full expert system rule evaluation.
 
 ```csharp
 public class UserProfileDto {
-    public EClimate          Climate          { get; set; }  // Hot|Cold|Humid|Mixed
-    public EOccasion         Occasion         { get; set; }  // Office|Formal|Date|Nightlife|Sport|Daily|Gym
-    public ESkinType         SkinType         { get; set; }  // Dry|Oily|Normal
-    public EComplimentDesire Compliment       { get; set; }  // Yes|No|Neutral
-    public ESeasonPreference SeasonPreference { get; set; }  // Spring|Summer|Fall|Winter|AllYear
-    public EPersona          Persona          { get; set; }  // Corporate|Sexy|Sporty|Artistic|...
-    public ESensitivity      Sensitivity      { get; set; }  // None|Migraine|HatesSweet|...
-    public bool              WantsLongPerformance { get; set; }
+    public EClimate          Climate          // Hot | Cold | Humid | Mixed
+    public EOccasion         Occasion         // Office | Formal | Date | Nightlife | Sport | Daily | Gym
+    public ESkinType         SkinType         // Dry | Oily | Normal
+    public EComplimentDesire Compliment       // Yes | No | Neutral
+    public ESeasonPreference SeasonPreference // Spring | Summer | Fall | Winter | AllYear
+    public EPersona          Persona          // Corporate | Sexy | Sporty | Artistic | Minimalist
+                                              // Rebellious | Elegant | Youthful | Mature | Mysterious
+    public ESensitivity      Sensitivity      // None | Migraine | HatesSweet | HatesSpice
+                                              // HatesFloral | HatesFresh | PrefersMinimal
+    public bool              WantsLongPerformance
 }
 ```
 
-`UserProfileMapper.ToDomain(dto)` copies every field 1-to-1 into `UserProfile` (domain object).
+`UserProfileMapper.ToDomain(dto)` is a 1-to-1 copy from DTO to domain object. It exists so the domain layer (`UserProfile`) never depends on the API layer (`UserProfileDto`).
 
 ---
 
 ## 4. Phase 2 — NRules Engine → Recommendation
 
-**Services:** `ExpertSystemService` → `ExpertSystemEngine` → NRules
+### What is NRules?
 
-### How NRules works here
+NRules is a .NET rule engine based on the **Rete algorithm**. The Rete algorithm builds a network of condition nodes from all rules at startup. When facts are inserted into a session, they flow through this network — only rules whose conditions are fully satisfied enter the **agenda** (the list of rules ready to fire). This makes evaluation O(facts × rules) in the worst case, but in practice much faster because most rules are eliminated early in the network.
+
+### How the engine runs
 
 ```csharp
 // ExpertSystemEngine.Run(UserProfile profile)
 var session = _factory.CreateSession();
-session.Insert(profile);     // working memory: the user's profile
-session.Insert(rec);         // working memory: the mutable Recommendation object
-session.Fire();              // match & execute all matching rules
-return rec;                  // Recommendation is now populated
+session.Insert(profile);   // fact 1: the user's choices
+session.Insert(rec);       // fact 2: the mutable Recommendation to populate
+session.Fire();            // run all matching rules
+return rec;
 ```
 
-NRules uses a **Rete network** — each rule defines `When()` conditions and `Then()` actions.  
-Rules mutate the shared `Recommendation` object by calling `rec.Prefer.UnionWith(...)`, `rec.Avoid.UnionWith(...)`, setting `rec.Sillage`, `rec.Longevity`, and appending to `rec.Reasons`.
+`_factory` is compiled once at startup (`Singleton`) by scanning all classes in the assembly that inherit from `Rule`. Each `Rule` subclass defines:
+- `When()` — conditions on the facts in working memory
+- `Then()` — actions to take (mutating `rec`)
 
-### Rule categories (40+ rules total)
+Both `UserProfile` and `Recommendation` are in working memory simultaneously. Rules match on `UserProfile` fields and write into `Recommendation`. Because `Recommendation` starts empty, multiple rules can safely add to the same `HashSet<string>` (union semantics — no duplicates, order doesn't matter).
 
-| Category | Example rule | What it adds |
+### Rule categories
+
+**Climate rules** — respond to `EClimate`:
+
+| Rule | Condition | Effect |
 |---|---|---|
-| **ClimateRules** | `HotClimatePreferRule` | Prefer: `citrus, aquatic, green, light_musk` |
-| | `ColdClimatePreferRule` | Prefer: `oud, amber, warm_spice, leather` |
-| | `HumidClimateRule` | Prefer: `aromatic, woody, iso_e_super` |
-| | `HotClimateAvoidRule` | Avoid: `heavy, oriental, animalic` |
-| | `HotClimateSillageRule` | Sillage: `moderate` |
-| | `ColdClimateSillageRule` | Sillage: `heavy` |
-| | `HotClimateLongevityRule` | Longevity: `>= medium` |
-| | `ColdClimateLongevityRule` | Longevity: `>= long` |
-| | `DrySkinRule` | Prefer: `gourmand, vanilla, musky` |
-| | `OilySkinRule` | Avoid: `heavy_base, rich_resinous` |
-| **OccasionRules** | `OfficePreferRule` | Prefer: `woody, musk, aromatic, clean` |
-| | `OfficeSillageRule` | Sillage: `light` |
-| | `NightlifePreferRule` | Prefer: `oud, amber, spicy, animalic` |
-| | `NightlifeSillageRule` | Sillage: `heavy` |
-| | `DatePreferRule` | Prefer romantic notes |
-| | `GymPreferRule` | Prefer: `citrus, sport, aquatic` |
-| **PerformanceRules** | `WantsLongPerformanceRule` | Longevity: `>= medium` |
-| | `NightlifeLongevityRule` | Longevity: `>= long` |
-| | `MuskAmberVanillaBaseRule` | Prefer base notes for projection |
-| | `HotClimateTopNotesRule` | Prefer volatile top notes |
-| **PersonaRules** | `CorporatePersonaRule` | Prefer: `woody, aromatic, musk` |
-| | `SexyPersonaRule` | Prefer: `oud, amber, animalic` |
-| | `ArtisticPersonaRule` | Prefer niche/unusual notes |
-| | `MinimalistPersonaRule` | Prefer: `clean, white_musk` |
-| **ComplimentRules** | `ComplimentWorkRule` | Moderate sillage for office |
-| | `ComplimentDateRule` | Sensual notes for date context |
-| | `ComplimentNightlifeRule` | Bold sillage for nightlife |
-| **SensitivityRules** | `MigraineSensitivityRule` | Avoid: `oud, amber_heavy, animalic, incense_heavy` |
-| | `HatesSweetSensitivityRule` | Avoid: `gourmand, vanilla, caramel` |
-| | `HatesFloralSensitivityRule` | Avoid: `floral, rose, jasmine` |
-| | `PrefersMinimalSensitivityRule` | Prefer: `clean, fresh` |
+| `HotClimatePreferRule` | Climate = Hot | Prefer: `citrus, aquatic, green, light_musk` |
+| `HotClimateAvoidRule` | Climate = Hot | Avoid: `heavy, oriental, animalic` |
+| `HotClimateSillageRule` | Climate = Hot | Sillage = `moderate_or_intimate` *(if not already set)* |
+| `HotClimateLongevityRule` | Climate = Hot | Longevity = `>= medium` *(if not already set)* |
+| `ColdClimatePreferRule` | Climate = Cold | Prefer: `oud, amber, warm_spice, leather` |
+| `ColdClimateSillageRule` | Climate = Cold | Sillage = `!= intimate` *(if not already set)* |
+| `ColdClimateLongevityRule` | Climate = Cold | Longevity = `>= long` *(if not already set)* |
+| `HumidClimateRule` | Climate = Humid | Prefer: `aromatic, woody, iso_e_super` |
+| `MixedClimateRule` | Climate = Mixed | Prefer balanced notes |
+| `DrySkinRule` | SkinType = Dry | Prefer: `gourmand, vanilla, musky` |
+| `OilySkinRule` | SkinType = Oily | Avoid: `heavy_base, rich_resinous` |
 
-### Recommendation output
+**Occasion rules** — respond to `EOccasion`:
+
+| Rule | Condition | Effect |
+|---|---|---|
+| `OfficePreferRule` | Occasion = Office | Prefer: `woody, musk, aromatic, clean` |
+| `OfficeSillageRule` | Occasion = Office | Sillage = `light` *(unconditional — overrides climate)* |
+| `OfficeLongevityRule` | Occasion = Office | Longevity = `medium` |
+| `OfficeSweetnessRule` | Occasion = Office | Avoid: `gourmand` |
+| `NightlifePreferRule` | Occasion = Nightlife | Prefer: `oud, amber, spicy, animalic` |
+| `NightlifeSillageRule` | Occasion = Nightlife | Sillage = `heavy` |
+| `NightlifeLongevityRule` | Occasion = Nightlife | Longevity = `>= long` |
+| `DatePreferRule` | Occasion = Date | Prefer: romantic, sensual notes |
+| `GymPreferRule` | Occasion = Gym | Prefer: `citrus, sport, aquatic` |
+| `SportPreferRule` | Occasion = Sport | Prefer: `fresh, aquatic, green` |
+
+**Performance rules** — respond to explicit performance preferences:
+
+| Rule | Condition | Effect |
+|---|---|---|
+| `WantsLongPerformanceRule` | WantsLongPerformance = true | Longevity = `>= medium` |
+| `MuskAmberVanillaBaseRule` | (profile) | Prefer long-lasting base notes |
+| `HotClimateTopNotesRule` | Climate = Hot | Prefer volatile top notes |
+
+**Persona rules** — respond to `EPersona`:
+
+| Rule | Condition | Effect |
+|---|---|---|
+| `CorporatePersonaRule` | Persona = Corporate | Prefer: `woody, aromatic, musk` |
+| `SexyPersonaRule` | Persona = Sexy | Prefer: `oud, amber, animalic` |
+| `ArtisticPersonaRule` | Persona = Artistic | Prefer niche/unusual notes |
+| `MinimalistPersonaRule` | Persona = Minimalist | Prefer: `clean, white_musk` |
+| `ElegantPersonaRule` | Persona = Elegant | Prefer: `floral, powdery, iris` |
+| `MysteriousPersonaRule` | Persona = Mysterious | Prefer: `smoky, incense, dark_amber` |
+
+**Sensitivity rules** — respond to `ESensitivity`:
+
+| Rule | Condition | Effect |
+|---|---|---|
+| `MigraineSensitivityRule` | Sensitivity = Migraine | Avoid: `oud, amber_heavy, animalic, incense_heavy` |
+| `HatesSweetSensitivityRule` | Sensitivity = HatesSweet | Avoid: `gourmand, vanilla, caramel` |
+| `HatesFloralSensitivityRule` | Sensitivity = HatesFloral | Avoid: `floral, rose, jasmine` |
+| `HatesSpiceSensitivityRule` | Sensitivity = HatesSpice | Avoid: `spice, pepper, clove` |
+| `HatesFreshSensitivityRule` | Sensitivity = HatesFresh | Avoid: `citrus, aquatic, green` |
+| `PrefersMinimalSensitivityRule` | Sensitivity = PrefersMinimal | Prefer: `clean, fresh` |
+
+**Compliment rules** — respond to `EComplimentDesire`:
+
+| Rule | Condition | Effect |
+|---|---|---|
+| `ComplimentWorkRule` | Compliment = Yes + Occasion = Office | Keep sillage moderate (professional) |
+| `ComplimentDateRule` | Compliment = Yes + Occasion = Date | Sensual notes, closer sillage |
+| `ComplimentNightlifeRule` | Compliment = Yes + Occasion = Nightlife | Bold, projecting sillage |
+
+### Sillage and Longevity: occasion wins over climate
+
+`Sillage` and `Longevity` are scalar strings (last write wins). Climate rules could silently override occasion rules or vice versa depending on NRules' internal agenda order, which is non-deterministic across versions.
+
+**Resolution:** Climate-level rules guard with a null-check and only write if no higher-priority rule has already set the value:
 
 ```csharp
-public class Recommendation {
-    public HashSet<string> Prefer  { get; }  // union of all rule outputs
-    public HashSet<string> Avoid   { get; }  // union of all rule outputs
-    public string?         Sillage   { get; set; }  // last rule wins
-    public string?         Longevity { get; set; }  // last rule wins
-    public List<string>    Reasons { get; }  // one line per fired rule
+// HotClimateSillageRule — climate level, defers to occasion rules
+private static void Apply(Recommendation rec)
+{
+    if (string.IsNullOrWhiteSpace(rec.Sillage))
+        rec.Sillage = "moderate_or_intimate";
+    rec.Reasons.Add("Hot climate → moderate or intimate sillage recommended");
+}
+
+// OfficeSillageRule — occasion level, always writes
+private static void Apply(Recommendation rec)
+{
+    rec.Sillage = "light";
+    rec.Reasons.Add("Office occasion → light sillage required");
 }
 ```
 
-**Example output** for `Climate=Hot, Occasion=Office, Sensitivity=Migraine, WantsLongPerformance=true`:
+Because NRules fires all matching rules and occasions rules write unconditionally, the occasion value always ends up in `rec.Sillage` regardless of order.
+
+### Output: the Recommendation object
+
 ```
-Prefer:  { citrus, aquatic, green, light_musk, woody, musk, aromatic, clean }
-Avoid:   { oud, amber_heavy, animalic, incense_heavy, heavy, oriental }
-Sillage: "light"       (OfficeSillageRule wins over HotClimateSillageRule)
-Longevity: ">= medium" (WantsLongPerformanceRule)
-Reasons: [
+Recommendation {
+    Prefer:   HashSet<string>   // union of all prefer-sets from fired rules
+    Avoid:    HashSet<string>   // union of all avoid-sets from fired rules
+    Sillage:  string?           // last unconditional write (occasion > climate)
+    Longevity:string?           // same
+    Reasons:  List<string>      // one human-readable line per fired rule
+}
+```
+
+**Example** for `Climate=Hot, Occasion=Office, Sensitivity=Migraine, WantsLongPerformance=true`:
+```
+Prefer:   { citrus, aquatic, green, light_musk, woody, musk, aromatic, clean }
+Avoid:    { heavy, oriental, animalic, oud, amber_heavy, incense_heavy }
+Sillage:  "light"       ← OfficeSillageRule (unconditional) wins
+Longevity:"medium"      ← OfficeLongevityRule fires after WantsLongPerformance
+Reasons:  [
   "Hot climate → prefer citrus, aquatic, green and light musk notes",
+  "Hot climate → avoid heavy, oriental and animalic notes",
+  "Hot climate → moderate or intimate sillage recommended",
   "Office occasion → woody, musk, aromatic and clean notes preferred",
   "Office → sillage should be light",
   "Migraine sensitivity → avoid oud, heavy amber, animalic and heavy incense",
@@ -284,56 +409,104 @@ Reasons: [
 ]
 ```
 
-> **Note on `Sillage` / `Longevity` conflicts:** Multiple rules can write the same field.  
-> The last rule to fire wins (NRules fires rules in an unspecified order unless priority is set).  
-> This can cause silent overrides — for example `WantsLongPerformanceRule` sets `>= medium`  
-> but `NightlifeLongevityRule` also sets `>= long`. No conflict resolution logic exists.
-
 ---
 
-## 5. Phase 3 — Qdrant Filter Search → RagRetrievedChunk[]
+## 5. Phase 3 — Vector Search → Top-5 Perfumes
 
 **Service:** `HybridExpertSystemService.GetTopKProducts`
 
-### What should happen (design intent)
+This phase answers the question: *which perfumes in our catalogue best match the user's preference profile?*
 
-```
-Recommendation.Prefer  → QdrantFilter.Must   (key = "characteristics")
-Recommendation.Avoid   → QdrantFilter.MustNot (key = "characteristics")
-Recommendation.Sillage → QdrantFilter.Must   (key = "sillage")
-Recommendation.Longevity → QdrantFilter.Must (key = "longevity")
+### Why vector search instead of SQL filters?
 
-QdrantPayloadSearchClient.SearchByFilterAsync(topK=5, filter)
-  → POST /collections/perfumes/points/scroll
-  → returns up to 5 RagRetrievedChunk[]
-  → deduplicated by sourceId
-```
+SQL filters on categories like `Family = 'Chypre'` are exact-match. The rules engine outputs terms like `"citrus"`, `"woody"`, `"aromatic"` — these are semantic concepts, not database column values. A perfume that is "fresh bergamot woody" should match the query `"citrus woody"` even if the word "citrus" never appears in its record. Vector search solves this because semantically similar texts produce similar vectors.
 
-### What actually happens (broken)
+### Step 1 — Build the query text
 
 ```csharp
-// HybridExpertSystemService.cs line 74-77
-var results = await _payloadSearchClient.SearchByFilterAsync(
-    topK,
-    filter: null,      // ← BUG #1: filter is built but never passed
-    cancellationToken: cancellationToken);
+// Join all Prefer terms plus sillage/longevity hints into one query string
+var queryTerms = prefer.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+if (!string.IsNullOrWhiteSpace(sillage))  queryTerms.Add(sillage);
+if (!string.IsNullOrWhiteSpace(longevity)) queryTerms.Add(longevity);
+
+var queryText = queryTerms.Count > 0
+    ? string.Join(" ", queryTerms)    // e.g. "citrus aquatic woody clean light"
+    : "perfume fragrance";
 ```
 
-Because `filter: null` is hardcoded, **every request returns the same top-5 results from Qdrant** regardless of user preferences.
+**Why include sillage and longevity in the query text?** These are performance characteristics that often appear in the embedded document text (e.g. "light sillage", "long-lasting"). Including them steers the embedding toward chunks that describe such characteristics.
 
-Even if the filter were passed, the Qdrant payloads don't contain a `characteristics` field (BUG #4), so `Must` conditions on `"characteristics"` would match nothing.
+### Step 2 — Embed the query
 
-### How `QdrantPayloadSearchClient` works
+```csharp
+var queryVector = await _embeddingClient.CreateEmbeddingAsync(queryText, cancellationToken);
+// → float[768]
+```
 
-It calls the Qdrant **scroll** endpoint (`/points/scroll`), not the **search** endpoint (`/points/search`).
+The same `OllamaEmbeddingClient` / `nomic-embed-text` model is used here as during indexing. **This is critical**: query and documents must be embedded with the same model, otherwise the cosine distances are meaningless.
 
-| | `scroll` | `search` |
-|---|---|---|
-| Ranking | none (arbitrary order) | cosine similarity score |
-| Requires vector | no | yes |
-| Use case | paginate / filter | nearest-neighbour |
+### Step 3 — Build the metadata filter
 
-The scroll endpoint is correct for **pure filter-based lookup** but wrong for **semantic ranking**. The ideal approach is a **hybrid search**: embed the user's preference terms as a query vector, then apply Qdrant's filtered vector search.
+`Prefer` terms are handled semantically by the query vector. `Sillage` and `Longevity` are exact scalar values stored in Qdrant metadata, so they are applied as hard filters:
+
+```csharp
+QdrantFilter? filter = null;
+if (!string.IsNullOrWhiteSpace(sillage) || !string.IsNullOrWhiteSpace(longevity))
+{
+    filter = new QdrantFilter();
+    if (!string.IsNullOrWhiteSpace(sillage))
+        filter.Must.Add(new FilterCondition { Key = "sillage", Value = sillage.Trim() });
+    if (!string.IsNullOrWhiteSpace(longevity))
+        filter.Must.Add(new FilterCondition { Key = "longevity", Value = longevity.Trim() });
+}
+```
+
+**Why not filter on `Avoid` terms in Qdrant?** The `Avoid` terms are semantic concepts (e.g. `"oud"`, `"animalic"`), not exact metadata field values stored per-chunk. Filtering them in Qdrant would require storing every accord/note as a metadata array and using `match.any`, which adds indexing complexity. Instead, `Avoid` terms are passed directly to the LLM system prompt, which has full understanding of what they mean and can exclude or warn about matching perfumes in natural language.
+
+### Step 4 — Qdrant ANN vector search
+
+```csharp
+var results = await _vectorSearchClient.SearchAsync(queryVector, topK: 5, filter, cancellationToken);
+```
+
+**How does Qdrant find the nearest vectors?**
+
+Qdrant uses **Hierarchical Navigable Small World (HNSW)** — an approximate nearest-neighbour (ANN) graph index. During indexing, each vector is connected to its nearest neighbours in a multi-layer graph. At search time, the algorithm starts at an entry point and greedily navigates to nodes closer to the query vector, exploring the neighbourhood at each layer. This finds the approximate top-K closest vectors in sub-linear time instead of scanning every point.
+
+**What is cosine similarity?**  
+Two vectors A and B have a cosine similarity of `cos(θ) = (A·B) / (|A|×|B|)`. A value of `1.0` means identical direction (same semantic meaning), `0.0` means orthogonal (unrelated). Qdrant uses this as the scoring function when the collection is configured with cosine distance.
+
+The HTTP call Qdrant receives:
+
+```json
+POST /collections/perfumes/points/search
+{
+  "vector": [0.023, -0.14, …],
+  "limit": 5,
+  "with_payload": true,
+  "filter": {
+    "must": [
+      { "key": "sillage",   "match": { "value": "light" } },
+      { "key": "longevity", "match": { "value": "medium" } }
+    ]
+  }
+}
+```
+
+Qdrant returns the 5 most similar chunks that also satisfy all `must` conditions, ordered by score descending.
+
+### Step 5 — Deduplicate by source perfume
+
+One perfume can produce several chunks (chunk 0 = name/brand/price, chunk 1 = notes, etc.). After the search, all chunks from the same perfume source are grouped and only the top-scoring chunk per perfume is kept:
+
+```csharp
+return results
+    .GroupBy(chunk => chunk.Metadata["sourceId"].ToString())
+    .Select(g => g.First())   // First() = highest score (results are score-ordered)
+    .ToList();
+```
+
+**Why deduplicate?** Without this, a very descriptive perfume could fill all 5 slots with its own chunks, crowding out other candidates.
 
 ---
 
@@ -341,239 +514,114 @@ The scroll endpoint is correct for **pure filter-based lookup** but wrong for **
 
 **Service:** `HybridExpertSystemService.GetLLMGeneratedRecommendationAsync`
 
+### Why use an LLM here?
+
+The vector search returns the right *candidates*, but a raw dump of chunk text is not a useful recommendation. The LLM synthesises the candidates, matches them against the user's reasons, respects the avoid constraints, and produces a concise, human-readable explanation.
+
 ### Prompt construction
 
 ```
-System:
-  "You are a perfume recommendation expert. Recommend only from provided products.
-   Respect avoid constraints and explain why each product fits the user profile."
+SYSTEM:
+  "You are a perfume recommendation expert. Recommend only from the provided
+   products. Explain why each product fits the user profile.
+   Characteristics to avoid: oud, amber_heavy, animalic."
+                              ↑ Avoid terms from Recommendation.Avoid
 
-User:
-  "Generate a concise recommendation response with top products, why they fit,
+USER:
+  "Generate a concise recommendation with top products, why they fit,
    and a short caution for any trade-off."
 
-Context (JSON serialized):
+CONTEXT (JSON):
   {
     "reasons": "- Hot climate → prefer citrus...\n- Office → sillage light...",
     "products": [
-      { "id": "...", "sourceId": "...", "name": "Aventus", "brand": "Creed",
+      {
+        "id": "...",
+        "sourceId": "<perfume-guid>",
+        "name": "Aventus",
+        "brand": "Creed",
         "content": "Perfume Name: Aventus\nBrand: Creed\n...",
-        "metadata": { "brand": "Creed", "genderProfile": "Masculine", ... }
+        "metadata": { "brand": "Creed", "sillage": "Moderate", ... }
       },
       ...
     ]
   }
 ```
 
-### LLM client selection
+The `reasons` array (produced by the NRules engine) tells the LLM *why* each preference was derived, so it can ground its explanation in the user's actual input (skin type, climate, occasion) rather than making generic statements.
 
-`LLMClientFactory.CreateClient()` reads `LLM_PROVIDER` env var (default: `"gemini"`):
-- `"gemini"` → `GeminiLLMClient` (calls Gemini REST API)
-- `"groq"` → `GroqLLMClient` (calls Groq OpenAI-compatible API)
-- `"grok"` → `GrokLLMClient` (calls xAI Grok API)
+### LLM provider selection
 
-All three inherit from `BaseLLMClient`, which:
-1. Serializes the payload
-2. Sends `POST` to the provider URL
-3. Handles 429 (rate limit) and 403 (forbidden) errors
-4. Parses the response into `RagLLMResult { FinalAnswer, ToolCall }`
+The active provider is controlled by the `LLM_PROVIDER` environment variable (default: `"gemini"`):
+
+| Value | Client | API |
+|---|---|---|
+| `"gemini"` | `GeminiLLMClient` | Google Gemini REST API |
+| `"groq"` | `GroqLLMClient` | Groq OpenAI-compatible API |
+| `"grok"` | `GrokLLMClient` | xAI Grok API |
+
+All three inherit from `BaseLLMClient`, which handles:
+- JSON serialisation of the provider-specific payload
+- HTTP `POST` to the provider URL
+- 429 (rate limit) and 403 (forbidden) error handling
+- Response parsing into `RagLLMResult { FinalAnswer, ToolCall }`
+
+The `LLMClientFactory` reads the env var at runtime and creates the correct instance.
 
 ### Fallback
 
-If the LLM fails or returns empty, `BuildFallbackResponse` returns a plain list:
+If the LLM call fails (network error, rate limit, empty response), `BuildFallbackResponse` returns a plain text list:
+
 ```
 Recommended products:
 - Aventus by Creed
 - Sauvage by Dior
-...
 ```
 
-### Final output
-
-`HybridRecommendationViewModel.LlmGeneratedResponse` is set to the LLM-generated string.  
-The Razor view renders it as the recommendation result.
+This ensures the user always gets *something* even when the LLM is unavailable.
 
 ---
 
-## 7. Known Bugs & Fixes
+## 7. Phase 5 — Response to the View
 
-### Bug #1 — Filter is built but never passed (CRITICAL)
+### Service return type
 
-**File:** `Services/Infrastructure/ExpertSystem/HybridExpertSystemService.cs:74`
-
-```csharp
-// CURRENT (broken)
-var results = await _payloadSearchClient.SearchByFilterAsync(
-    topK,
-    filter: null,          // ← filter is discarded
-    cancellationToken: cancellationToken);
-
-// FIX
-var results = await _payloadSearchClient.SearchByFilterAsync(
-    topK,
-    filter: filter,        // ← pass the built filter
-    cancellationToken: cancellationToken);
-```
-
-**Impact:** Every user gets the same results. No preference-based filtering happens at all.
-
----
-
-### Bug #2 — Qdrant uses `scroll` (unranked) instead of `search` (vector-ranked)
-
-**File:** `Services/Infrastructure/Rag/Clients/QdrantPayloadSearchClient.cs:66`
-
-The scroll endpoint returns arbitrary points. For a recommendation system, results should be ranked by relevance.
-
-**Best fix:** Replace payload scroll with Qdrant's **filtered vector search**:
+`HybridExpertSystemService.EvaluateAsync` returns:
 
 ```csharp
-// 1. Build a query string from the Prefer terms
-var queryText = string.Join(", ", prefer.Union(new[] { sillage, longevity }
-    .Where(x => !string.IsNullOrWhiteSpace(x))!));
+public class HybridEvaluationResult {
+    public string LlmResponse { get; init; }                 // LLM-generated text
+    public IReadOnlyList<RecommendedPerfumeDto> Products { get; init; } // product cards
+}
 
-// 2. Embed the query
-var queryVector = await _embeddingClient.CreateEmbeddingAsync(queryText, cancellationToken);
-
-// 3. Call vector search endpoint with filter
-// POST /collections/perfumes/points/search
-// { "vector": [...], "limit": 5, "with_payload": true,
-//   "filter": { "must": [...], "must_not": [...] } }
-```
-
-**Simpler short-term fix** (keeps scroll but at least passes the filter):  
-Apply Bug #1 fix + Bug #4 fix so the filter actually matches metadata fields.
-
----
-
-### Bug #3 — All chunks of a perfume share the same Qdrant ID (data loss)
-
-**File:** `Services/Infrastructure/Rag/IndexingJob/EmbeddingIndexService.cs:28`
-
-```csharp
-// CURRENT (broken) — SourceId is the perfume Guid, not chunk-unique
-results.Add(new VectorRecord
-{
-    Id = chunk.SourceId.ToString(),   // ← all chunks overwrite each other
-    ...
-});
-
-// FIX — use a deterministic per-chunk ID
-results.Add(new VectorRecord
-{
-    Id = $"{chunk.SourceId}_{chunk.ChunkIndex}",
-    ...
-});
-```
-
-**Impact:** For any perfume with more than one chunk, only the last chunk survives in Qdrant.  
-The first chunk (containing the name, brand, price) gets overwritten.
-
----
-
-### Bug #4 — Filter keys `characteristics`, `sillage`, `longevity` are never stored in Qdrant
-
-**File:** `Services/Infrastructure/Rag/IndexingJob/EmbeddingIndexService.cs:42-52`
-
-The filter built in `BuildQdrantFilter` looks for Qdrant payload fields named `characteristics`, `sillage`, and `longevity`. These fields are never stored during indexing.
-
-```csharp
-// CURRENT metadata stored per chunk:
-{ "sourceId", "chunkIndex", "brand", "genderProfile", "priceRange" }
-
-// NEEDED to make filtering work:
-{ "sourceId", "chunkIndex", "brand", "genderProfile", "priceRange",
-  "sillage", "longevity", "accords" }
-```
-
-**Fix in `EmbeddingIndexService.BuildMetadata`:**
-
-```csharp
-private static Dictionary<string, object> BuildMetadata(RagDocumentChunk chunk)
-{
-    var meta = new Dictionary<string, object>
-    {
-        ["sourceId"]     = chunk.SourceId.ToString(),
-        ["chunkIndex"]   = chunk.ChunkIndex,
-        ["brand"]        = chunk.Brand        ?? string.Empty,
-        ["genderProfile"]= chunk.GenderProfile ?? string.Empty,
-        ["priceRange"]   = chunk.PriceRange   ?? string.Empty,
-    };
-
-    if (!string.IsNullOrWhiteSpace(chunk.Sillage))
-        meta["sillage"] = chunk.Sillage;
-
-    if (!string.IsNullOrWhiteSpace(chunk.Longevity))
-        meta["longevity"] = chunk.Longevity;
-
-    return meta;
+public class RecommendedPerfumeDto {
+    public string  Name     { get; init; }
+    public string  Brand    { get; init; }
+    public string? ImageUrl { get; init; }  // from Qdrant metadata → Perfume.ImageUrl
 }
 ```
 
-This also requires passing `Sillage` and `Longevity` from `PerfumeRagSource` through `RagDocumentChunk` (add those fields to `RagDocumentChunk` and `ChunkingService.CreateChunk`).
+`Name` and `Brand` are extracted from the chunk's `content` text using a line-prefix search (`"Perfume Name:"`, `"Brand:"`). `ImageUrl` comes directly from `chunk.Metadata["imageUrl"]`, which was stored during indexing.
 
-> **Note on `characteristics`:** The Qdrant filter uses `"characteristics"` as a key for the `Prefer`/`Avoid` terms. These are olfactory note/accord names like `"citrus"`, `"woody"`. Storing all accords as a flat `characteristics` array in the payload would work, but requires Qdrant array matching syntax (`match.any`), not scalar `match.value`. The alternative — and arguably better solution — is **Bug #2's fix** (vector search), which finds semantically similar perfumes without needing exact keyword matches on payload fields.
-
----
-
-### Bug #5 — Duplicate `RecommendationDto` class
-
-Two definitions exist in the codebase:
-
-| Location | Namespace |
-|---|---|
-| `DTOs/ExpertSystem/RecommendationDto.cs` | `ALOud.DTOs.ExpertSystem` |
-| `Controllers/Api/v1/ExpertSystemChatController.cs` (bottom) | `ALOud.Controllers.Api.v1` |
-
-The one inside the controller file is redundant. **Fix:** delete the inline class from the controller file and use only the one in `DTOs/ExpertSystem/`.
-
----
-
-### Bug #6 — `HumidClimateRule.cs` has a leading space in its filename
-
-**File:** `Services/Infrastructure/ExpertSystem/Rules/ HumidClimateRule.cs` (note the space)
-
-NRules loads rules by scanning the assembly, not by filename, so this rule still fires correctly at runtime. However:
-- The file cannot be opened by path on case-sensitive filesystems without quoting
-- It breaks glob patterns and tooling
-
-**Fix:** rename the file to `HumidClimateRule.cs`.
-
----
-
-### Bug #7 — `Sillage`/`Longevity` rule conflicts (silent last-write-wins)
-
-Multiple rules write `rec.Sillage` or `rec.Longevity` without checking the existing value. NRules fires rules in agenda order (non-deterministic unless priority is set).
-
-**Example conflict:**
-- `OfficeSillageRule` → `rec.Sillage = "light"`
-- `HotClimateSillageRule` → `rec.Sillage = "moderate"`
-
-Whichever fires last wins silently.
-
-**Best fix:** Use a priority-based or accumulation-based approach:
+### View model
 
 ```csharp
-// Option A: NRules priority attribute (deterministic but fragile)
-[Priority(10)]
-public class OfficeSillageRule : Rule { ... }
-
-// Option B: Store a list of sillage suggestions and resolve in service
-rec.SillageSuggestions.Add("light");  // each rule adds, service picks
+public class HybridRecommendationViewModel {
+    public RecommendationDto? Recommendation { get; set; }      // user's input (for display)
+    public string? LlmGeneratedResponse { get; set; }           // LLM text
+    public IReadOnlyList<RecommendedPerfumeDto> Products { get; set; } // product cards
+}
 ```
 
-Option B is more robust because it makes the conflict visible in `Reasons`.
+### What the view renders
 
----
+`Views/Expert/HybridRecommendation.cshtml` renders three cards in order:
 
-## Summary of Required Changes
+1. **Preference Profile** — the `Prefer` tags (green), `Avoid` tags (red), sillage and longevity values.
+2. **Recommended Perfumes** — a responsive CSS grid of product cards. Each card shows:
+   - The perfume image (`<img src="@product.ImageUrl">`) if available
+   - A `bi-droplet` placeholder icon if `ImageUrl` is null
+   - The perfume name and brand underneath
+3. **AI Analysis** — the raw LLM-generated recommendation text, followed by the NRules `Reasons` list that explains *why* those preferences were derived.
 
-| # | Severity | File | Fix |
-|---|---|---|---|
-| 1 | **Critical** | `HybridExpertSystemService.cs:74` | Pass `filter:filter` not `filter:null` |
-| 2 | High | `QdrantPayloadSearchClient.cs` | Migrate to vector search endpoint |
-| 3 | High | `EmbeddingIndexService.cs:28` | Use `$"{SourceId}_{ChunkIndex}"` as ID |
-| 4 | High | `EmbeddingIndexService.cs:42` + `RagDocumentChunk` | Store `sillage`, `longevity` in metadata |
-| 5 | Medium | `ExpertSystemChatController.cs` | Remove duplicate `RecommendationDto` class |
-| 6 | Low | `Rules/ HumidClimateRule.cs` | Rename file (remove leading space) |
-| 7 | Medium | All sillage/longevity rules | Add rule priorities or accumulation |
+> **Note on images:** Images appear after the next re-index run. Until Qdrant is repopulated with the updated metadata (which now includes `imageUrl`), existing chunks return `null` for `ImageUrl` and the placeholder is shown.

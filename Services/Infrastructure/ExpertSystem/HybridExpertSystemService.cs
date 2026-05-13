@@ -1,3 +1,4 @@
+using ALOud.DTOs.ExpertSystem;
 using ALOud.Models;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 using ALOud.Services.Rag.Clients;
@@ -25,7 +26,7 @@ public class HybridExpertSystemService : IHybridExpertSystemService
     }
 
 
-    public async Task<string> EvaluateAsync(
+    public async Task<HybridEvaluationResult> EvaluateAsync(
         Recommendation rec,
         CancellationToken cancellationToken = default)
     {
@@ -34,12 +35,15 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         if (rec.Prefer.Count == 0 && rec.Avoid.Count == 0 &&
             string.IsNullOrWhiteSpace(rec.Sillage) && string.IsNullOrWhiteSpace(rec.Longevity))
         {
-            return "Please provide at least one preference criterion (prefer, avoid, sillage, or longevity).";
+            return new HybridEvaluationResult
+            {
+                LlmResponse = "Please provide at least one preference criterion (prefer, avoid, sillage, or longevity)."
+            };
         }
 
         try
         {
-            var products = await GetTopKProducts(
+            var chunks = await GetTopKProducts(
                 rec.Prefer,
                 rec.Avoid,
                 rec.Sillage,
@@ -47,11 +51,17 @@ public class HybridExpertSystemService : IHybridExpertSystemService
                 topK: 5,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return await GetLLMGeneratedRecommendationAsync(
-                products,
+            var llmResponse = await GetLLMGeneratedRecommendationAsync(
+                chunks,
                 rec.Reasons ?? new List<string>(),
                 rec.Avoid,
                 cancellationToken).ConfigureAwait(false);
+
+            return new HybridEvaluationResult
+            {
+                LlmResponse = llmResponse,
+                Products = BuildProductDtos(chunks)
+            };
         }
         catch (OperationCanceledException)
         {
@@ -59,7 +69,10 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         }
         catch (Exception ex)
         {
-            return $"An error occurred during recommendation: {ex.Message}";
+            return new HybridEvaluationResult
+            {
+                LlmResponse = $"An error occurred during recommendation: {ex.Message}"
+            };
         }
     }
 
@@ -116,9 +129,7 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         try
         {
             if (products.Count == 0)
-            {
                 return "No products found matching your criteria. Please try relaxing your filters.";
-            }
 
             var productContext = BuildProductContext(products);
             var reasonContext = reasons.Count == 0
@@ -151,9 +162,23 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         }
         catch
         {
-            // Log the error and return fallback response
             return BuildFallbackResponse(products);
         }
+    }
+
+    private static IReadOnlyList<RecommendedPerfumeDto> BuildProductDtos(
+        IReadOnlyList<RagRetrievedChunk> chunks)
+    {
+        return chunks.Select(chunk =>
+        {
+            chunk.Metadata.TryGetValue("imageUrl", out var imageUrl);
+            return new RecommendedPerfumeDto
+            {
+                Name = ExtractField(chunk.Content, "Perfume Name:"),
+                Brand = ExtractField(chunk.Content, "Brand:"),
+                ImageUrl = imageUrl?.ToString()
+            };
+        }).ToList();
     }
 
     private static string GetSourceKey(RagRetrievedChunk chunk)
