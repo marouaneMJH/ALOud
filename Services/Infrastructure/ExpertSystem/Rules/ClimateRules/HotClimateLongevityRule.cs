@@ -21,7 +21,8 @@ public class HotClimateLongevityRule : Rule
 
     private static void Apply(Recommendation rec)
     {
-        rec.Longevity = ">= medium";
+        if (string.IsNullOrWhiteSpace(rec.Longevity))
+            rec.Longevity = ">= medium";
         rec.Reasons.Add("Hot climate → longevity should be at least medium");
     }
 }

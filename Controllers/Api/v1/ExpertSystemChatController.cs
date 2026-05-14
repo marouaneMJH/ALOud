@@ -1,7 +1,5 @@
 using ALOud.DTOs.ExpertSystem;
-using ALOud.DTOs.Rag;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
-using ALOud.Services.Rag;
 using ALOud.Services.Infrastructure.ExpertSystem;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,17 +51,16 @@ namespace ALOud.Controllers.Api.v1
                 var result = _expertService.Evaluate(userProfileDto);
                 
                 // Also get LLM explanation for complete response
-                string llmResult = string.Empty;
+                var hybridResult = new ALOud.DTOs.ExpertSystem.HybridEvaluationResult();
                 try
                 {
-                    llmResult = await _hybridExpertService.EvaluateAsync(result).ConfigureAwait(false);
+                    hybridResult = await _hybridExpertService.EvaluateAsync(result).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to generate LLM explanation, returning expert system result only");
                 }
-                
-                // Return complete recommendation with LLM result
+
                 return Ok(new
                 {
                     prefer = result.Prefer,
@@ -71,7 +68,8 @@ namespace ALOud.Controllers.Api.v1
                     sillage = result.Sillage,
                     longevity = result.Longevity,
                     reasons = result.Reasons,
-                    result = llmResult
+                    result = hybridResult.LlmResponse,
+                    products = hybridResult.Products
                 });
             }
             catch (Exception ex)
@@ -128,7 +126,7 @@ namespace ALOud.Controllers.Api.v1
                 }
 
                 var result = await _hybridExpertService.EvaluateAsync(rec);
-                return Ok(new { result });
+                return Ok(new { result = result.LlmResponse, products = result.Products });
             }
             catch (Exception ex)
             {
@@ -136,29 +134,5 @@ namespace ALOud.Controllers.Api.v1
                 return StatusCode(500, new { error = "Hybrid expert system evaluation failed." });
             }
         }
-    }
-
-    /// <summary>
-    /// DTO for expert system recommendations
-    /// </summary>
-    public class RecommendationDto
-    {
-        /// <summary>Preferred characteristics</summary>
-        public List<string>? Prefer { get; set; }
-
-        /// <summary>Characteristics to avoid</summary>
-        public List<string>? Avoid { get; set; }
-
-        /// <summary>Preferred sillage</summary>
-        public string? Sillage { get; set; }
-
-        /// <summary>Preferred longevity</summary>
-        public string? Longevity { get; set; }
-
-        /// <summary>Recommendation reasons</summary>
-        public List<string>? Reasons { get; set; }
-
-        /// <summary>LLM generated result</summary>
-        public string? Result { get; set; }
     }
 }

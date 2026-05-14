@@ -21,7 +21,8 @@ public class HotClimateSillageRule : Rule
 
     private static void Apply(Recommendation rec)
     {
-        rec.Sillage = "moderate_or_intimate";
+        if (string.IsNullOrWhiteSpace(rec.Sillage))
+            rec.Sillage = "moderate_or_intimate";
         rec.Reasons.Add("Hot climate → moderate or intimate sillage recommended");
     }
 }

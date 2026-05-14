@@ -133,6 +133,64 @@
         word-wrap: break-word;
     }
 
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .product-card {
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        overflow: hidden;
+        text-align: center;
+        background: var(--card-bg);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .product-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .product-card img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
+
+    .product-card-placeholder {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0f0f0;
+        font-size: 2rem;
+        color: #ccc;
+    }
+
+    .product-card-body {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .product-card-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-card-brand {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
     .reasons-list {
         list-style: none;
         padding: 0;
@@ -213,17 +271,6 @@
 </style>
 
 <div class="recommendation-container">
-    <!-- Debug Info (remove in production) -->
-    <script>
-        console.log('HybridRecommendation View Debug:');
-        console.log('Model exists:', @(Model != null ? "true" : "false"));
-        console.log('Recommendation exists:', @(Model?.Recommendation != null ? "true" : "false"));
-        console.log('Prefer count:', @(Model?.Recommendation?.Prefer?.Count ?? 0));
-        console.log('Avoid count:', @(Model?.Recommendation?.Avoid?.Count ?? 0));
-        console.log('Sillage:', '@(Model?.Recommendation?.Sillage ?? "empty")');
-        console.log('Longevity:', '@(Model?.Recommendation?.Longevity ?? "empty")');
-        console.log('LlmGeneratedResponse:', '@(Model?.LlmGeneratedResponse ?? "empty")');
-    </script>
 
     <!-- Header -->
     <div class="recommendation-header">
@@ -233,17 +280,6 @@
 
     @if (Model?.Recommendation != null)
     {
-        <!-- Visual Debug Card -->
-        <div class="recommendation-card" style="background: #f0f0f0; border: 2px dashed #ccc;">
-            <h3>DEBUG INFO (Remove Before Production)</h3>
-            <p><strong>Prefer:</strong> @(Model.Recommendation.Prefer?.Count ?? 0) items - [@string.Join(", ", Model.Recommendation.Prefer?.Take(3) ?? new List<string>())]</p>
-            <p><strong>Avoid:</strong> @(Model.Recommendation.Avoid?.Count ?? 0) items - [@string.Join(", ", Model.Recommendation.Avoid?.Take(3) ?? new List<string>())]</p>
-            <p><strong>Sillage:</strong> @(Model.Recommendation.Sillage ?? "[null]")</p>
-            <p><strong>Longevity:</strong> @(Model.Recommendation.Longevity ?? "[null]")</p>
-            <p><strong>Reasons:</strong> @(Model.Recommendation.Reasons?.Count ?? 0) items</p>
-            <p><strong>Result/LLM Response:</strong> @(string.IsNullOrEmpty(Model.Recommendation.Result) ? "[null in DTO]" : "EXISTS in DTO") / @(string.IsNullOrEmpty(Model.LlmGeneratedResponse) ? "[null in VM]" : "EXISTS in VM")</p>
-        </div>
-
         <!-- Profile Summary Card -->
         <div class="recommendation-card">
             <h2 class="section-title">Your Preference Profile</h2>
@@ -295,6 +331,35 @@
                 </div>
             }
         </div>
+
+        @if (Model.Products?.Any() == true)
+        {
+            <!-- Recommended Perfumes Card -->
+            <div class="recommendation-card">
+                <h2 class="section-title"><i class="bi bi-bag-heart"></i> Recommended Perfumes</h2>
+                <div class="product-grid">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="product-card">
+                            @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="product-card-placeholder">
+                                    <i class="bi bi-droplet"></i>
+                                </div>
+                            }
+                            <div class="product-card-body">
+                                <div class="product-card-name" title="@product.Name">@product.Name</div>
+                                <div class="product-card-brand">@product.Brand</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
         <!-- AI Analysis Card -->
         <div class="recommendation-card">

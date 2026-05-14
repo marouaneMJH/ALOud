@@ -51,6 +51,7 @@ public class ProductDataExtractor : IProductDataExtractor
             Price= p.Price,
 
             Description = p.Description,
+            ImageUrl = p.ImageUrl,
 
             Families = p.PerfumeFamilies
                 .Select(f => f.Family.Name)

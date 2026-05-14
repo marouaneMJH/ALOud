@@ -15,6 +15,7 @@ namespace ALOud.Services.Infrastructure.Rag.Models
         public decimal Price { get; init; }
 
         public string? Description { get; init; }
+        public string? ImageUrl { get; init; }
 
         public IReadOnlyList<string> Families { get; init; } = [];
         public IReadOnlyList<PerfumeNoteInfo> Notes { get; init; } = [];

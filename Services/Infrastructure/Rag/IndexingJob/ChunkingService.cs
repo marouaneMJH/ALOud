@@ -74,7 +74,10 @@ public class ChunkingService : IChunkingService
 
             Brand = source.Brand,
             GenderProfile = source.GenderProfile,
-            PriceRange = source.PriceRange
+            PriceRange = source.PriceRange,
+            Sillage = source.Sillage,
+            Longevity = source.Longevity,
+            ImageUrl = source.ImageUrl
         };
     }
 }

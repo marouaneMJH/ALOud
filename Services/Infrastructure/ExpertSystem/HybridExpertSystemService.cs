@@ -1,3 +1,4 @@
+using ALOud.DTOs.ExpertSystem;
 using ALOud.Models;
 using ALOud.Services.Infrastructure.ExpertSystem.Domain;
 using ALOud.Services.Rag.Clients;
@@ -9,35 +10,40 @@ namespace ALOud.Services.Infrastructure.ExpertSystem;
 
 public class HybridExpertSystemService : IHybridExpertSystemService
 {
-    private readonly IPayloadSearchClient _payloadSearchClient;
+    private readonly IVectorSearchClient _vectorSearchClient;
+    private readonly IEmbeddingClient _embeddingClient;
     private readonly IRagLLMClient _llmClient;
 
     public HybridExpertSystemService(
-        IPayloadSearchClient payloadSearchClient,
+        IVectorSearchClient vectorSearchClient,
+        IEmbeddingClient embeddingClient,
         IRagLLMClient llmClient
     )
     {
-        _payloadSearchClient = payloadSearchClient;
+        _vectorSearchClient = vectorSearchClient;
+        _embeddingClient = embeddingClient;
         _llmClient = llmClient;
     }
 
 
-    public async Task<string> EvaluateAsync(
+    public async Task<HybridEvaluationResult> EvaluateAsync(
         Recommendation rec,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(rec);
 
-        // Validate that we have at least some criteria
         if (rec.Prefer.Count == 0 && rec.Avoid.Count == 0 &&
             string.IsNullOrWhiteSpace(rec.Sillage) && string.IsNullOrWhiteSpace(rec.Longevity))
         {
-            return "Please provide at least one preference criterion (prefer, avoid, sillage, or longevity).";
+            return new HybridEvaluationResult
+            {
+                LlmResponse = "Please provide at least one preference criterion (prefer, avoid, sillage, or longevity)."
+            };
         }
 
         try
         {
-            var products = await GetTopKProducts(
+            var chunks = await GetTopKProducts(
                 rec.Prefer,
                 rec.Avoid,
                 rec.Sillage,
@@ -45,10 +51,17 @@ public class HybridExpertSystemService : IHybridExpertSystemService
                 topK: 5,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return await GetLLMGeneratedRecommendationAsync(
-                products,
+            var llmResponse = await GetLLMGeneratedRecommendationAsync(
+                chunks,
                 rec.Reasons ?? new List<string>(),
+                rec.Avoid,
                 cancellationToken).ConfigureAwait(false);
+
+            return new HybridEvaluationResult
+            {
+                LlmResponse = llmResponse,
+                Products = BuildProductDtos(chunks)
+            };
         }
         catch (OperationCanceledException)
         {
@@ -56,7 +69,10 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         }
         catch (Exception ex)
         {
-            return $"An error occurred during recommendation: {ex.Message}";
+            return new HybridEvaluationResult
+            {
+                LlmResponse = $"An error occurred during recommendation: {ex.Message}"
+            };
         }
     }
 
@@ -69,93 +85,65 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         int topK = 5,
         CancellationToken cancellationToken = default)
     {
-        var filter = BuildQdrantFilter(prefer, avoid, sillage, longevity);
+        // Build a semantic query from preference terms so vector search finds similar perfumes
+        var queryTerms = prefer.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+        if (!string.IsNullOrWhiteSpace(sillage))  queryTerms.Add(sillage!);
+        if (!string.IsNullOrWhiteSpace(longevity)) queryTerms.Add(longevity!);
 
-        var results = await _payloadSearchClient.SearchByFilterAsync(
-            topK,
-            filter: null,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+        var queryText = queryTerms.Count > 0
+            ? string.Join(" ", queryTerms)
+            : "perfume fragrance";
 
-        var uniqueProducts = results
+        var queryVector = await _embeddingClient
+            .CreateEmbeddingAsync(queryText, cancellationToken)
+            .ConfigureAwait(false);
+
+        // Use scalar metadata filters only for sillage/longevity (exact match fields)
+        QdrantFilter? filter = null;
+        if (!string.IsNullOrWhiteSpace(sillage) || !string.IsNullOrWhiteSpace(longevity))
+        {
+            filter = new QdrantFilter();
+            if (!string.IsNullOrWhiteSpace(sillage))
+                filter.Must.Add(new FilterCondition { Key = "sillage", Value = sillage!.Trim() });
+            if (!string.IsNullOrWhiteSpace(longevity))
+                filter.Must.Add(new FilterCondition { Key = "longevity", Value = longevity!.Trim() });
+        }
+
+        var results = await _vectorSearchClient
+            .SearchAsync(queryVector, topK, filter, cancellationToken)
+            .ConfigureAwait(false);
+
+        // Deduplicate: keep highest-scoring chunk per source perfume
+        return results
             .GroupBy(GetSourceKey)
             .Select(g => g.First())
             .ToList();
-
-        return uniqueProducts;
-    }
-
-    private static QdrantFilter BuildQdrantFilter(
-        HashSet<string> prefer,
-        HashSet<string> avoid,
-        string? sillage,
-        string? longevity)
-    {
-        var filter = new QdrantFilter();
-
-        // Add prefer conditions - these search for characteristics in content
-        foreach (var term in prefer.Where(p => !string.IsNullOrWhiteSpace(p)))
-        {
-            filter.Must.Add(new FilterCondition
-            {
-                Key = "characteristics",
-                Value = term.Trim()
-            });
-        }
-
-        // Add avoid conditions - these exclude characteristics from results
-        foreach (var term in avoid.Where(a => !string.IsNullOrWhiteSpace(a)))
-        {
-            filter.MustNot.Add(new FilterCondition
-            {
-                Key = "characteristics",
-                Value = term.Trim()
-            });
-        }
-
-        // Add sillage filter if provided - should use appropriate metadata field
-        if (!string.IsNullOrWhiteSpace(sillage))
-        {
-            filter.Must.Add(new FilterCondition
-            {
-                Key = "sillage",
-                Value = sillage.Trim()
-            });
-        }
-
-        // Add longevity filter if provided - should use appropriate metadata field
-        if (!string.IsNullOrWhiteSpace(longevity))
-        {
-            filter.Must.Add(new FilterCondition
-            {
-                Key = "longevity",
-                Value = longevity.Trim()
-            });
-        }
-
-        return filter;
     }
 
     private async Task<string> GetLLMGeneratedRecommendationAsync(
         IReadOnlyList<RagRetrievedChunk> products,
         IReadOnlyList<string> reasons,
+        HashSet<string> avoid,
         CancellationToken cancellationToken = default)
     {
         try
         {
             if (products.Count == 0)
-            {
                 return "No products found matching your criteria. Please try relaxing your filters.";
-            }
 
             var productContext = BuildProductContext(products);
             var reasonContext = reasons.Count == 0
                 ? "No explicit reasons provided by user."
                 : string.Join("\n", reasons.Select(r => $"- {r}"));
 
+            var avoidContext = avoid.Count == 0
+                ? string.Empty
+                : $" Characteristics to avoid: {string.Join(", ", avoid)}.";
+
             var result = await _llmClient.ExecuteAsync(new RagLLMRequest
             {
-                SystemPrompt = "You are a perfume recommendation expert. Recommend only from provided products. Respect avoid constraints and explain why each product fits the user profile.",
-                UserMessage = "Generate a concise recommendation response with top products, why they fit, and a short caution for any trade-off.",
+                SystemPrompt = $"You are a perfume recommendation expert. Recommend only from the provided products. Explain why each product fits the user profile.{avoidContext}",
+                UserMessage = "Generate a concise recommendation with top products, why they fit, and a short caution for any trade-off.",
                 Context = new
                 {
                     reasons = reasonContext,
@@ -174,9 +162,23 @@ public class HybridExpertSystemService : IHybridExpertSystemService
         }
         catch
         {
-            // Log the error and return fallback response
             return BuildFallbackResponse(products);
         }
+    }
+
+    private static IReadOnlyList<RecommendedPerfumeDto> BuildProductDtos(
+        IReadOnlyList<RagRetrievedChunk> chunks)
+    {
+        return chunks.Select(chunk =>
+        {
+            chunk.Metadata.TryGetValue("imageUrl", out var imageUrl);
+            return new RecommendedPerfumeDto
+            {
+                Name = ExtractField(chunk.Content, "Perfume Name:"),
+                Brand = ExtractField(chunk.Content, "Brand:"),
+                ImageUrl = imageUrl?.ToString()
+            };
+        }).ToList();
     }
 
     private static string GetSourceKey(RagRetrievedChunk chunk)

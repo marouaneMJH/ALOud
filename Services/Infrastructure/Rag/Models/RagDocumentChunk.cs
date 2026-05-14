@@ -10,4 +10,7 @@ public class RagDocumentChunk
     public string? Brand { get; init; }
     public string? GenderProfile { get; init; }
     public string? PriceRange { get; init; }
+    public string? Sillage { get; init; }
+    public string? Longevity { get; init; }
+    public string? ImageUrl { get; init; }
 }

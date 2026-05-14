@@ -21,7 +21,8 @@ public class ColdClimateLongevityRule : Rule
 
     private static void Apply(Recommendation rec)
     {
-        rec.Longevity = ">= long";
+        if (string.IsNullOrWhiteSpace(rec.Longevity))
+            rec.Longevity = ">= long";
         rec.Reasons.Add("Cold climate → longevity should be long");
     }
 }
